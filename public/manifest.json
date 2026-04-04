@@ -1,0 +1,17 @@
+{
+  "name": "CineX Premium",
+  "short_name": "CineX",
+  "description": "Premium movie and TV series streaming platform.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#04010a",
+  "theme_color": "#9d00ff",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}

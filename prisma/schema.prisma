@@ -1,0 +1,54 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model MediaPost {
+  id                String  @id @default(cuid())
+  tmdbId            Int     @unique
+  type              String  // 'movie' or 'tv'
+  
+  // Movie specific
+  streamingEmbedUrl String?
+  
+  // TV Shows specific
+  seasons           Season[]
+
+  // Polymorphic relations for downloads
+  downloadLinks     DownloadLink[]
+}
+
+model Season {
+  id            String  @id @default(cuid())
+  seasonNumber  Int
+  mediaPostId   String
+  mediaPost     MediaPost @relation(fields: [mediaPostId], references: [id])
+  episodes      Episode[]
+}
+
+model Episode {
+  id                String  @id @default(cuid())
+  episodeNumber     Int
+  seasonId          String
+  season            Season  @relation(fields: [seasonId], references: [id])
+  streamingEmbedUrl String?
+  downloadLinks     DownloadLink[]
+}
+
+model DownloadLink {
+  id          String @id @default(cuid())
+  quality     String // e.g., 1080p, 4K
+  label       String // e.g., 1080p Web-DL
+  size        String // e.g., 2.1 GB
+  url         String 
+  
+  mediaPostId String?
+  mediaPost   MediaPost? @relation(fields: [mediaPostId], references: [id])
+  
+  episodeId   String?
+  episode     Episode?   @relation(fields: [episodeId], references: [id])
+}
