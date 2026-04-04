@@ -24,7 +24,14 @@ export async function GET() {
     // Wait, the dock onClick takes a function. We can just do:
     // `onClick: async () => { const res = await fetch('/api/tmdb/random'); const data = await res.json(); router.push(data.url); }`
     
-    return NextResponse.json({ url: `/media/${mediaType}/${id}` });
+    // Return metadata for the modal
+    return NextResponse.json({ 
+      url: `/media/${mediaType}/${id}`,
+      title: (randomItem as any).title || (randomItem as any).name,
+      poster_path: randomItem.poster_path,
+      media_type: mediaType,
+      id: id
+    });
   } catch (error) {
     console.error('Randomizer error:', error);
     return NextResponse.json({ url: '/' }); // Fallback to home

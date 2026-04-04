@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { motion, useScroll, useMotionValueEvent } from 'motion/react'
 import Dock from '@/components/ui/Dock'
+import RandomizerModal from '@/components/ui/RandomizerModal'
 import { VscHome, VscPlayCircle, VscListSelection, VscFlame, VscSearch, VscSymbolClass, VscWand, VscBookmark, VscPlay } from 'react-icons/vsc'
 
 export default function Navbar() {
@@ -15,6 +16,10 @@ export default function Navbar() {
   const { scrollY } = useScroll()
   const [isHidden, setIsHidden] = useState(false)
   const lastScrollY = useRef(0)
+  
+  const [isRandomModalOpen, setIsRandomModalOpen] = useState(false)
+  const [randomItem, setRandomItem] = useState<any>(null)
+  const [isRandomLoading, setIsRandomLoading] = useState(false)
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     const previous = lastScrollY.current
@@ -34,12 +39,18 @@ export default function Navbar() {
   })
 
   const handleSurpriseMe = async () => {
+    setIsRandomModalOpen(true)
+    setIsRandomLoading(true)
     try {
       const res = await fetch('/api/tmdb/random');
       const data = await res.json();
-      if (data.url) router.push(data.url);
+      if (data.url) {
+        setRandomItem(data);
+      }
     } catch (e) {
       console.error(e);
+    } finally {
+      setIsRandomLoading(false)
     }
   };
 
@@ -70,8 +81,8 @@ export default function Navbar() {
     { icon: <VscPlay size={22} />, label: 'Feed', onClick: () => router.push('/feed') },
     { icon: <VscPlayCircle size={22} />, label: 'Movies', onClick: () => router.push('/movies'), className: 'dock-hide-mobile' },
     { icon: <VscListSelection size={22} />, label: 'Series', onClick: () => router.push('/tv'), className: 'dock-hide-mobile' },
-    { icon: <VscWand size={22} />, label: 'Surprise', onClick: handleSurpriseMe, className: 'dock-hide-mobile' },
-    { icon: <VscFlame size={22} />, label: 'Trending', onClick: () => router.push('/trending') },
+    { icon: <VscWand size={22} />, label: 'Surprise', onClick: handleSurpriseMe },
+    { icon: <VscFlame size={22} />, label: 'Trending', onClick: () => router.push('/trending'), className: 'dock-hide-mobile' },
     { icon: <VscBookmark size={22} />, label: 'My List', onClick: () => router.push('/watchlist') },
     { icon: <VscSearch size={22} />, label: 'Search', onClick: () => router.push('/search') },
   ]
@@ -105,6 +116,20 @@ export default function Navbar() {
           />
         </motion.div>
       )}
+
+      <RandomizerModal 
+        isOpen={isRandomModalOpen}
+        isLoading={isRandomLoading}
+        item={randomItem}
+        onClose={() => setIsRandomModalOpen(false)}
+        onReroll={handleSurpriseMe}
+        onConfirm={() => {
+          if (randomItem?.url) {
+            router.push(randomItem.url)
+            setIsRandomModalOpen(false)
+          }
+        }}
+      />
     </>
   )
 }
