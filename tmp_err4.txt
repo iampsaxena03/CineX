@@ -1,0 +1,61 @@
+﻿node.exe : 
+PrismaClientKnownRequestError: 
+At line:1 char:1
++ & "C:\Program 
+Files\nodejs/node.exe" "C:\Program 
+Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSp 
+   ecified: (PrismaClientKnownRequ  
+  estError: :String) [], RemoteEx   
+ ception
+    + FullyQualifiedErrorId : Nativ 
+   eCommandError
+ 
+Invalid 
+`prisma.homePageSection.findMany()` 
+invocation in
+C:\Users\PC\Desktop\CineXP\test-pris
+ma4.ts:9:51
+
+  6 
+  7 async function main() {
+  8   try {
+ΓåÆ 9     const sections = await 
+prisma.homePageSection.findMany(
+The provided API Key is invalid. 
+Reason: Validation of API Key 
+failed.
+    at Gr.handleRequestError (C:\Use
+rs\PC\Desktop\CineXP\node_modules\@p
+risma\client\src\runtime\RequestHand
+ler.ts:237:13)
+    at Gr.handleAndLogRequestError (
+C:\Users\PC\Desktop\CineXP\node_modu
+les\@prisma\client\src\runtime\Reque
+stHandler.ts:183:12)
+    at Gr.request (C:\Users\PC\Deskt
+op\CineXP\node_modules\@prisma\clien
+t\src\runtime\RequestHandler.ts:152:
+12)
+    at 
+process.processTicksAndRejections (n
+ode:internal/process/task_queues:104
+:5)
+    at async a (C:\Users\PC\Desktop\
+CineXP\node_modules\@prisma\client\s
+rc\runtime\getPrismaClient.ts:938:24
+)
+    at async main (C:\Users\PC\Deskt
+op\CineXP\test-prisma4.ts:9:22) {
+  code: 'P6002',
+  meta: {
+    modelName: 'HomePageSection',
+    code: 'P6002',
+    message: 'The provided API Key 
+is invalid. Reason: Validation of 
+API Key failed.'
+  },
+  clientVersion: '7.6.0'
+}

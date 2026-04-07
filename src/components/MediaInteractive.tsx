@@ -18,12 +18,12 @@ interface MediaInteractiveProps {
 }
 
 const PROVIDERS = [
-  { id: 'vidlink', name: 'Vidlink', color: '#63b8bc' },
-  { id: 'vidfast', name: 'Vidfast', color: '#9d00ff' }
+  { id: 'vidfast', name: 'Stream 1', color: '#9d00ff' },
+  { id: 'vidlink', name: 'Stream 2', color: '#63b8bc' }
 ]
 
 export default function MediaInteractive({ id, type, seasons, title = "Unknown Title", posterUrl }: MediaInteractiveProps) {
-  const [activeProvider, setActiveProvider] = useState('vidlink')
+  const [activeProvider, setActiveProvider] = useState('vidfast')
   const [season, setSeason] = useState(seasons && seasons.length > 0 ? (seasons[0].season_number || 1) : 1)
   const [episode, setEpisode] = useState(1)
   const [isSharing, setIsSharing] = useState(false)
