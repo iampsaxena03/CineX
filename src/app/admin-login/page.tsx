@@ -1,0 +1,118 @@
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import Aurora from '@/components/ui/Aurora'
+
+export default function AdminLoginPage() {
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter()
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    setIsLoading(true)
+
+    try {
+      const res = await fetch('/api/admin/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      })
+
+      if (res.ok) {
+        router.push('/admin')
+      } else {
+        setError('Invalid password. Access denied.')
+      }
+    } catch {
+      setError('Connection error. Please try again.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <div className="admin-login-page">
+      {/* Aurora Background */}
+      <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none' }}>
+        <Aurora
+          colorStops={['#1c0436', '#6c1b9b', '#9d00ff']}
+          blend={0.5}
+          amplitude={1.2}
+          speed={0.5}
+        />
+      </div>
+
+      <div className="admin-login-card">
+        {/* Animated sphere */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
+          <div style={{
+            width: 48,
+            height: 48,
+            borderRadius: '50%',
+            background: 'radial-gradient(circle at 35% 35%, var(--accent), var(--primary))',
+            boxShadow: '0 4px 20px rgba(157, 0, 255, 0.5), inset 0 1px 3px rgba(255,255,255,0.3)',
+            animation: 'pulse 3s ease-in-out infinite',
+          }} />
+        </div>
+
+        <h1>CINEX Control</h1>
+        <p>Enter your admin password to continue</p>
+
+        <form onSubmit={handleLogin}>
+          <div style={{ marginBottom: '1rem' }}>
+            <input
+              type="password"
+              className="admin-input"
+              placeholder="Admin Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoFocus
+              style={{ textAlign: 'center', fontSize: '1rem', letterSpacing: '0.1em' }}
+            />
+          </div>
+
+          {error && (
+            <div style={{
+              padding: '0.6rem 1rem',
+              borderRadius: '8px',
+              background: 'rgba(239, 68, 68, 0.12)',
+              border: '1px solid rgba(239, 68, 68, 0.3)',
+              color: '#fca5a5',
+              fontSize: '0.82rem',
+              textAlign: 'center',
+              marginBottom: '1rem',
+            }}>
+              {error}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            className="admin-btn admin-btn-primary"
+            disabled={isLoading || !password}
+            style={{
+              width: '100%',
+              justifyContent: 'center',
+              padding: '0.85rem',
+              fontSize: '0.95rem',
+              opacity: isLoading || !password ? 0.5 : 1,
+            }}
+          >
+            {isLoading ? 'Authenticating...' : 'Enter Control Room'}
+          </button>
+        </form>
+      </div>
+
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { transform: scale(1); box-shadow: 0 4px 20px rgba(157, 0, 255, 0.5); }
+          50% { transform: scale(1.1); box-shadow: 0 4px 30px rgba(157, 0, 255, 0.7); }
+        }
+      `}</style>
+    </div>
+  )
+}

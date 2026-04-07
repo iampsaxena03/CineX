@@ -9,8 +9,8 @@ export default function Top10Row({ items }: { items: TMDBMediaItem[] }) {
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
 
-  // We show all items, but only the first 10 get the "Top 10" branding
-  const displayItems = items.slice(0, 20);
+  // Strictly show exactly 10 items
+  const displayItems = items.slice(0, 10);
 
   const checkScroll = () => {
     if (scrollRef.current) {

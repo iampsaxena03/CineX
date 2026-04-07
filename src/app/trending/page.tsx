@@ -1,9 +1,10 @@
-import { getTrending, type TMDBMediaItem } from "@/lib/tmdb";
+import { getTrending, getMediaById, type TMDBMediaItem } from "@/lib/tmdb";
 import Aurora from "@/components/ui/Aurora";
 import MediaCard from "@/components/MediaCard";
 import Top10Row from "@/components/ui/Top10Row";
+import { prisma } from "@/lib/admin";
 
-export const revalidate = 3600;
+export const dynamic = 'force-dynamic';
 
 export const metadata = {
   title: 'Trending | CineX',
@@ -13,9 +14,39 @@ export const metadata = {
 export default async function TrendingPage() {
   const trending = await getTrending('IN');
 
+  // Fetch admin Top 10 picks from DB
+  let top10Items: TMDBMediaItem[] = [];
+  try {
+    const top10Section = await prisma.homeSection.findUnique({
+      where: { key: 'top_10' },
+      include: { items: { orderBy: { position: 'asc' } } }
+    });
+
+    if (top10Section && top10Section.items.length > 0) {
+      const resolved = await Promise.all(
+        top10Section.items.map(item => getMediaById(item.tmdbId, item.mediaType))
+      );
+
+      const usedIds = new Set<number>();
+      // Admin picks first
+      for (const item of resolved) {
+        if (item) { top10Items.push(item); usedIds.add(item.id); }
+      }
+      // Fill remaining to 10 from trending
+      for (const item of trending) {
+        if (top10Items.length >= 10) break;
+        if (!usedIds.has(item.id)) { top10Items.push(item); usedIds.add(item.id); }
+      }
+    } else {
+      // No admin picks — use trending as before
+      top10Items = trending.slice(0, 10);
+    }
+  } catch {
+    top10Items = trending.slice(0, 10);
+  }
+
   return (
     <div style={{ position: "relative", minHeight: "100vh" }}>
-      {/* Aurora Background */}
       <div style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none" }}>
         <Aurora
           colorStops={["#3a0ca3", "#f72585", "#7209b7"]}
@@ -26,7 +57,6 @@ export default async function TrendingPage() {
       </div>
 
       <div className="page-wrapper container" style={{ position: "relative", zIndex: 1, paddingBottom: "100px" }}>
-        {/* Header */}
         <div style={{ textAlign: "center", padding: "4rem 0 3rem" }}>
           <h1
             style={{
@@ -46,8 +76,8 @@ export default async function TrendingPage() {
           </p>
         </div>
 
-        {/* Top 10 Styling Row */}
-        {trending.length >= 10 && <Top10Row items={trending} />}
+        {/* Top 10 — Uses admin picks */}
+        {top10Items.length >= 10 && <Top10Row items={top10Items} />}
 
         {/* Trending Grid */}
         <section>
@@ -57,15 +87,13 @@ export default async function TrendingPage() {
             </div>
           ) : (
             <div className="grid">
-              {trending.map((item: TMDBMediaItem, index: number) => {
-                return (
-                  <MediaCard 
-                    key={`${item.media_type}-${item.id}`} 
-                    item={item} 
-                    stagger={index % 6 * 0.05} // Stagger only per row for performance
-                  />
-                );
-              })}
+              {trending.map((item: TMDBMediaItem, index: number) => (
+                <MediaCard
+                  key={`${item.media_type}-${item.id}`}
+                  item={item}
+                  stagger={index % 6 * 0.05}
+                />
+              ))}
             </div>
           )}
         </section>

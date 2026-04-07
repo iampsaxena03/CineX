@@ -108,6 +108,14 @@ async function tmdbFetch<T>(endpoint: string, params: Record<string, string> = {
   }
 }
 
+// Fetch a single media item by TMDB ID (for resolving admin picks)
+export async function getMediaById(tmdbId: number, mediaType: string): Promise<TMDBMediaItem | null> {
+  const endpoint = mediaType === 'tv' ? `/tv/${tmdbId}` : `/movie/${tmdbId}`
+  const data = await tmdbFetch<any>(endpoint)
+  if (!data) return null
+  return { ...data, media_type: mediaType } as TMDBMediaItem
+}
+
 export async function getTrending(region?: string): Promise<TMDBMediaItem[]> {
   const globalTrending = await tmdbFetch<TMDBSearchResult<TMDBMediaItem>>('/trending/all/day')
   const globalResults = globalTrending?.results || []

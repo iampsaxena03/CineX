@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { VscShare } from 'react-icons/vsc'
 import StreamPlayer, { StreamPlayerRef } from './ui/StreamPlayer'
@@ -31,6 +31,29 @@ export default function MediaInteractive({ id, type, seasons, title = "Unknown T
   const [storyFile, setStoryFile] = useState<File | null>(null)
   const [storyPreviewUrl, setStoryPreviewUrl] = useState<string | null>(null)
   const playerRef = useRef<StreamPlayerRef>(null)
+  const [downloadLinks, setDownloadLinks] = useState<any[]>([])
+  const [episodeDownloads, setEpisodeDownloads] = useState<any[]>([])
+  const [downloadsLoading, setDownloadsLoading] = useState(true)
+
+  // Fetch download links
+  const fetchDownloads = useCallback(async () => {
+    setDownloadsLoading(true)
+    try {
+      let url = `/api/downloads?tmdbId=${id}&type=${type}`
+      if (type === 'tv') url += `&season=${season}&episode=${episode}`
+      const res = await fetch(url)
+      const data = await res.json()
+      setDownloadLinks(data.links || [])
+      setEpisodeDownloads(data.episodeLinks || [])
+    } catch {
+      setDownloadLinks([])
+      setEpisodeDownloads([])
+    } finally {
+      setDownloadsLoading(false)
+    }
+  }, [id, type, season, episode])
+
+  useEffect(() => { fetchDownloads() }, [fetchDownloads])
 
   // Cleanup object URL
   useEffect(() => {
@@ -283,9 +306,210 @@ export default function MediaInteractive({ id, type, seasons, title = "Unknown T
           opacity={0.6}
           blur={10}
         >
-          <div style={{ padding: '3rem', textAlign: 'center' }}>
-            <p style={{ opacity: 0.5, fontSize: '0.95rem' }}>Stream is optimized for high-speed playback. <br/>Offline downloads currently being processed for this title.</p>
-          </div>
+          {downloadsLoading ? (
+            <div style={{ padding: '2rem', textAlign: 'center', opacity: 0.5 }}>Loading downloads...</div>
+          ) : (downloadLinks.length === 0 && episodeDownloads.length === 0) ? (
+            <div style={{ padding: '3rem', textAlign: 'center' }}>
+              <p style={{ opacity: 0.5, fontSize: '0.95rem' }}>Stream is optimized for high-speed playback. <br/>No offline downloads available for this title yet.</p>
+            </div>
+          ) : (
+            <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {/* Movie/Season level links */}
+              {downloadLinks.map((link: any) => (
+                <a
+                  key={link.id}
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="dl-card"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '1rem',
+                    padding: '1rem 1.25rem',
+                    background: 'linear-gradient(135deg, rgba(157,0,255,0.06) 0%, rgba(157,0,255,0.12) 100%)',
+                    border: '1px solid rgba(157,0,255,0.15)',
+                    borderRadius: '14px',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    cursor: 'pointer',
+                    textDecoration: 'none',
+                    color: 'inherit',
+                    position: 'relative',
+                    overflow: 'hidden',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(157,0,255,0.5)'
+                    e.currentTarget.style.transform = 'translateY(-2px)'
+                    e.currentTarget.style.boxShadow = '0 8px 24px rgba(157,0,255,0.2), 0 0 0 1px rgba(157,0,255,0.1)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(157,0,255,0.15)'
+                    e.currentTarget.style.transform = 'translateY(0)'
+                    e.currentTarget.style.boxShadow = 'none'
+                  }}
+                >
+                  {/* Download Icon */}
+                  <div style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: '12px',
+                    background: 'linear-gradient(135deg, var(--primary), var(--secondary))',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '1.2rem',
+                    flexShrink: 0,
+                    boxShadow: '0 4px 12px rgba(157,0,255,0.3)',
+                  }}>
+                    ⬇
+                  </div>
+                  {/* Info */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                      <span style={{ fontSize: '0.95rem', fontWeight: 600 }}>{link.label || link.quality}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      <span style={{
+                        padding: '0.15rem 0.5rem',
+                        background: link.quality?.includes('4K') || link.quality?.includes('2160') ? 'linear-gradient(135deg, #f59e0b, #d97706)' :
+                                   link.quality?.includes('1080') ? 'linear-gradient(135deg, var(--primary), var(--secondary))' :
+                                   link.quality?.includes('720') ? 'linear-gradient(135deg, #3b82f6, #2563eb)' :
+                                   'rgba(255,255,255,0.15)',
+                        borderRadius: '6px',
+                        fontSize: '0.68rem',
+                        fontWeight: 700,
+                        letterSpacing: '0.03em',
+                      }}>{link.quality}</span>
+                      {link.size && (
+                        <span style={{
+                          padding: '0.15rem 0.5rem',
+                          background: 'rgba(255,255,255,0.06)',
+                          borderRadius: '6px',
+                          fontSize: '0.72rem',
+                          opacity: 0.7,
+                          border: '1px solid rgba(255,255,255,0.08)',
+                        }}>{link.size}</span>
+                      )}
+                    </div>
+                  </div>
+                  {/* Arrow */}
+                  <div style={{
+                    fontSize: '0.85rem',
+                    fontWeight: 600,
+                    color: 'var(--accent)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    opacity: 0.9,
+                    flexShrink: 0,
+                  }}>
+                    Download
+                    <span style={{ fontSize: '1.1rem' }}>→</span>
+                  </div>
+                </a>
+              ))}
+              {/* Episode-specific links */}
+              {episodeDownloads.map((link: any) => (
+                <a
+                  key={link.id}
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="dl-card"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '1rem',
+                    padding: '1rem 1.25rem',
+                    background: 'linear-gradient(135deg, rgba(59,130,246,0.06) 0%, rgba(59,130,246,0.12) 100%)',
+                    border: '1px solid rgba(59,130,246,0.15)',
+                    borderRadius: '14px',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    cursor: 'pointer',
+                    textDecoration: 'none',
+                    color: 'inherit',
+                    position: 'relative',
+                    overflow: 'hidden',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(59,130,246,0.5)'
+                    e.currentTarget.style.transform = 'translateY(-2px)'
+                    e.currentTarget.style.boxShadow = '0 8px 24px rgba(59,130,246,0.2), 0 0 0 1px rgba(59,130,246,0.1)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(59,130,246,0.15)'
+                    e.currentTarget.style.transform = 'translateY(0)'
+                    e.currentTarget.style.boxShadow = 'none'
+                  }}
+                >
+                  {/* Download Icon */}
+                  <div style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: '12px',
+                    background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '1.2rem',
+                    flexShrink: 0,
+                    boxShadow: '0 4px 12px rgba(59,130,246,0.3)',
+                  }}>
+                    ⬇
+                  </div>
+                  {/* Info */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                      <span style={{ fontSize: '0.95rem', fontWeight: 600 }}>{link.label || link.quality}</span>
+                      <span style={{
+                        padding: '0.1rem 0.35rem',
+                        background: 'rgba(59,130,246,0.2)',
+                        borderRadius: '4px',
+                        fontSize: '0.62rem',
+                        fontWeight: 700,
+                        color: '#93c5fd',
+                      }}>EPISODE</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      <span style={{
+                        padding: '0.15rem 0.5rem',
+                        background: link.quality?.includes('4K') || link.quality?.includes('2160') ? 'linear-gradient(135deg, #f59e0b, #d97706)' :
+                                   link.quality?.includes('1080') ? 'linear-gradient(135deg, #3b82f6, #2563eb)' :
+                                   'rgba(255,255,255,0.15)',
+                        borderRadius: '6px',
+                        fontSize: '0.68rem',
+                        fontWeight: 700,
+                      }}>{link.quality}</span>
+                      {link.size && (
+                        <span style={{
+                          padding: '0.15rem 0.5rem',
+                          background: 'rgba(255,255,255,0.06)',
+                          borderRadius: '6px',
+                          fontSize: '0.72rem',
+                          opacity: 0.7,
+                          border: '1px solid rgba(255,255,255,0.08)',
+                        }}>{link.size}</span>
+                      )}
+                    </div>
+                  </div>
+                  {/* Arrow */}
+                  <div style={{
+                    fontSize: '0.85rem',
+                    fontWeight: 600,
+                    color: '#93c5fd',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    opacity: 0.9,
+                    flexShrink: 0,
+                  }}>
+                    Download
+                    <span style={{ fontSize: '1.1rem' }}>→</span>
+                  </div>
+                </a>
+              ))}
+            </div>
+          )}
         </GlassSurface>
       </div>
 

@@ -19,35 +19,71 @@ model MediaPost {
 
   // Polymorphic relations for downloads
   downloadLinks     DownloadLink[]
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }
 
 model Season {
   id            String  @id @default(cuid())
   seasonNumber  Int
   mediaPostId   String
-  mediaPost     MediaPost @relation(fields: [mediaPostId], references: [id])
+  mediaPost     MediaPost @relation(fields: [mediaPostId], references: [id], onDelete: Cascade)
   episodes      Episode[]
+
+  @@unique([mediaPostId, seasonNumber])
 }
 
 model Episode {
   id                String  @id @default(cuid())
   episodeNumber     Int
   seasonId          String
-  season            Season  @relation(fields: [seasonId], references: [id])
+  season            Season  @relation(fields: [seasonId], references: [id], onDelete: Cascade)
   streamingEmbedUrl String?
   downloadLinks     DownloadLink[]
+
+  @@unique([seasonId, episodeNumber])
 }
 
 model DownloadLink {
   id          String @id @default(cuid())
-  quality     String // e.g., 1080p, 4K
-  label       String // e.g., 1080p Web-DL
+  quality     String // e.g., 480p, 720p, 1080p, 4K
+  label       String // e.g., 1080p Web-DL, 4K HDR
   size        String // e.g., 2.1 GB
   url         String 
   
   mediaPostId String?
-  mediaPost   MediaPost? @relation(fields: [mediaPostId], references: [id])
+  mediaPost   MediaPost? @relation(fields: [mediaPostId], references: [id], onDelete: Cascade)
   
   episodeId   String?
-  episode     Episode?   @relation(fields: [episodeId], references: [id])
+  episode     Episode?   @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model HomeSection {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  title     String
+  type      String   // "top10" | "trending" | "latest" | "continue_watching" | "countdown" | "custom"
+  order     Int
+  visible   Boolean  @default(true)
+  maxItems  Int      @default(20)
+  autoFill  Boolean  @default(true)
+  items     HomeSectionItem[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model HomeSectionItem {
+  id        String   @id @default(cuid())
+  tmdbId    Int
+  mediaType String   // "movie" or "tv"
+  position  Int
+  sectionId String
+  section   HomeSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([sectionId, position])
 }

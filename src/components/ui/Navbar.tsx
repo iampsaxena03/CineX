@@ -54,25 +54,9 @@ export default function Navbar() {
     }
   };
 
-  // Admin pages keep a simple traditional navbar
-  if (isAdmin) {
-    return (
-      <nav className="navbar" id="main-navbar">
-        <div className="navbar-brand">
-          <Link href="/" className="navbar-logo">CINEX</Link>
-          <span className="navbar-tag">CONTROL</span>
-        </div>
-        <div className="navbar-links">
-          <Link href="/admin" className={`navbar-link ${pathname === '/admin' ? 'active' : ''}`}>Dashboard</Link>
-          <Link href="/admin/posts" className={`navbar-link ${pathname.startsWith('/admin/posts') ? 'active' : ''}`}>Library</Link>
-          <Link href="/admin/new" className={`navbar-link ${pathname === '/admin/new' ? 'active' : ''}`}>Add New</Link>
-        </div>
-        <div className="navbar-actions">
-          <Link href="/" className="admin-pill">Exit Studio</Link>
-        </div>
-      </nav>
-    )
-  }
+  // Admin pages use their own dedicated layout with AdminSidebar
+  if (isAdmin) return null
+
 
   // Desktop: Home, Movies, Series, Genres, Surprise Me, Trending, Search
   // Mobile (<768px): Home, Surprise Me, Search (Movies/Series/Genres hidden via CSS)
