@@ -1,17 +1,16 @@
 import { NextResponse } from 'next/server'
-import { validatePassword, generateSessionToken, createSession, isValidSession, deleteSession, ADMIN_COOKIE } from '@/lib/admin'
+import { validateCredentials, generateSessionToken, isValidSession, ADMIN_COOKIE } from '@/lib/auth'
 
 // POST: Login
 export async function POST(request: Request) {
   try {
-    const { password } = await request.json()
+    const { username, password } = await request.json()
     
-    if (!validatePassword(password)) {
-      return NextResponse.json({ error: 'Invalid password' }, { status: 401 })
+    if (!validateCredentials(username, password)) {
+      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
     }
 
-    const token = generateSessionToken()
-    createSession(token)
+    const token = await generateSessionToken()
 
     const response = NextResponse.json({ success: true })
     response.cookies.set(ADMIN_COOKIE, token, {
@@ -39,7 +38,8 @@ export async function GET(request: Request) {
   )
   
   const token = cookies[ADMIN_COOKIE]
-  if (!token || !isValidSession(token)) {
+  const valid = token ? await isValidSession(token) : false
+  if (!valid) {
     return NextResponse.json({ authenticated: false }, { status: 401 })
   }
 
@@ -56,9 +56,7 @@ export async function DELETE(request: Request) {
     })
   )
   
-  const token = cookies[ADMIN_COOKIE]
-  if (token) deleteSession(token)
-
+  // We just delete the cookie stateless
   const response = NextResponse.json({ success: true })
   response.cookies.delete(ADMIN_COOKIE)
   return response

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Aurora from '@/components/ui/Aurora'
 
 export default function AdminLoginPage() {
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -19,13 +20,13 @@ export default function AdminLoginPage() {
       const res = await fetch('/api/admin/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ username, password }),
       })
 
       if (res.ok) {
         router.push('/admin')
       } else {
-        setError('Invalid password. Access denied.')
+        setError('Invalid credentials. Access denied.')
       }
     } catch {
       setError('Connection error. Please try again.')
@@ -65,13 +66,23 @@ export default function AdminLoginPage() {
         <form onSubmit={handleLogin}>
           <div style={{ marginBottom: '1rem' }}>
             <input
+              type="text"
+              className="admin-input"
+              placeholder="Admin Username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              autoFocus
+              style={{ textAlign: 'center', fontSize: '1rem', letterSpacing: '0.05em', width: '100%' }}
+            />
+          </div>
+          <div style={{ marginBottom: '1.5rem' }}>
+            <input
               type="password"
               className="admin-input"
               placeholder="Admin Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              autoFocus
-              style={{ textAlign: 'center', fontSize: '1rem', letterSpacing: '0.1em' }}
+              style={{ textAlign: 'center', fontSize: '1rem', letterSpacing: '0.1em', width: '100%' }}
             />
           </div>
 
@@ -93,13 +104,13 @@ export default function AdminLoginPage() {
           <button
             type="submit"
             className="admin-btn admin-btn-primary"
-            disabled={isLoading || !password}
+            disabled={isLoading || !password || !username}
             style={{
               width: '100%',
               justifyContent: 'center',
               padding: '0.85rem',
               fontSize: '0.95rem',
-              opacity: isLoading || !password ? 0.5 : 1,
+              opacity: isLoading || !password || !username ? 0.5 : 1,
             }}
           >
             {isLoading ? 'Authenticating...' : 'Enter Control Room'}

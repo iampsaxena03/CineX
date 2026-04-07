@@ -2,11 +2,40 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/admin'
 import { revalidatePath } from 'next/cache'
 
+// Fetch all AppSettings
+export async function GET(request: Request) {
+  try {
+    const settings = await prisma.appSettings.findMany()
+    const config = settings.reduce((acc: any, s: any) => {
+      acc[s.key] = s.value
+      return acc
+    }, {})
+    
+    // Default values if missing
+    if (config.SHORTENER_ENABLED === undefined) config.SHORTENER_ENABLED = "true"
+    
+    return NextResponse.json({ config })
+  } catch (error) {
+    console.error('Settings GET error:', error)
+    return NextResponse.json({ error: 'Failed to fetch settings' }, { status: 500 })
+  }
+}
+
 export async function POST(request: Request) {
   try {
-    const { action } = await request.json()
+    const body = await request.json()
+    const { action, value } = body
 
     switch (action) {
+      case 'toggle_shortener': {
+        await prisma.appSettings.upsert({
+          where: { key: 'SHORTENER_ENABLED' },
+          update: { value: String(value) },
+          create: { key: 'SHORTENER_ENABLED', value: String(value) }
+        })
+        return NextResponse.json({ success: true, message: `URL Shortener ${value === 'true' || value === true ? 'Enabled' : 'Disabled'}` })
+      }
+
       case 'revalidate_home':
         revalidatePath('/')
         return NextResponse.json({ success: true, message: 'Home page cache cleared' })
@@ -24,7 +53,7 @@ export async function POST(request: Request) {
         await prisma.downloadLink.deleteMany({})
         return NextResponse.json({ success: true, message: 'All download links deleted' })
 
-      case 'db_stats':
+      case 'db_stats': {
         const [mediaCount, downloadCount, sectionCount, itemCount] = await Promise.all([
           prisma.mediaPost.count(),
           prisma.downloadLink.count(),
@@ -35,6 +64,7 @@ export async function POST(request: Request) {
           success: true,
           stats: { mediaCount, downloadCount, sectionCount, itemCount }
         })
+      }
 
       default:
         return NextResponse.json({ error: 'Unknown action' }, { status: 400 })

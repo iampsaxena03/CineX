@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { isValidSession } from '@/lib/auth'
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Only protect /admin routes (not /admin-login)
@@ -12,9 +13,11 @@ export function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('/admin-login', request.url))
     }
     
-    // Note: We can't check in-memory sessions from middleware (runs on edge)
-    // The session check happens in the API routes. The presence of the cookie
-    // is enough for the initial gate; API calls will reject expired sessions.
+    // Verify the JWT so that invalid/expired sessions are blocked at Edge
+    const valid = await isValidSession(token)
+    if (!valid) {
+      return NextResponse.redirect(new URL('/admin-login', request.url))
+    }
   }
 
   return NextResponse.next()

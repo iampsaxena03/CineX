@@ -124,7 +124,7 @@ export async function DELETE(
     })
 
     await Promise.all(
-      remaining.map((item, index) =>
+      remaining.map((item: any, index: number) =>
         prisma.homeSectionItem.update({
           where: { id: item.id },
           data: { position: index }
