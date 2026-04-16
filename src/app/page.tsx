@@ -6,7 +6,7 @@ import Top10Row from "@/components/ui/Top10Row";
 import CountdownRow from "@/components/CountdownRow";
 import { prisma } from "@/lib/admin";
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 interface SectionItem {
   tmdbId: number

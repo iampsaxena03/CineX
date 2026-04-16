@@ -117,7 +117,7 @@ export default function SettingsPage() {
         <p style={{ fontSize: '0.85rem', opacity: 0.5, marginBottom: '1.25rem' }}>
           Enable or disable core system features dynamically.
         </p>
-        <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', alignItems: 'center', background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--admin-border)' }}>
+        <div className="admin-feature-toggle-row">
           <div style={{ flex: 1 }}>
             <h3 style={{ fontSize: '1.05rem', marginBottom: '0.25rem' }}>URL Shortener Monetization</h3>
             <p style={{ fontSize: '0.85rem', opacity: 0.6 }}>
@@ -186,7 +186,7 @@ export default function SettingsPage() {
         transition={{ delay: 0.25 }}
       >
         <h2>📊 Database Status</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '1rem', marginTop: '1rem' }}>
+        <div className="admin-db-status-grid">
           {[
             { label: 'Media Posts', value: dbStats?.mediaCount ?? '—', icon: <VscDatabase /> },
             { label: 'Download Links', value: dbStats?.downloadCount ?? '—', icon: <VscDatabase /> },

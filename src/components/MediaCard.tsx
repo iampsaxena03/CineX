@@ -3,6 +3,7 @@
 import React, { useRef, useState, MouseEvent, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import Link from "next/link";
+import Image from "next/image";
 import { getImageUrl, type TMDBMediaItem } from "@/lib/tmdb";
 import ScrollReveal from "@/components/ui/ScrollReveal";
 import ContextMenu from "./ui/ContextMenu";
@@ -133,9 +134,12 @@ const MediaCard: React.FC<MediaCardProps> = ({ item, stagger = 0, showRemoveHist
             />
           )}
           {item.poster_path ? (
-            <img
+            <Image
               src={getImageUrl(item.poster_path, "w342")}
               alt={title}
+              fill
+              sizes="(max-width: 600px) 50vw, (max-width: 1024px) 33vw, 20vw"
+              style={{ objectFit: "cover" }}
               loading="lazy"
             />
           ) : (

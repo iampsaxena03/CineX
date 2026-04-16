@@ -111,7 +111,7 @@ export default function DownloadsPage() {
               <p>No download links configured yet.<br />Search above to get started.</p>
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1rem' }}>
+            <div className="admin-media-configured-grid">
               {recentMedia.map((item, i) => (
                 <motion.div
                   key={item.id}

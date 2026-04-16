@@ -221,11 +221,10 @@ export default function DownloadEditPage() {
         <>
           {/* Media Info Card */}
           <motion.div
-            className="admin-section-card"
+            className="admin-section-card admin-media-info-layout"
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start' }}
           >
             {mediaInfo?.poster_path && (
               <img
@@ -247,7 +246,7 @@ export default function DownloadEditPage() {
                 {mediaInfo?.overview?.substring(0, 200)}{mediaInfo?.overview?.length > 200 ? '...' : ''}
               </p>
             </div>
-            <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
+              <div className="admin-media-info-actions" style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
               <a href={`/media/${type}/${tmdbId}`} target="_blank" rel="noopener noreferrer" className="admin-btn admin-btn-secondary admin-btn-sm">
                 <VscGlobe size={14} /> Preview
               </a>
@@ -297,13 +296,7 @@ export default function DownloadEditPage() {
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
                     transition={{ duration: 0.2 }}
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns: '120px 1fr 100px 1fr auto',
-                      gap: '0.75rem',
-                      alignItems: 'center',
-                      marginBottom: '0.75rem',
-                    }}
+                    className="admin-link-row"
                   >
                     <select
                       className="admin-select"
@@ -356,7 +349,7 @@ export default function DownloadEditPage() {
             >
               {/* Season tabs */}
               {seasons.length > 0 && (
-                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
+                <div className="admin-season-tabs" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
                   {seasons.map((s: any) => (
                     <button
                       key={s.season_number}
@@ -393,13 +386,7 @@ export default function DownloadEditPage() {
                     {epLinks.map((link, linkIndex) => (
                       <div
                         key={linkIndex}
-                        style={{
-                          display: 'grid',
-                          gridTemplateColumns: '100px 1fr 80px 1fr auto',
-                          gap: '0.5rem',
-                          alignItems: 'center',
-                          marginBottom: '0.5rem',
-                        }}
+                        className="admin-ep-link-row"
                       >
                         <select
                           className="admin-select"
@@ -450,19 +437,7 @@ export default function DownloadEditPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            style={{
-              position: 'sticky',
-              bottom: '1.5rem',
-              display: 'flex',
-              justifyContent: 'flex-end',
-              gap: '0.75rem',
-              padding: '1rem 1.5rem',
-              background: 'rgba(8, 3, 18, 0.9)',
-              backdropFilter: 'blur(20px)',
-              borderRadius: '14px',
-              border: '1px solid var(--admin-border)',
-              marginTop: '2rem',
-            }}
+            className="admin-save-bar"
           >
             <Link href="/admin/downloads" className="admin-btn admin-btn-secondary">
               Cancel

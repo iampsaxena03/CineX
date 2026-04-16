@@ -343,7 +343,7 @@ export default function HomeLayoutPage() {
         </motion.p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: activeSection ? '380px 1fr' : '1fr', gap: '2rem', alignItems: 'start' }}>
+      <div className={`admin-home-editor-grid ${activeSection ? 'has-editor' : ''}`}>
         {/* Left: Section List */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
@@ -631,6 +631,7 @@ export default function HomeLayoutPage() {
             onClick={() => setShowNewModal(false)}
           >
             <motion.div
+              className="admin-modal-content"
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}

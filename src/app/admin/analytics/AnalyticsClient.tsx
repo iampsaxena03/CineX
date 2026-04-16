@@ -47,7 +47,7 @@ export default function AnalyticsClient({
         <StatCard label="Home Sections" value={totalSections} icon={<VscLayout />} color="var(--admin-warning)" />
       </motion.div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+      <div className="admin-analytics-two-col">
         {/* Recent Downloads */}
         <motion.div
           className="admin-section-card"
@@ -142,7 +142,7 @@ export default function AnalyticsClient({
         transition={{ delay: 0.35 }}
       >
         <h2>Content Coverage</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', padding: '1rem 0' }}>
+        <div className="admin-content-coverage-grid">
           <div>
             <div style={{ fontSize: '0.8rem', opacity: 0.5, marginBottom: '0.5rem' }}>Movies with Downloads</div>
             <div style={{

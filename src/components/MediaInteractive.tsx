@@ -150,136 +150,154 @@ export default function MediaInteractive({ id, type, seasons, title = "Unknown T
   };
 
   return (
-    <div className="media-interactive-wrapper" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+    <div className="media-interactive-wrapper" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%' }}>
       
-      {/* Premium Provider Switcher */}
-      <div className="provider-switcher-container" style={{ display: 'flex', justifyContent: 'center' }}>
-        <div style={{ position: 'relative', padding: '4px', borderRadius: '99px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', gap: '4px' }}>
-          <GlassSurface 
-            width="100%" 
-            height="100%" 
-            borderRadius={99} 
-            borderWidth={0.02} 
-            brightness={30} 
-            opacity={0.8} 
-            blur={20}
-            className="absolute inset-0"
-            style={{ zIndex: -1 }}
-          />
-          {PROVIDERS.map((p) => (
+      {/* Control Bar (Servers, TV Selectors, Actions) */}
+      <GlassSurface 
+        width="100%" 
+        height="auto" 
+        borderRadius={16} 
+        borderWidth={0.05} 
+        brightness={20} 
+        opacity={0.6} 
+        blur={10}
+      >
+        <div style={{ 
+          padding: '0.75rem 1.25rem', 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between', 
+          flexWrap: 'wrap', 
+          gap: '1rem' 
+        }}>
+          {/* Left Side: Server & Episode controls */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+            
+            {/* Server Switcher */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.05em', opacity: 0.5, textTransform: 'uppercase' }}>Source</span>
+              <div style={{ display: 'flex', gap: '4px', background: 'rgba(0,0,0,0.3)', borderRadius: '99px', padding: '4px' }}>
+                {PROVIDERS.map((p) => (
+                  <button
+                    key={p.id}
+                    onClick={() => setActiveProvider(p.id)}
+                    style={{
+                      position: 'relative',
+                      padding: '0.4rem 1rem',
+                      borderRadius: '99px',
+                      border: 'none',
+                      background: 'transparent',
+                      color: activeProvider === p.id ? 'white' : 'rgba(255,255,255,0.5)',
+                      fontSize: '0.8rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      transition: 'color 0.3s ease',
+                      outline: 'none',
+                      zIndex: 1
+                    }}
+                  >
+                    {activeProvider === p.id && (
+                      <motion.div
+                        layoutId="active-pill"
+                        style={{ position: 'absolute', inset: 0, background: p.color, borderRadius: '99px', zIndex: -1, boxShadow: `0 0 15px ${p.color}44` }}
+                        transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
+                      />
+                    )}
+                    {p.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* TV Controls */}
+            {type === 'tv' && seasons && (
+              <>
+                <div style={{ width: '1px', height: '24px', background: 'rgba(255,255,255,0.1)' }} />
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <select 
+                    value={season} 
+                    onChange={(e) => {
+                      setSeason(Number(e.target.value))
+                      setEpisode(1)
+                    }}
+                    style={{ 
+                      padding: '0.4rem 2rem 0.4rem 1rem', 
+                      borderRadius: '9px', 
+                      background: 'rgba(255,255,255,0.06)', 
+                      color: 'white', 
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      fontSize: '0.85rem',
+                      appearance: 'none',
+                      cursor: 'pointer',
+                      outline: 'none',
+                      backgroundImage: 'url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2212%22%20height%3D%228%22%20viewBox%3D%220%200%2012%208%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M1%201.5L6%206.5L11%201.5%22%20stroke%3D%22rgba(255%2C255%2C255%2C0.5)%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E")',
+                      backgroundRepeat: 'no-repeat',
+                      backgroundPosition: 'right 0.8rem center',
+                    }}
+                  >
+                    {seasons.map((s) => (
+                      s.season_number > 0 && <option key={s.id} value={s.season_number} style={{ background: '#1a0b2e' }}>Season {s.season_number}</option>
+                    ))}
+                  </select>
+                  
+                  <select
+                    value={episode}
+                    onChange={(e) => setEpisode(Number(e.target.value))}
+                    style={{ 
+                      padding: '0.4rem 2rem 0.4rem 1rem', 
+                      borderRadius: '9px', 
+                      background: 'rgba(255,255,255,0.06)', 
+                      color: 'white', 
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      fontSize: '0.85rem',
+                      appearance: 'none',
+                      cursor: 'pointer',
+                      outline: 'none',
+                      backgroundImage: 'url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2212%22%20height%3D%228%22%20viewBox%3D%220%200%2012%208%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M1%201.5L6%206.5L11%201.5%22%20stroke%3D%22rgba(255%2C255%2C255%2C0.5)%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E")',
+                      backgroundRepeat: 'no-repeat',
+                      backgroundPosition: 'right 0.8rem center',
+                    }}
+                  >
+                    {Array.from({ length: epCount }).map((_, i) => (
+                      <option key={i + 1} value={i + 1} style={{ background: '#1a0b2e' }}>Ep {i + 1}</option>
+                    ))}
+                  </select>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Right Side: Actions */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+            <WatchlistButton item={{ id, type, title, poster_path: posterUrl || null, backdrop_path: null }} />
             <button
-              key={p.id}
-              onClick={() => setActiveProvider(p.id)}
+              onClick={handleShare}
+              disabled={isSharing}
               style={{
-                position: 'relative',
-                padding: '0.6rem 1.5rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                padding: '0.5rem 1rem',
+                background: isSharing ? 'rgba(255,255,255,0.02)' : 'linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05))',
+                border: '1px solid rgba(255,255,255,0.1)',
                 borderRadius: '99px',
-                border: 'none',
-                background: 'transparent',
-                color: activeProvider === p.id ? 'white' : 'rgba(255,255,255,0.5)',
+                color: isSharing ? 'rgba(255,255,255,0.5)' : 'white',
+                cursor: isSharing ? 'wait' : 'pointer',
                 fontSize: '0.85rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'color 0.3s ease',
-                outline: 'none',
-                zIndex: 1
+                fontWeight: 500,
+                transition: 'all 0.2s',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
               }}
+              onMouseEnter={(e) => { if(!isSharing) Object.assign(e.currentTarget.style, { background: 'rgba(255,255,255,0.15)', transform: 'translateY(-1px)' }) }}
+              onMouseLeave={(e) => { if(!isSharing) Object.assign(e.currentTarget.style, { background: 'linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05))', transform: 'translateY(0)' }) }}
             >
-              {activeProvider === p.id && (
-                <motion.div
-                  layoutId="active-pill"
-                  style={{
-                    position: 'absolute',
-                    inset: 0,
-                    background: p.color,
-                    borderRadius: '99px',
-                    zIndex: -1,
-                    boxShadow: `0 0 15px ${p.color}44`
-                  }}
-                  transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
-                />
-              )}
-              {p.name}
+              <VscShare size={16} /> <span className="share-text" style={{ whiteSpace: 'nowrap' }}>{isSharing ? 'Generating...' : 'Share to Story'}</span>
             </button>
-          ))}
-        </div>
-      </div>
-
-      {type === 'tv' && seasons && (
-        <div className="tv-controls" style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-          <div style={{ position: 'relative' }}>
-            <select 
-              value={season} 
-              onChange={(e) => {
-                setSeason(Number(e.target.value))
-                setEpisode(1)
-              }}
-              className="season-select"
-              style={{ 
-                padding: '0.75rem 1.5rem', 
-                borderRadius: '12px', 
-                background: 'rgba(255,255,255,0.05)', 
-                color: 'white', 
-                border: '1px solid rgba(157, 0, 255, 0.3)',
-                appearance: 'none',
-                cursor: 'pointer'
-              }}
-            >
-              {seasons.map((s) => (
-                s.season_number > 0 && <option key={s.id} value={s.season_number} style={{ background: '#1a0b2e' }}>Season {s.season_number}</option>
-              ))}
-            </select>
-          </div>
-          
-          <div style={{ position: 'relative' }}>
-            <select
-              value={episode}
-              onChange={(e) => setEpisode(Number(e.target.value))}
-              className="episode-select"
-              style={{ 
-                padding: '0.75rem 1.5rem', 
-                borderRadius: '12px', 
-                background: 'rgba(255,255,255,0.05)', 
-                color: 'white', 
-                border: '1px solid rgba(157, 0, 255, 0.3)',
-                appearance: 'none',
-                cursor: 'pointer'
-              }}
-            >
-              {Array.from({ length: epCount }).map((_, i) => (
-                <option key={i + 1} value={i + 1} style={{ background: '#1a0b2e' }}>Episode {i + 1}</option>
-              ))}
-            </select>
           </div>
         </div>
-      )}
+      </GlassSurface>
 
-      {/* Action Bar */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.8rem', marginTop: type === 'tv' && seasons ? '-1rem' : '0' }}>
-        <WatchlistButton 
-          item={{ id, type, title, poster_path: posterUrl || null, backdrop_path: null }}
-        />
-        <button
-          onClick={handleShare}
-          disabled={isSharing}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.4rem',
-            padding: '0.5rem 1rem',
-            background: isSharing ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.08)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: '999px',
-            color: isSharing ? 'rgba(255,255,255,0.5)' : 'white',
-            cursor: isSharing ? 'wait' : 'pointer',
-            fontSize: '0.85rem',
-            transition: 'all 0.2s'
-          }}
-        >
-          <VscShare /> {isSharing ? 'Generating Story...' : 'Share to Story'}
-        </button>
-      </div>
-
+      {/* Player container */}
       <div className="player-container" style={{ aspectRatio: '16/9', width: '100%', background: '#000', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 20px 40px rgba(0,0,0,0.4), 0 0 30px rgba(157, 0, 255, 0.1)' }}>
         <AnimatePresence mode="wait">
           <motion.div
@@ -295,222 +313,96 @@ export default function MediaInteractive({ id, type, seasons, title = "Unknown T
         </AnimatePresence>
       </div>
 
-      <div className="download-section" style={{ marginTop: '1rem' }}>
-        <h3 style={{ fontSize: '1.25rem', marginBottom: '1.5rem', fontWeight: 600, opacity: 0.9 }}>Available Downloads</h3>
-        <GlassSurface
-          width="100%"
-          height="auto"
-          borderRadius={16}
-          borderWidth={0.05}
-          brightness={20}
-          opacity={0.6}
-          blur={10}
-        >
-          {downloadsLoading ? (
-            <div style={{ padding: '2rem', textAlign: 'center', opacity: 0.5 }}>Loading downloads...</div>
-          ) : (downloadLinks.length === 0 && episodeDownloads.length === 0) ? (
-            <div style={{ padding: '3rem', textAlign: 'center' }}>
-              <p style={{ opacity: 0.5, fontSize: '0.95rem' }}>Stream is optimized for high-speed playback. <br/>No offline downloads available for this title yet.</p>
+      {/* Downloads Section */}
+      <div className="download-section">
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem', gap: '0.5rem' }}>
+          <h3 style={{ fontSize: '1.2rem', fontWeight: 600, margin: 0 }}>Downloads</h3>
+          <span style={{ fontSize: '0.7rem', padding: '2px 8px', borderRadius: '10px', background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Available</span>
+        </div>
+        
+        {downloadsLoading ? (
+          <GlassSurface width="100%" height="auto" borderRadius={16} borderWidth={0.05} brightness={20} opacity={0.6} blur={10}>
+            <div style={{ padding: '2rem', textAlign: 'center', opacity: 0.5 }}>Loading available formats...</div>
+          </GlassSurface>
+        ) : (downloadLinks.length === 0 && episodeDownloads.length === 0) ? (
+          <GlassSurface width="100%" height="auto" borderRadius={16} borderWidth={0.05} brightness={20} opacity={0.6} blur={10}>
+            <div style={{ padding: '2rem', textAlign: 'center' }}>
+              <p style={{ opacity: 0.5, fontSize: '0.9rem', margin: 0 }}>Stream is optimized for high-speed playback.<br/>Offline downloads are not available for this title yet.</p>
             </div>
-          ) : (
-            <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              {/* Movie/Season level links */}
-              {downloadLinks.map((link: any) => (
+          </GlassSurface>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
+            {[...downloadLinks, ...episodeDownloads].map((link: any, i: number) => {
+              const isEpisode = i >= downloadLinks.length;
+              const accentColor = isEpisode ? '#3b82f6' : 'var(--primary)';
+              const accentGradient = isEpisode ? 'linear-gradient(135deg, #3b82f6, #2563eb)' : 'linear-gradient(135deg, var(--primary), var(--secondary))';
+              
+              return (
                 <a
-                  key={link.id}
+                  key={link.id || i}
                   href={link.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="dl-card"
                   style={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: '1rem',
-                    padding: '1rem 1.25rem',
-                    background: 'linear-gradient(135deg, rgba(157,0,255,0.06) 0%, rgba(157,0,255,0.12) 100%)',
-                    border: '1px solid rgba(157,0,255,0.15)',
-                    borderRadius: '14px',
-                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                    cursor: 'pointer',
+                    padding: '1rem',
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid rgba(255,255,255,0.05)',
+                    borderRadius: '16px',
+                    transition: 'all 0.3s ease',
                     textDecoration: 'none',
                     color: 'inherit',
                     position: 'relative',
                     overflow: 'hidden',
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = 'rgba(157,0,255,0.5)'
-                    e.currentTarget.style.transform = 'translateY(-2px)'
-                    e.currentTarget.style.boxShadow = '0 8px 24px rgba(157,0,255,0.2), 0 0 0 1px rgba(157,0,255,0.1)'
+                    e.currentTarget.style.borderColor = accentColor;
+                    e.currentTarget.style.background = `rgba(${isEpisode ? '59,130,246' : '157,0,255'}, 0.08)`;
+                    e.currentTarget.style.transform = 'translateY(-2px)';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = 'rgba(157,0,255,0.15)'
-                    e.currentTarget.style.transform = 'translateY(0)'
-                    e.currentTarget.style.boxShadow = 'none'
+                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)';
+                    e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
+                    e.currentTarget.style.transform = 'translateY(0)';
                   }}
                 >
-                  {/* Download Icon */}
                   <div style={{
-                    width: 44,
-                    height: 44,
+                    width: 40,
+                    height: 40,
                     borderRadius: '12px',
-                    background: 'linear-gradient(135deg, var(--primary), var(--secondary))',
+                    background: accentGradient,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     fontSize: '1.2rem',
                     flexShrink: 0,
-                    boxShadow: '0 4px 12px rgba(157,0,255,0.3)',
+                    boxShadow: `0 4px 12px ${accentColor}44`,
                   }}>
                     ⬇
                   </div>
-                  {/* Info */}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                      <span style={{ fontSize: '0.95rem', fontWeight: 600 }}>{link.label || link.quality}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
+                      <span style={{ fontSize: '0.9rem', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {link.label || link.quality}
+                      </span>
+                      {isEpisode && (
+                        <span style={{ fontSize: '0.6rem', padding: '1px 4px', background: 'rgba(59,130,246,0.2)', color: '#60a5fa', borderRadius: '4px', fontWeight: 700 }}>EP</span>
+                      )}
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                      <span style={{
-                        padding: '0.15rem 0.5rem',
-                        background: link.quality?.includes('4K') || link.quality?.includes('2160') ? 'linear-gradient(135deg, #f59e0b, #d97706)' :
-                                   link.quality?.includes('1080') ? 'linear-gradient(135deg, var(--primary), var(--secondary))' :
-                                   link.quality?.includes('720') ? 'linear-gradient(135deg, #3b82f6, #2563eb)' :
-                                   'rgba(255,255,255,0.15)',
-                        borderRadius: '6px',
-                        fontSize: '0.68rem',
-                        fontWeight: 700,
-                        letterSpacing: '0.03em',
-                      }}>{link.quality}</span>
+                    <div style={{ display: 'flex', gap: '0.4rem' }}>
+                      <span style={{ fontSize: '0.7rem', padding: '2px 6px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', fontWeight: 600 }}>{link.quality || 'Auto'}</span>
                       {link.size && (
-                        <span style={{
-                          padding: '0.15rem 0.5rem',
-                          background: 'rgba(255,255,255,0.06)',
-                          borderRadius: '6px',
-                          fontSize: '0.72rem',
-                          opacity: 0.7,
-                          border: '1px solid rgba(255,255,255,0.08)',
-                        }}>{link.size}</span>
+                        <span style={{ fontSize: '0.7rem', padding: '2px 6px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', opacity: 0.7 }}>{link.size}</span>
                       )}
                     </div>
                   </div>
-                  {/* Arrow */}
-                  <div style={{
-                    fontSize: '0.85rem',
-                    fontWeight: 600,
-                    color: 'var(--accent)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.4rem',
-                    opacity: 0.9,
-                    flexShrink: 0,
-                  }}>
-                    Download
-                    <span style={{ fontSize: '1.1rem' }}>→</span>
-                  </div>
                 </a>
-              ))}
-              {/* Episode-specific links */}
-              {episodeDownloads.map((link: any) => (
-                <a
-                  key={link.id}
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="dl-card"
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '1rem',
-                    padding: '1rem 1.25rem',
-                    background: 'linear-gradient(135deg, rgba(59,130,246,0.06) 0%, rgba(59,130,246,0.12) 100%)',
-                    border: '1px solid rgba(59,130,246,0.15)',
-                    borderRadius: '14px',
-                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                    cursor: 'pointer',
-                    textDecoration: 'none',
-                    color: 'inherit',
-                    position: 'relative',
-                    overflow: 'hidden',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = 'rgba(59,130,246,0.5)'
-                    e.currentTarget.style.transform = 'translateY(-2px)'
-                    e.currentTarget.style.boxShadow = '0 8px 24px rgba(59,130,246,0.2), 0 0 0 1px rgba(59,130,246,0.1)'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = 'rgba(59,130,246,0.15)'
-                    e.currentTarget.style.transform = 'translateY(0)'
-                    e.currentTarget.style.boxShadow = 'none'
-                  }}
-                >
-                  {/* Download Icon */}
-                  <div style={{
-                    width: 44,
-                    height: 44,
-                    borderRadius: '12px',
-                    background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '1.2rem',
-                    flexShrink: 0,
-                    boxShadow: '0 4px 12px rgba(59,130,246,0.3)',
-                  }}>
-                    ⬇
-                  </div>
-                  {/* Info */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                      <span style={{ fontSize: '0.95rem', fontWeight: 600 }}>{link.label || link.quality}</span>
-                      <span style={{
-                        padding: '0.1rem 0.35rem',
-                        background: 'rgba(59,130,246,0.2)',
-                        borderRadius: '4px',
-                        fontSize: '0.62rem',
-                        fontWeight: 700,
-                        color: '#93c5fd',
-                      }}>EPISODE</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                      <span style={{
-                        padding: '0.15rem 0.5rem',
-                        background: link.quality?.includes('4K') || link.quality?.includes('2160') ? 'linear-gradient(135deg, #f59e0b, #d97706)' :
-                                   link.quality?.includes('1080') ? 'linear-gradient(135deg, #3b82f6, #2563eb)' :
-                                   'rgba(255,255,255,0.15)',
-                        borderRadius: '6px',
-                        fontSize: '0.68rem',
-                        fontWeight: 700,
-                      }}>{link.quality}</span>
-                      {link.size && (
-                        <span style={{
-                          padding: '0.15rem 0.5rem',
-                          background: 'rgba(255,255,255,0.06)',
-                          borderRadius: '6px',
-                          fontSize: '0.72rem',
-                          opacity: 0.7,
-                          border: '1px solid rgba(255,255,255,0.08)',
-                        }}>{link.size}</span>
-                      )}
-                    </div>
-                  </div>
-                  {/* Arrow */}
-                  <div style={{
-                    fontSize: '0.85rem',
-                    fontWeight: 600,
-                    color: '#93c5fd',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.4rem',
-                    opacity: 0.9,
-                    flexShrink: 0,
-                  }}>
-                    Download
-                    <span style={{ fontSize: '1.1rem' }}>→</span>
-                  </div>
-                </a>
-              ))}
-            </div>
-          )}
-        </GlassSurface>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <ShareStoryModal 

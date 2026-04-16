@@ -1,6 +1,6 @@
 {
-  "name": "CineX Premium",
-  "short_name": "CineX",
+  "name": "CineXP Premium",
+  "short_name": "CineXP",
   "description": "Premium movie and TV series streaming platform.",
   "start_url": "/",
   "display": "standalone",
@@ -9,9 +9,15 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }

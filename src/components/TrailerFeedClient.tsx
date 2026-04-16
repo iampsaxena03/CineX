@@ -15,6 +15,7 @@ import { MdBookmark } from 'react-icons/md';
 import { useRouter } from 'next/navigation';
 import { getImageUrl } from '@/lib/tmdb';
 import { ReelVideo } from '@/lib/reels';
+import { addToWatchlist, removeFromWatchlist, isInWatchlist } from '@/lib/watchlist';
 
 // ─── Global YT types ─────────────────────────────────────────────────────────
 declare global {
@@ -311,11 +312,53 @@ function ReelSlide({
   // ── Share ───────────────────────────────────────────────────────────────────
   const handleShare = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const url = `${window.location.origin}/media/${item.media_type || 'movie'}/${item.id}`;
-    navigator.clipboard.writeText(url).then(() => {
+    const mediaType = item.media_type || 'movie';
+    const url = `${window.location.origin}/media/${mediaType}/${item.id}`;
+    const shareTitle = (item as any).title || (item as any).name || 'CineXP';
+
+    if (navigator.share) {
+      navigator.share({
+        title: shareTitle,
+        text: `Check out this ${mediaType} on CineXP!`,
+        url: url,
+      }).catch(err => {
+        console.error('Error sharing:', err);
+        // Fallback to clipboard
+        copyToClipboard(url);
+      });
+    } else {
+      copyToClipboard(url);
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });
+  };
+
+  // ── Watchlist Persistence ───────────────────────────────────────────────────
+  useEffect(() => {
+    setInWatchlist(isInWatchlist(item.id));
+  }, [item.id]);
+
+  const toggleWatchlist = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (inWatchlist) {
+      removeFromWatchlist(item.id);
+      setInWatchlist(false);
+    } else {
+      const watchlistItem = {
+        id: item.id,
+        type: (item.media_type as 'movie' | 'tv') || 'movie',
+        title: (item as any).title || (item as any).name || 'Unknown',
+        poster_path: item.poster_path,
+        backdrop_path: item.backdrop_path,
+      };
+      addToWatchlist(watchlistItem);
+      setInWatchlist(true);
+    }
   };
 
   const title = (item as any).title || (item as any).name || 'Unknown';
@@ -426,7 +469,7 @@ function ReelSlide({
           <SidebarAction
             icon={inWatchlist ? <MdBookmark size={24} /> : <VscBookmark size={24} />}
             label={inWatchlist ? 'Saved' : 'Save'}
-            onClick={e => { e.stopPropagation(); setInWatchlist(v => !v); }}
+            onClick={toggleWatchlist}
             active={inWatchlist}
           />
 
