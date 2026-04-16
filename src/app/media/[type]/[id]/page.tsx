@@ -155,7 +155,14 @@ export default async function MediaPage({
         </div>
 
         {/* Interactive: Season picker + Player + Downloads */}
-        <MediaInteractive id={id} type={type} seasons={seasons} title={title} posterUrl={posterUrl} />
+        <MediaInteractive 
+          id={id} 
+          type={type} 
+          imdbId={(details as any).external_ids?.imdb_id} 
+          seasons={seasons} 
+          title={title} 
+          posterUrl={posterUrl} 
+        />
 
         {/* Similar / Recommended Content */}
         {similar.length > 0 && (

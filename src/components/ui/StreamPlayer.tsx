@@ -31,7 +31,6 @@ const VIDFAST_ORIGINS = [
 
 const VIDLINK_ORIGIN = 'https://vidlink.pro'
 const VIDSRC_ORIGIN = 'https://vidsrc.mov'
-const VSEMBED_ORIGIN = 'https://www.vsembed.ru'
 
 const StreamPlayer = forwardRef<StreamPlayerRef, StreamPlayerProps>(({ embedUrl, isPaused, startTime }, ref) => {
   const [loaded, setLoaded] = useState(false)
@@ -71,9 +70,8 @@ const StreamPlayer = forwardRef<StreamPlayerRef, StreamPlayerProps>(({ embedUrl,
       const isVidfast = VIDFAST_ORIGINS.includes(origin)
       const isVidlink = origin === VIDLINK_ORIGIN
       const isVidsrc = origin === VIDSRC_ORIGIN
-      const isVsembed = origin === VSEMBED_ORIGIN
 
-      if (!isVidfast && !isVidlink && !isVidsrc && !isVsembed) return
+      if (!isVidfast && !isVidlink && !isVidsrc) return
       if (!data) return
 
       // Handle Progress Tracking (MEDIA_DATA)

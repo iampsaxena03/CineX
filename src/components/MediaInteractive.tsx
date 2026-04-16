@@ -12,6 +12,7 @@ import { getInitialSync, getStartTimeFor, saveInternalProgress } from '@/lib/pro
 
 interface MediaInteractiveProps {
   id: string
+  imdbId?: string
   type: 'movie' | 'tv'
   seasons?: any[]
   title?: string
@@ -22,10 +23,10 @@ const PROVIDERS = [
   { id: 'vidfast', name: 'Stream 1', color: '#9d00ff' },
   { id: 'vidlink', name: 'Stream 2', color: '#63b8bc' },
   { id: 'vidsrc', name: 'Stream 3', color: '#ff4b2b' },
-  { id: 'vsembed', name: 'Stream 4', color: '#00d2ff' }
+  { id: 'hdvb', name: 'Stream 4', color: '#00d2ff' }
 ]
 
-export default function MediaInteractive({ id, type, seasons, title = "Unknown Title", posterUrl }: MediaInteractiveProps) {
+export default function MediaInteractive({ id, imdbId, type, seasons, title = "Unknown Title", posterUrl }: MediaInteractiveProps) {
   const [activeProvider, setActiveProvider] = useState('vidfast')
   const [season, setSeason] = useState(seasons && seasons.length > 0 ? (seasons[0].season_number || 1) : 1)
   const [episode, setEpisode] = useState(1)
@@ -103,18 +104,19 @@ export default function MediaInteractive({ id, type, seasons, title = "Unknown T
       return type === 'movie'
         ? `${base}/movie/${id}?${params}${timeParam}`
         : `${base}/tv/${id}/${season}/${episode}?${params}${timeParam}`
-    } else if (activeProvider === 'vidsrc') {
+    } else if (activeProvider === 'hdvb') {
+      // HDVB / PikaShow Mirror
+      const base = 'https://piexe411qok.com/play'
+      const finalId = imdbId || id; // Fallback to TMDB if IMDb is missing
+      return type === 'movie'
+        ? `${base}/${finalId}`
+        : `${base}/${finalId}?s=${season}&e=${episode}`
+    } else {
       // vidsrc.mov
       const base = 'https://vidsrc.mov/embed'
       return type === 'movie'
         ? `${base}/movie/${id}`
         : `${base}/tv/${id}/${season}/${episode}`
-    } else {
-      // vsembed.ru
-      const base = 'https://www.vsembed.ru/embed/tmdb'
-      return type === 'movie'
-        ? `${base}/movie?id=${id}`
-        : `${base}/tv?id=${id}&s=${season}&e=${episode}`
     }
   }
 

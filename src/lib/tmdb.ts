@@ -261,11 +261,11 @@ export async function getPopularTVShows(page = 1, region?: string): Promise<TMDB
 }
 
 export async function getMovieDetails(id: string | number): Promise<TMDBMovie | null> {
-  return tmdbFetch<TMDBMovie>(`/movie/${id}`, { append_to_response: 'credits,videos' })
+  return tmdbFetch<TMDBMovie>(`/movie/${id}`, { append_to_response: 'credits,videos,external_ids' })
 }
 
 export async function getTVDetails(id: string | number): Promise<TMDBTVShow | null> {
-  return tmdbFetch<TMDBTVShow>(`/tv/${id}`, { append_to_response: 'credits,videos' })
+  return tmdbFetch<TMDBTVShow>(`/tv/${id}`, { append_to_response: 'credits,videos,external_ids' })
 }
 
 export async function getDetails(type: 'movie' | 'tv', id: string | number) {
