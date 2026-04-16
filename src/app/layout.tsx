@@ -1,22 +1,27 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Navbar from "@/components/ui/Navbar";
-import ProgressiveBlur from "@/components/ui/ProgressiveBlur";
 import CommandPalette from "@/components/ui/CommandPalette";
 import InstallPWA from "@/components/ui/InstallPWA";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "CineX | Premium Streaming",
+  title: "CineXP | Premium Streaming",
   description: "Advanced Movie & TV Series streaming platform",
   manifest: "/manifest.json",
   appleWebApp: {
-    title: "CineX",
+    capable: true,
+    title: "CineXP",
     statusBarStyle: "black-translucent",
   },
+  applicationName: "CineXP",
 };
 
-export const viewport = {
-  themeColor: "#9d00ff",
+export const viewport: Viewport = {
+  themeColor: "#04010a",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({
@@ -27,7 +32,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <ProgressiveBlur />
         <Navbar />
         <CommandPalette />
         <InstallPWA />

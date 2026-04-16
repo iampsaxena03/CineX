@@ -9,9 +9,23 @@ export default function InstallPWA() {
   const [showPopup, setShowPopup] = useState(false);
 
   useEffect(() => {
+    // Check local storage so we don't bother users sequentially
+    const isLocallyInstalled = localStorage.getItem("pwa-installed") === "true";
+    if (isLocallyInstalled) return;
+
     // Determine if the app is already installed
     const isStandalone = window.matchMedia("(display-mode: standalone)").matches || (window.navigator as any).standalone;
-    if (isStandalone) return;
+    if (isStandalone) {
+      localStorage.setItem("pwa-installed", "true");
+      return;
+    }
+
+    const installHandler = () => {
+      localStorage.setItem("pwa-installed", "true");
+      setShowPopup(false);
+    };
+
+    window.addEventListener("appinstalled", installHandler);
 
     const handler = (e: Event) => {
       e.preventDefault();
@@ -24,6 +38,7 @@ export default function InstallPWA() {
 
     return () => {
       window.removeEventListener("beforeinstallprompt", handler);
+      window.removeEventListener("appinstalled", installHandler);
     };
   }, []);
 
@@ -32,9 +47,14 @@ export default function InstallPWA() {
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
     if (outcome === "accepted") {
+      localStorage.setItem("pwa-installed", "true");
       setShowPopup(false);
     }
     setDeferredPrompt(null);
+  };
+
+  const handleDismiss = () => {
+    setShowPopup(false);
   };
 
   return (
