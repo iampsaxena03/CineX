@@ -9,6 +9,7 @@
   "background_color": "#04010a",
   "theme_color": "#04010a",
   "orientation": "portrait",
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/icon-192x192.png",
