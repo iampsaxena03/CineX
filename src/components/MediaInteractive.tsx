@@ -8,6 +8,7 @@ import GlassSurface from './ui/GlassSurface'
 import { generateStoryCard } from '@/lib/storyCard'
 import WatchlistButton from './WatchlistButton'
 import ShareStoryModal from './ShareStoryModal'
+import { getInitialSync, getStartTimeFor, saveInternalProgress } from '@/lib/progressManager'
 
 interface MediaInteractiveProps {
   id: string
@@ -19,13 +20,16 @@ interface MediaInteractiveProps {
 
 const PROVIDERS = [
   { id: 'vidfast', name: 'Stream 1', color: '#9d00ff' },
-  { id: 'vidlink', name: 'Stream 2', color: '#63b8bc' }
+  { id: 'vidlink', name: 'Stream 2', color: '#63b8bc' },
+  { id: 'vidsrc', name: 'Stream 3', color: '#ff4b2b' },
+  { id: 'vsembed', name: 'Stream 4', color: '#00d2ff' }
 ]
 
 export default function MediaInteractive({ id, type, seasons, title = "Unknown Title", posterUrl }: MediaInteractiveProps) {
   const [activeProvider, setActiveProvider] = useState('vidfast')
   const [season, setSeason] = useState(seasons && seasons.length > 0 ? (seasons[0].season_number || 1) : 1)
   const [episode, setEpisode] = useState(1)
+  const [isRestored, setIsRestored] = useState(false)
   const [isSharing, setIsSharing] = useState(false)
   const [showShareModal, setShowShareModal] = useState(false)
   const [storyFile, setStoryFile] = useState<File | null>(null)
@@ -55,6 +59,26 @@ export default function MediaInteractive({ id, type, seasons, title = "Unknown T
 
   useEffect(() => { fetchDownloads() }, [fetchDownloads])
 
+  // Restore Watch Progress
+  useEffect(() => {
+    const sync = getInitialSync(id, type);
+    if (sync) {
+      setActiveProvider(sync.provider);
+      if (type === 'tv' && sync.season && sync.episode) {
+        setSeason(sync.season);
+        setEpisode(sync.episode);
+      }
+    }
+    setIsRestored(true);
+  }, [id, type]);
+
+  // Save progress manually when user changes something
+  useEffect(() => {
+    if (isRestored) {
+      saveInternalProgress(id, type, activeProvider, season, episode);
+    }
+  }, [id, type, activeProvider, season, episode, isRestored]);
+
   // Cleanup object URL
   useEffect(() => {
     return () => {
@@ -63,19 +87,34 @@ export default function MediaInteractive({ id, type, seasons, title = "Unknown T
   }, [storyPreviewUrl])
 
   // Determine embed url based on provider
+  const startTime = isRestored ? getStartTimeFor(id, type, activeProvider, season, episode) : 0;
+  const timeParam = startTime > 0 ? `&t=${startTime}` : '';
+
   const getEmbedUrl = () => {
     if (activeProvider === 'vidfast') {
       const base = 'https://vidfast.pro'
       return type === 'movie'
-        ? `${base}/movie/${id}`
-        : `${base}/tv/${id}/${season}/${episode}?autoPlay=true&title=true&poster=true&theme=9B59B6&nextButton=true&autoNext=true`
-    } else {
+        ? `${base}/movie/${id}?autoPlay=true${timeParam}`
+        : `${base}/tv/${id}/${season}/${episode}?autoPlay=true&title=true&poster=true&theme=9B59B6&nextButton=true&autoNext=true${timeParam}`
+    } else if (activeProvider === 'vidlink') {
       // Vidlink
       const base = 'https://vidlink.pro'
       const params = 'primaryColor=63b8bc&secondaryColor=a2a2a2&iconColor=eefdec&icons=default&player=default&title=true&poster=true&autoplay=true&nextbutton=true'
       return type === 'movie'
-        ? `${base}/movie/${id}?${params}`
-        : `${base}/tv/${id}/${season}/${episode}?${params}`
+        ? `${base}/movie/${id}?${params}${timeParam}`
+        : `${base}/tv/${id}/${season}/${episode}?${params}${timeParam}`
+    } else if (activeProvider === 'vidsrc') {
+      // vidsrc.mov
+      const base = 'https://vidsrc.mov/embed'
+      return type === 'movie'
+        ? `${base}/movie/${id}`
+        : `${base}/tv/${id}/${season}/${episode}`
+    } else {
+      // vsembed.ru
+      const base = 'https://www.vsembed.ru/embed/tmdb'
+      return type === 'movie'
+        ? `${base}/movie?id=${id}`
+        : `${base}/tv?id=${id}&s=${season}&e=${episode}`
     }
   }
 
@@ -308,7 +347,7 @@ export default function MediaInteractive({ id, type, seasons, title = "Unknown T
             transition={{ duration: 0.4 }}
             style={{ width: '100%', height: '100%' }}
           >
-            <StreamPlayer ref={playerRef} embedUrl={embedUrl} isPaused={showShareModal} />
+            <StreamPlayer ref={playerRef} embedUrl={embedUrl} isPaused={showShareModal} startTime={startTime} />
           </motion.div>
         </AnimatePresence>
       </div>
