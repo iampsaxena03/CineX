@@ -1,17 +1,30 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { VscClose } from "react-icons/vsc";
 
 export default function InstallPWA() {
+  const pathname = usePathname();
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showPopup, setShowPopup] = useState(false);
 
   useEffect(() => {
-    // Check local storage so we don't bother users sequentially
+    // Hide everywhere on the admin panel
+    if (pathname?.startsWith("/admin")) return;
+
+    // Check local storage so we don't bother users sequentially if they are installed
     const isLocallyInstalled = localStorage.getItem("pwa-installed") === "true";
     if (isLocallyInstalled) return;
+
+    // 24 Hour Cooldown check
+    const dismissedTime = localStorage.getItem("pwa-prompt-dismissed");
+    if (dismissedTime) {
+      if (Date.now() - parseInt(dismissedTime) < 24 * 60 * 60 * 1000) {
+        return; // less than 24 hours since last dismissed
+      }
+    }
 
     // Determine if the app is already installed
     const isStandalone = window.matchMedia("(display-mode: standalone)").matches || (window.navigator as any).standalone;
@@ -40,7 +53,7 @@ export default function InstallPWA() {
       window.removeEventListener("beforeinstallprompt", handler);
       window.removeEventListener("appinstalled", installHandler);
     };
-  }, []);
+  }, [pathname]);
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
@@ -54,8 +67,13 @@ export default function InstallPWA() {
   };
 
   const handleDismiss = () => {
+    // Record dismissal time
+    localStorage.setItem("pwa-prompt-dismissed", Date.now().toString());
     setShowPopup(false);
   };
+
+  // If we are on admin routes, don't even mount AnimatePresence wrapper to save some overhead
+  if (pathname?.startsWith("/admin")) return null;
 
   return (
     <AnimatePresence>
@@ -123,7 +141,7 @@ export default function InstallPWA() {
               Install
             </button>
             <button
-              onClick={() => setShowPopup(false)}
+              onClick={handleDismiss}
               style={{
                 background: "transparent",
                 color: "#fff",
