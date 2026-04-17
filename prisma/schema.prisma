@@ -81,6 +81,7 @@ model HomeSectionItem {
   tmdbId    Int
   mediaType String   // "movie" or "tv"
   position  Int
+  preferredStream String?
   sectionId String
   section   HomeSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())

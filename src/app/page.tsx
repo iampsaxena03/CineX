@@ -12,6 +12,7 @@ interface SectionItem {
   tmdbId: number
   mediaType: string
   position: number
+  preferredStream?: string | null
 }
 
 interface Section {
@@ -53,9 +54,9 @@ export default async function HomePage() {
       }));
 
   // Collect ALL admin-selected tmdbIds across ALL sections
-  const allAdminItems: { tmdbId: number; mediaType: string }[] = [];
+  const allAdminItems: { tmdbId: number; mediaType: string; preferredStream?: string | null }[] = [];
   sections.forEach(s => s.items.forEach(item => {
-    allAdminItems.push({ tmdbId: item.tmdbId, mediaType: item.mediaType });
+    allAdminItems.push({ tmdbId: item.tmdbId, mediaType: item.mediaType, preferredStream: item.preferredStream });
   }));
 
   // Check if we need upcoming movies
@@ -71,8 +72,11 @@ export default async function HomePage() {
   // Build lookup: tmdbId -> TMDBMediaItem
   const tmdbLookup = new Map<number, TMDBMediaItem>();
   trending.forEach(item => tmdbLookup.set(item.id, item));
-  resolvedAdminItems.forEach(item => {
-    if (item) tmdbLookup.set(item.id, item);
+  resolvedAdminItems.forEach((item, index) => {
+    if (item) {
+      item.preferredStream = allAdminItems[index].preferredStream;
+      tmdbLookup.set(item.id, item);
+    }
   });
 
   return (

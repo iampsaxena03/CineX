@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { VscShare } from 'react-icons/vsc'
 import StreamPlayer, { StreamPlayerRef } from './ui/StreamPlayer'
+import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import GlassSurface from './ui/GlassSurface'
 import { generateStoryCard } from '@/lib/storyCard'
 import WatchlistButton from './WatchlistButton'
@@ -40,6 +41,10 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
   const [episodeDownloads, setEpisodeDownloads] = useState<any[]>([])
   const [downloadsLoading, setDownloadsLoading] = useState(true)
 
+  const searchParams = useSearchParams()
+  const pathname = usePathname()
+  const streamParam = searchParams?.get('stream')
+
   // Fetch download links
   const fetchDownloads = useCallback(async () => {
     setDownloadsLoading(true)
@@ -60,18 +65,38 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
 
   useEffect(() => { fetchDownloads() }, [fetchDownloads])
 
-  // Restore Watch Progress
+  // Restore Watch Progress and URL param handling
   useEffect(() => {
-    const sync = getInitialSync(id, type);
-    if (sync) {
-      setActiveProvider(sync.provider);
-      if (type === 'tv' && sync.season && sync.episode) {
-        setSeason(sync.season);
-        setEpisode(sync.episode);
+    let initialProvider = 'vidfast'
+    
+    if (streamParam) {
+      // Direct stream match (e.g. vidlink, hdvb) or friendly name match (stream3)
+      const mapped = PROVIDERS.find(p => p.id === streamParam || p.name.toLowerCase().replace(' ', '') === streamParam.toLowerCase())
+      if (mapped) initialProvider = mapped.id
+    } else {
+      const sync = getInitialSync(id, type);
+      if (sync) {
+        initialProvider = sync.provider;
+        if (type === 'tv' && sync.season && sync.episode) {
+          setSeason(sync.season);
+          setEpisode(sync.episode);
+        }
       }
     }
+    
+    setActiveProvider(initialProvider);
     setIsRestored(true);
-  }, [id, type]);
+  }, [id, type, streamParam]);
+
+  // Update URL param when provider changes manually
+  const changeProvider = (newId: string) => {
+    setActiveProvider(newId);
+    if (pathname) {
+      const params = new URLSearchParams(searchParams?.toString() || "");
+      params.set("stream", newId);
+      window.history.replaceState(null, '', `${pathname}?${params.toString()}`);
+    }
+  }
 
   // Save progress manually when user changes something
   useEffect(() => {
@@ -221,7 +246,7 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
                 {PROVIDERS.map((p) => (
                   <button
                     key={p.id}
-                    onClick={() => setActiveProvider(p.id)}
+                    onClick={() => changeProvider(p.id)}
                     style={{
                       position: 'relative',
                       padding: '0.4rem 1rem',

@@ -31,6 +31,7 @@ export interface TMDBMovie {
   genres?: { id: number; name: string }[]
   runtime?: number
   tagline?: string
+  preferredStream?: string | null
 }
 
 export interface TMDBTVShow {
@@ -48,6 +49,7 @@ export interface TMDBTVShow {
   number_of_seasons?: number
   seasons?: TMDBSeason[]
   tagline?: string
+  preferredStream?: string | null
 }
 
 export interface TMDBSeason {

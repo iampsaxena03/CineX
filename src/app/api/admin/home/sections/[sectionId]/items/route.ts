@@ -28,7 +28,7 @@ export async function POST(
   const { sectionId } = await params
 
   try {
-    const { tmdbId, mediaType, position } = await request.json()
+    const { tmdbId, mediaType, position, preferredStream } = await request.json()
 
     if (!tmdbId || !mediaType) {
       return NextResponse.json({ error: 'tmdbId and mediaType required' }, { status: 400 })
@@ -55,6 +55,7 @@ export async function POST(
         tmdbId: parseInt(tmdbId),
         mediaType,
         position: pos,
+        preferredStream: preferredStream || null,
         sectionId,
       }
     })
@@ -89,6 +90,7 @@ export async function PUT(
           tmdbId: item.tmdbId,
           mediaType: item.mediaType,
           position: index,
+          preferredStream: item.preferredStream || null,
           sectionId,
         }))
       })
@@ -136,5 +138,31 @@ export async function DELETE(
   } catch (error) {
     console.error('Items DELETE error:', error)
     return NextResponse.json({ error: 'Failed to delete item' }, { status: 500 })
+  }
+}
+
+// PATCH: Update item (e.g. preferredStream)
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ sectionId: string }> }
+) {
+  const { sectionId } = await params
+  
+  try {
+    const { itemId, preferredStream } = await request.json()
+
+    if (!itemId) {
+      return NextResponse.json({ error: 'itemId required' }, { status: 400 })
+    }
+
+    const updated = await prisma.homeSectionItem.update({
+      where: { id: itemId, sectionId },
+      data: { preferredStream: preferredStream || null }
+    })
+
+    return NextResponse.json({ item: updated })
+  } catch (error) {
+    console.error('Items PATCH error:', error)
+    return NextResponse.json({ error: 'Failed to update item' }, { status: 500 })
   }
 }

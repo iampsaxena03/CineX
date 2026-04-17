@@ -105,7 +105,7 @@ const MediaCard: React.FC<MediaCardProps> = ({ item, stagger = 0, showRemoveHist
         }}
       >
         <Link
-          href={`/media/${mediaType}/${item.id}`}
+          href={item.preferredStream ? `/media/${mediaType}/${item.id}?stream=${item.preferredStream}` : `/media/${mediaType}/${item.id}`}
           key={`${item.media_type}-${item.id}`}
           className="card"
           ref={cardRef}

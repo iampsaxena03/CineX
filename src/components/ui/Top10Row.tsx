@@ -123,7 +123,7 @@ export default function Top10Row({ items }: { items: TMDBMediaItem[] }) {
             return (
               <Link 
                 key={item.id} 
-                href={`/media/${mediaType}/${item.id}`}
+                href={item.preferredStream ? `/media/${mediaType}/${item.id}?stream=${item.preferredStream}` : `/media/${mediaType}/${item.id}`}
                 style={{
                   position: 'relative',
                   flexShrink: 0,

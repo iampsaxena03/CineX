@@ -14,6 +14,7 @@ interface SectionItem {
   position: number
   posterUrl?: string
   title?: string
+  preferredStream?: string | null
 }
 
 interface Section {
@@ -28,6 +29,13 @@ interface Section {
   items: SectionItem[]
   _count: { items: number }
 }
+
+const PROVIDERS = [
+  { id: 'vidfast', name: 'Stream 1' },
+  { id: 'vidlink', name: 'Stream 2' },
+  { id: 'vidsrc', name: 'Stream 3' },
+  { id: 'hdvb', name: 'Stream 4' },
+]
 
 const SECTION_TYPES = [
   { value: 'top10', label: 'Top 10', icon: '🏆' },
@@ -284,6 +292,27 @@ export default function HomeLayoutPage() {
       fetchItems(activeSection)
     } catch {
       showToast('Reorder failed', 'error')
+    }
+  }
+
+  // Update item preferred stream
+  const handleUpdateStream = async (itemId: string, stream: string) => {
+    if (!activeSection) return
+    try {
+      const res = await fetch(`/api/admin/home/sections/${activeSection}/items`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ itemId, preferredStream: stream || null }),
+      })
+      if (res.ok) {
+        showToast('Stream updated', 'success')
+        // Optimistically update local state
+        setSectionItems(prev => prev.map(item => item.id === itemId ? { ...item, preferredStream: stream || null } : item))
+      } else {
+        showToast('Failed to update stream', 'error')
+      }
+    } catch {
+      showToast('Network error', 'error')
     }
   }
 
@@ -576,9 +605,36 @@ export default function HomeLayoutPage() {
                                     {item.title || `TMDB #${item.tmdbId}`}
                                   </div>
                                 )}
+                                
+                                {/* Stream Selector Overlay */}
+                                <select 
+                                  value={item.preferredStream || ''} 
+                                  onChange={(e) => handleUpdateStream(item.id, e.target.value)}
+                                  onClick={(e) => e.stopPropagation()}
+                                  style={{
+                                    position: 'absolute',
+                                    bottom: '0.5rem',
+                                    left: '0.5rem',
+                                    right: '2rem',
+                                    padding: '0.2rem',
+                                    fontSize: '0.7rem',
+                                    background: 'rgba(0,0,0,0.8)',
+                                    color: 'white',
+                                    border: '1px solid rgba(255,255,255,0.2)',
+                                    borderRadius: '4px',
+                                    zIndex: 10
+                                  }}
+                                >
+                                  <option value="">Default Stream</option>
+                                  {PROVIDERS.map(p => (
+                                    <option key={p.id} value={p.id}>{p.name}</option>
+                                  ))}
+                                </select>
+
                                 <button
                                   className="remove-btn"
                                   onClick={() => handleRemoveItem(item.id)}
+                                  style={{ zIndex: 11 }}
                                 >
                                   ×
                                 </button>
