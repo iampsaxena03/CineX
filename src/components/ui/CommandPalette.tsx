@@ -48,7 +48,7 @@ export default function CommandPalette() {
       id: `result-${r.media_type}-${r.id}`,
       title: r.title || r.name || 'Unknown',
       icon: null as React.ReactNode,
-      href: `/${r.media_type}/${r.id}`,
+      href: `/media/${r.media_type}/${r.id}`,
       type: 'result' as const,
       poster: r.poster_path,
       year: (r.release_date || r.first_air_date || '').slice(0, 4),

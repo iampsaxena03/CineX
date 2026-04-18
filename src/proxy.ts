@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { isValidSession, ADMIN_COOKIE } from '@/lib/auth'
+import { isValidSessionFull, ADMIN_COOKIE } from '@/lib/auth'
 
 // In-memory rate limiting for login attempts
 const loginAttempts = new Map<string, { count: number; resetAt: number }>()
@@ -98,7 +98,7 @@ export async function proxy(request: NextRequest) {
       return NextResponse.redirect(new URL('/admin-login', request.url))
     }
 
-    const valid = await isValidSession(adminCookie.value)
+    const valid = await isValidSessionFull(adminCookie.value)
     if (!valid) {
       // Clear the expired cookie
       const response = NextResponse.redirect(new URL('/admin-login', request.url))
@@ -113,7 +113,7 @@ export async function proxy(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const valid = await isValidSession(adminCookie.value)
+    const valid = await isValidSessionFull(adminCookie.value)
     if (!valid) {
       return NextResponse.json({ error: 'Session expired' }, { status: 401 })
     }
