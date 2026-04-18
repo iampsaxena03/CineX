@@ -20,7 +20,6 @@ interface AdBannerProps {
 export default function AdBanner({ adKey, width, height, format = 'iframe' }: AdBannerProps) {
   const adRef = useRef<HTMLDivElement>(null);
   const injectedRef = useRef(false);
-  const [adLoaded, setAdLoaded] = useState(false);
   const [adFailed, setAdFailed] = useState(false);
 
   useEffect(() => {
@@ -50,17 +49,16 @@ export default function AdBanner({ adKey, width, height, format = 'iframe' }: Ad
     adRef.current.appendChild(confScript);
     adRef.current.appendChild(invokeScript);
 
-    // Check after 3s if any iframe/ins/img was injected (ad loaded)
-    // If not, the ad was likely blocked — collapse the container
+    // Check after 5s if ANY child content was injected beyond our 2 scripts.
+    // Adsterra can inject iframes, divs, ins tags, etc. — so we check
+    // if there are more than 2 children (our config + invoke scripts).
     const checkTimer = setTimeout(() => {
       if (!adRef.current) return;
-      const hasAdContent = adRef.current.querySelector('iframe, ins, img, .adsbygoogle');
-      if (hasAdContent) {
-        setAdLoaded(true);
-      } else {
+      if (adRef.current.childElementCount <= 2) {
+        // Only our two scripts exist, no ad was rendered
         setAdFailed(true);
       }
-    }, 3000);
+    }, 5000);
 
     return () => {
       clearTimeout(checkTimer);
@@ -71,7 +69,7 @@ export default function AdBanner({ adKey, width, height, format = 'iframe' }: Ad
     };
   }, [adKey, width, height, format]);
 
-  // If ad was blocked, render nothing
+  // If ad was blocked, render nothing — no empty space
   if (adFailed) return null;
 
   return (
@@ -83,10 +81,7 @@ export default function AdBanner({ adKey, width, height, format = 'iframe' }: Ad
         alignItems: 'center',
         overflow: 'hidden',
         width: '100%',
-        // Only reserve space after the ad has loaded; otherwise keep it minimal
-        minHeight: adLoaded ? height : 0,
-        transition: 'min-height 0.3s ease, opacity 0.3s ease',
-        opacity: adLoaded ? 1 : 0,
+        minHeight: height,
       }}
     />
   );
