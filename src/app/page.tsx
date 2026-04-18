@@ -175,8 +175,10 @@ export default async function HomePage() {
           return (
             <div key={section.key}>
               {sectionContent}
-              {/* Show one ad after the 2nd visible section */}
-              {sectionIndex === 1 && <AdSlot />}
+              {/* Sleek horizontal ad after Top 10 */}
+              {sectionIndex === 1 && <AdSlot variant="leaderboard" />}
+              {/* Square banner ad after Trending */}
+              {sectionIndex === 2 && <AdSlot variant="banner" />}
             </div>
           );
         })}

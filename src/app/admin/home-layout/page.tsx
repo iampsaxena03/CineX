@@ -31,10 +31,10 @@ interface Section {
 }
 
 const PROVIDERS = [
-  { id: 'vidfast', name: 'Stream 1' },
-  { id: 'vidlink', name: 'Stream 2' },
-  { id: 'vidsrc', name: 'Stream 3' },
-  { id: 'hdvb', name: 'Stream 4' },
+  { id: 'vidlink', name: 'Stream 1' },
+  { id: 'hdvb', name: 'Stream 2' },
+  { id: 'vidfast', name: 'Stream 3' },
+  { id: 'vidsrc', name: 'Stream 4' },
 ]
 
 const SECTION_TYPES = [

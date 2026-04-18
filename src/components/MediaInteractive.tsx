@@ -21,14 +21,14 @@ interface MediaInteractiveProps {
 }
 
 const PROVIDERS = [
-  { id: 'vidfast', name: 'Stream 1', color: '#9d00ff' },
-  { id: 'vidlink', name: 'Stream 2', color: '#63b8bc' },
-  { id: 'vidsrc', name: 'Stream 3', color: '#ff4b2b' },
-  { id: 'hdvb', name: 'Stream 4', color: '#00d2ff' }
+  { id: 'vidlink', name: 'Stream 1', color: '#63b8bc' },
+  { id: 'hdvb', name: 'Stream 2', color: '#00d2ff' },
+  { id: 'vidfast', name: 'Stream 3', color: '#9d00ff' },
+  { id: 'vidsrc', name: 'Stream 4', color: '#ff4b2b' }
 ]
 
 export default function MediaInteractive({ id, imdbId, type, seasons, title = "Unknown Title", posterUrl }: MediaInteractiveProps) {
-  const [activeProvider, setActiveProvider] = useState('vidfast')
+  const [activeProvider, setActiveProvider] = useState('vidlink')
   const [season, setSeason] = useState(seasons && seasons.length > 0 ? (seasons[0].season_number || 1) : 1)
   const [episode, setEpisode] = useState(1)
   const [isRestored, setIsRestored] = useState(false)
@@ -67,7 +67,7 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
 
   // Restore Watch Progress and URL param handling
   useEffect(() => {
-    let initialProvider = 'vidfast'
+    let initialProvider = 'vidlink'
     
     if (streamParam) {
       // Direct stream match (e.g. vidlink, hdvb) or friendly name match (stream3)

@@ -1,14 +1,18 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 /**
  * A fullscreen reel-style ad slide that blends into the vertical scroll feed.
  * Renders a 300x250 banner centered with a "Sponsored" label like Instagram.
+ * 
+ * If an ad-blocker prevents loading, the entire slide collapses so the
+ * scroll feed isn't interrupted by empty space.
  */
 export default function ReelAdSlide() {
   const adRef = useRef<HTMLDivElement>(null);
   const injectedRef = useRef(false);
+  const [adFailed, setAdFailed] = useState(false);
 
   useEffect(() => {
     if (!adRef.current || injectedRef.current) return;
@@ -30,17 +34,28 @@ export default function ReelAdSlide() {
     invokeScript.type = 'text/javascript';
     invokeScript.src = '//www.highperformanceformat.com/87b1f98e2b43417d714893dfa11c7e9f/invoke.js';
     invokeScript.async = true;
+    invokeScript.onerror = () => setAdFailed(true);
 
     adRef.current.appendChild(confScript);
     adRef.current.appendChild(invokeScript);
 
+    const checkTimer = setTimeout(() => {
+      if (!adRef.current) return;
+      const hasAdContent = adRef.current.querySelector('iframe, ins, img');
+      if (!hasAdContent) setAdFailed(true);
+    }, 3000);
+
     return () => {
+      clearTimeout(checkTimer);
       injectedRef.current = false;
       if (adRef.current) {
         adRef.current.innerHTML = '';
       }
     };
   }, []);
+
+  // If blocked, collapse to nothing — reels scroll right past it
+  if (adFailed) return null;
 
   return (
     <div

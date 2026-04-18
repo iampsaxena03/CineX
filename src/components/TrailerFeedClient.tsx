@@ -80,10 +80,10 @@ export default function TrailerFeedClient({ initialReels, initialPage }: Trailer
     }
   }, [page, loadingMore]);
 
-  // Ad slides appear after every 4th reel (indices 3, 7, 11, ...)
-  // Scroll layout: [reel0, reel1, reel2, reel3, AD, reel4, reel5, reel6, reel7, AD, ...]
-  // Group size = 5 (4 reels + 1 ad)
-  const AD_INTERVAL = 4;
+  // Ad slides appear after every 3rd reel (indices 2, 5, 8, ...)
+  // Scroll layout: [reel0, reel1, reel2, AD, reel3, reel4, reel5, AD, ...]
+  // Group size = 4 (3 reels + 1 ad)
+  const AD_INTERVAL = 3;
   const GROUP_SIZE = AD_INTERVAL + 1;
 
   const handleScroll = useCallback(() => {
@@ -137,8 +137,8 @@ export default function TrailerFeedClient({ initialReels, initialPage }: Trailer
               onToggleMute={() => setMuted(m => !m)}
               onVideoError={handleVideoError}
             />
-            {/* Show an ad after every 4th reel */}
-            {(i + 1) % 4 === 0 && <ReelAdSlide key={`ad-${i}`} />}
+            {/* Show an ad after every 3rd reel */}
+            {(i + 1) % 3 === 0 && <ReelAdSlide key={`ad-${i}`} />}
           </React.Fragment>
         ))}
       </div>
