@@ -14,6 +14,7 @@ import {
 import { MdBookmark } from 'react-icons/md';
 import { useRouter } from 'next/navigation';
 import { getImageUrl } from '@/lib/tmdb';
+import { generateSlug } from "@/lib/utils";
 import { ReelVideo } from '@/lib/reels';
 import { addToWatchlist, removeFromWatchlist, isInWatchlist } from '@/lib/watchlist';
 import ReelAdSlide from './ads/ReelAdSlide';
@@ -405,7 +406,7 @@ function ReelSlide({
   const handleShare = (e: React.MouseEvent) => {
     e.stopPropagation();
     const mediaType = item.media_type || 'movie';
-    const url = `${window.location.origin}/media/${mediaType}/${item.id}`;
+    const url = `${window.location.origin}/media/${mediaType}/${generateSlug(item.id, title)}`;
     const shareTitle = (item as any).title || (item as any).name || 'CineXP';
 
     if (navigator.share) {
@@ -557,7 +558,7 @@ function ReelSlide({
           <SidebarAction
             icon={<VscPlayCircle size={26} />}
             label="Watch"
-            onClick={() => router.push(`/media/${item.media_type || 'movie'}/${item.id}`)}
+            onClick={() => router.push(`/media/${item.media_type || 'movie'}/${generateSlug(item.id, title)}`)}
             glow
           />
 

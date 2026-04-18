@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next';
 import { getTrending } from '@/lib/tmdb';
+import { generateSlug } from "@/lib/utils";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://cinexp.site';
@@ -34,12 +35,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     const trending = await getTrending();
     
-    const trendingRoutes: MetadataRoute.Sitemap = trending.map((item) => ({
-      url: `${baseUrl}/media/${item.media_type || 'movie'}/${item.id}`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.7,
-    }));
+    const trendingRoutes: MetadataRoute.Sitemap = trending.map((item) => {
+      const title = (item as any).title || (item as any).name;
+      return {
+        url: `${baseUrl}/media/${item.media_type || 'movie'}/${generateSlug(item.id, title)}`,
+        lastModified: new Date(),
+        changeFrequency: 'weekly',
+        priority: 0.7,
+      };
+    });
 
     return [...staticRoutes, ...trendingRoutes];
   } catch (error) {

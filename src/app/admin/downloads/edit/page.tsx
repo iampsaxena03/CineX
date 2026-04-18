@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, Suspense } from 'react'
+import { generateSlug } from "@/lib/utils"
 import { useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'motion/react'
 import { VscAdd, VscTrash, VscArrowLeft, VscSave, VscGlobe } from 'react-icons/vsc'
@@ -247,7 +248,7 @@ export default function DownloadEditPage() {
               </p>
             </div>
               <div className="admin-media-info-actions" style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
-              <a href={`/media/${type}/${tmdbId}`} target="_blank" rel="noopener noreferrer" className="admin-btn admin-btn-secondary admin-btn-sm">
+              <a href={`/media/${type}/${generateSlug(tmdbId, title)}`} target="_blank" rel="noopener noreferrer" className="admin-btn admin-btn-secondary admin-btn-sm">
                 <VscGlobe size={14} /> Preview
               </a>
             </div>

@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "motion/react";
 import Link from "next/link";
 import Image from "next/image";
 import { getImageUrl, type TMDBMediaItem } from "@/lib/tmdb";
+import { generateSlug } from "@/lib/utils";
 import ScrollReveal from "@/components/ui/ScrollReveal";
 import ContextMenu from "./ui/ContextMenu";
 import useLongPress from "@/hooks/useLongPress";
@@ -105,7 +106,7 @@ const MediaCard: React.FC<MediaCardProps> = ({ item, stagger = 0, showRemoveHist
         }}
       >
         <Link
-          href={item.preferredStream ? `/media/${mediaType}/${item.id}?stream=${item.preferredStream}` : `/media/${mediaType}/${item.id}`}
+          href={item.preferredStream ? `/media/${mediaType}/${generateSlug(item.id, title)}?stream=${item.preferredStream}` : `/media/${mediaType}/${generateSlug(item.id, title)}`}
           key={`${item.media_type}-${item.id}`}
           className="card"
           ref={cardRef}

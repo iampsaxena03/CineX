@@ -1,4 +1,5 @@
 import { getDetails, getImageUrl, getBackdropUrl, getSimilar } from "@/lib/tmdb";
+import Image from "next/image";
 import type { Metadata, ResolvingMetadata } from "next";
 import MediaInteractive from "@/components/MediaInteractive";
 import MediaCard from "@/components/MediaCard";
@@ -15,14 +16,21 @@ export async function generateMetadata(
   { params }: { params: Promise<{ type: "movie" | "tv"; id: string }> },
   parent: ResolvingMetadata
 ): Promise<Metadata> {
-  const { type, id } = await params;
+  const { type, id: rawId } = await params;
+  const id = rawId.split("-")[0];
   const details = await getDetails(type, id);
   if (!details) return { title: "Not Found" };
 
-  const title = (details as any).title || (details as any).name;
-  const overview = details.overview || "Watch this amazing content on CineXP.";
+  const baseTitle = (details as any).title || (details as any).name;
+  const year = ((details as any).release_date || (details as any).first_air_date || "").split("-")[0];
+  const typeText = type === "movie" ? "Movie" : "TV Show";
+  
+  // SEO Optimized Titles and Descriptions for streaming sites
+  const title = `Watch ${baseTitle} ${year ? `(${year}) ` : ''}Online Free HD`;
+  const overview = `Watch ${baseTitle} full ${typeText.toLowerCase()} online for free in HD. ${details.overview || "Stream the best movies and TV shows on CineXP."}`;
+  
   const posterUrl = getImageUrl(details.poster_path, "w500");
-  const url = `https://cinexp.site/media/${type}/${id}`;
+  const url = `https://cinexp.site/media/${type}/${rawId}`;
 
   return {
     title,
@@ -50,7 +58,8 @@ export default async function MediaPage({
 }: {
   params: Promise<{ type: "movie" | "tv"; id: string }>;
 }) {
-  const { type, id } = await params;
+  const { type, id: rawId } = await params;
+  const id = rawId.split("-")[0];
 
   const [details, similar] = await Promise.all([
     getDetails(type, id),
@@ -82,11 +91,40 @@ export default async function MediaPage({
     dateCreated: year,
   };
 
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: "https://cinexp.site",
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: type === "movie" ? "Movies" : "TV Shows",
+        item: `https://cinexp.site/${type === "movie" ? "movies" : "tv"}`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: title,
+        item: `https://cinexp.site/media/${type}/${rawId}`,
+      },
+    ],
+  };
+
   return (
     <div style={{ minHeight: "100vh" }}>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
       <HistoryTracker item={historyItem} />
       {posterUrl && <ColorExtractor imageUrl={posterUrl} />}
@@ -144,8 +182,14 @@ export default async function MediaPage({
                 border: "1px solid rgba(157,0,255,0.25)",
               }}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={posterUrl} alt={title} style={{ width: "100%", height: "auto", display: "block" }} />
+              <Image 
+                src={posterUrl} 
+                alt={title} 
+                width={250} 
+                height={375} 
+                priority 
+                style={{ width: "100%", height: "auto", display: "block" }} 
+              />
             </div>
           )}
 

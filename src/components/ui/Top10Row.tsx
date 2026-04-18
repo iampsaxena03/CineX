@@ -3,6 +3,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { getImageUrl, type TMDBMediaItem } from '@/lib/tmdb';
+import { generateSlug } from "@/lib/utils";
 
 export default function Top10Row({ items }: { items: TMDBMediaItem[] }) {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -123,7 +124,7 @@ export default function Top10Row({ items }: { items: TMDBMediaItem[] }) {
             return (
               <Link 
                 key={item.id} 
-                href={item.preferredStream ? `/media/${mediaType}/${item.id}?stream=${item.preferredStream}` : `/media/${mediaType}/${item.id}`}
+                href={item.preferredStream ? `/media/${mediaType}/${generateSlug(item.id, title)}?stream=${item.preferredStream}` : `/media/${mediaType}/${generateSlug(item.id, title)}`}
                 style={{
                   position: 'relative',
                   flexShrink: 0,

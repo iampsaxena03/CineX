@@ -14,6 +14,7 @@ import {
 } from "react-icons/fa";
 import { addToWatchlist, removeFromWatchlist, isInWatchlist } from "@/lib/watchlist";
 import { removeFromWatchHistory } from "@/lib/history";
+import { generateSlug } from "@/lib/utils";
 import Link from "next/link";
 
 interface ContextMenuProps {
@@ -77,7 +78,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, isOpen, onClose, item, 
   const handleShare = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const url = `${window.location.origin}/media/${item.type}/${item.id}`;
+    const url = `${window.location.origin}/media/${item.type}/${generateSlug(item.id, item.title)}`;
     navigator.clipboard.writeText(url);
     alert("Link copied to clipboard!");
     onClose();
@@ -133,7 +134,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, isOpen, onClose, item, 
               </div>
 
               <div className="menu-body">
-                <Link href={`/media/${item.type}/${item.id}`} className="menu-link-item primary-action" onClick={onClose}>
+                <Link href={`/media/${item.type}/${generateSlug(item.id, item.title)}`} className="menu-link-item primary-action" onClick={onClose}>
                   <div className="item-content">
                     <FaPlay className="icon-m" />
                     <span className="label-m">Watch Now</span>
@@ -154,7 +155,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, isOpen, onClose, item, 
                   </div>
                 </button>
 
-                <Link href={`/media/${item.type}/${item.id}`} className="menu-link-item" onClick={onClose}>
+                <Link href={`/media/${item.type}/${generateSlug(item.id, item.title)}`} className="menu-link-item" onClick={onClose}>
                   <div className="item-content">
                     <FaInfoCircle className="icon-m" />
                     <span className="label-m">View Details</span>

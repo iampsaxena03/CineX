@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getTrending } from '@/lib/tmdb';
+import { generateSlug } from "@/lib/utils";
 
 export const revalidate = 0; // Don't cache this route
 
@@ -25,9 +26,10 @@ export async function GET() {
     // `onClick: async () => { const res = await fetch('/api/tmdb/random'); const data = await res.json(); router.push(data.url); }`
     
     // Return metadata for the modal
+    const title = (randomItem as any).title || (randomItem as any).name;
     return NextResponse.json({ 
-      url: `/media/${mediaType}/${id}`,
-      title: (randomItem as any).title || (randomItem as any).name,
+      url: `/media/${mediaType}/${generateSlug(id, title)}`,
+      title: title,
       poster_path: randomItem.poster_path,
       media_type: mediaType,
       id: id
