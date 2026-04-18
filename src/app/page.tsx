@@ -4,6 +4,7 @@ import MediaCard from "@/components/MediaCard";
 import ContinueWatchingRow from "@/components/ContinueWatchingRow";
 import Top10Row from "@/components/ui/Top10Row";
 import CountdownRow from "@/components/CountdownRow";
+import RecommendedSection from "@/components/RecommendedSection";
 import { prisma } from "@/lib/admin";
 
 export const revalidate = 60;
@@ -138,7 +139,7 @@ export default async function HomePage() {
           }
 
           if (section.type === 'recommended') {
-            return null; // Future AI logic
+            return <RecommendedSection key={section.key} section={section} limit={section.maxItems || 6} />;
           }
 
           // ALL other types (trending, latest, custom) — grid with visible limit

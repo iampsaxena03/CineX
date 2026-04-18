@@ -342,6 +342,7 @@ const StreamPlayer = forwardRef<StreamPlayerRef, StreamPlayerProps>(({ embedUrl,
             allowFullScreen
             frameBorder="0"
             allow="encrypted-media; fullscreen"
+            {...(embedUrl?.includes('piexe411qok.com') ? { sandbox: "allow-scripts allow-same-origin allow-forms allow-presentation" } : {})}
             onLoad={() => setLoaded(true)}
             style={{
               width: '100%',
