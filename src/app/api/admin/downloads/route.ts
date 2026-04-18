@@ -1,6 +1,20 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/admin'
 import { requireAdmin } from '@/lib/guard'
+import { z } from 'zod'
+
+const linkSchema = z.object({
+  quality: z.string(),
+  label: z.string().optional().nullable(),
+  size: z.string().optional().nullable(),
+  url: z.string().url()
+})
+
+const getDeleteSchema = z.object({
+  tmdbId: z.coerce.number().int().positive().optional(),
+  type: z.enum(['movie', 'tv']).optional(),
+  linkId: z.string().optional()
+})
 
 // GET: Fetch download links for a specific tmdbId + type
 export async function GET(request: Request) {
@@ -11,13 +25,14 @@ export async function GET(request: Request) {
   const tmdbId = searchParams.get('tmdbId')
   const type = searchParams.get('type')
 
-  if (!tmdbId || !type) {
-    return NextResponse.json({ error: 'tmdbId and type required' }, { status: 400 })
+  const parsed = getDeleteSchema.safeParse({ tmdbId, type })
+  if (!parsed.success || !parsed.data.tmdbId || !parsed.data.type) {
+    return NextResponse.json({ error: 'Valid tmdbId and type required' }, { status: 400 })
   }
 
   try {
     const mediaPost = await prisma.mediaPost.findUnique({
-      where: { tmdbId: parseInt(tmdbId) },
+      where: { tmdbId: parsed.data.tmdbId },
       include: {
         downloadLinks: { orderBy: { createdAt: 'asc' } },
         seasons: {
@@ -48,16 +63,27 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json()
-    const { tmdbId, type, links, episodeLinks } = body
+    const postBodySchema = z.object({
+      tmdbId: z.coerce.number().int().positive(),
+      type: z.enum(['movie', 'tv']),
+      links: z.array(linkSchema).optional().nullable(),
+      episodeLinks: z.record(
+        z.string().regex(/^\d+$/), // seasonNum
+        z.record(z.string().regex(/^\d+$/), z.array(linkSchema)) // epNum
+      ).optional().nullable()
+    })
 
-    if (!tmdbId || !type) {
-      return NextResponse.json({ error: 'tmdbId and type required' }, { status: 400 })
+    const parsed = postBodySchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Invalid input data', details: parsed.error.format() }, { status: 400 })
     }
+
+    const { tmdbId, type, links, episodeLinks } = parsed.data
 
     // Upsert the media post
     const mediaPost = await prisma.mediaPost.upsert({
-      where: { tmdbId: parseInt(tmdbId) },
-      create: { tmdbId: parseInt(tmdbId), type },
+      where: { tmdbId },
+      create: { tmdbId, type },
       update: { type },
     })
 
@@ -153,12 +179,20 @@ export async function DELETE(request: Request) {
   const linkId = searchParams.get('linkId')
   const tmdbId = searchParams.get('tmdbId')
 
+  const parsed = getDeleteSchema.safeParse({ tmdbId, linkId })
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Invalid parameters' }, { status: 400 })
+  }
+  
+  const validLinkId = parsed.data.linkId
+  const validTmdbId = parsed.data.tmdbId
+
   try {
-    if (linkId) {
-      await prisma.downloadLink.delete({ where: { id: linkId } })
-    } else if (tmdbId) {
+    if (validLinkId) {
+      await prisma.downloadLink.delete({ where: { id: validLinkId } })
+    } else if (validTmdbId) {
       const mediaPost = await prisma.mediaPost.findUnique({
-        where: { tmdbId: parseInt(tmdbId) }
+        where: { tmdbId: validTmdbId }
       })
       if (mediaPost) {
         await prisma.downloadLink.deleteMany({ where: { mediaPostId: mediaPost.id } })

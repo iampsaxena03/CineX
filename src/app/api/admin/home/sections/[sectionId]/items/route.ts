@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/admin'
 import { requireAdmin } from '@/lib/guard'
+import { z } from 'zod'
 
 // GET: Fetch items for a section
 export async function GET(
@@ -35,11 +36,19 @@ export async function POST(
   const { sectionId } = await params
 
   try {
-    const { tmdbId, mediaType, position, preferredStream } = await request.json()
+    const body = await request.json()
+    const schema = z.object({
+      tmdbId: z.coerce.number().int().positive(),
+      mediaType: z.enum(['movie', 'tv']),
+      position: z.coerce.number().int().nonnegative().optional().nullable(),
+      preferredStream: z.string().optional().nullable(),
+    })
 
-    if (!tmdbId || !mediaType) {
-      return NextResponse.json({ error: 'tmdbId and mediaType required' }, { status: 400 })
+    const parsed = schema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Invalid input', details: parsed.error.format() }, { status: 400 })
     }
+    const { tmdbId, mediaType, position, preferredStream } = parsed.data
 
     // Auto-assign position if not provided
     let pos = position
@@ -59,7 +68,7 @@ export async function POST(
 
     const item = await prisma.homeSectionItem.create({
       data: {
-        tmdbId: parseInt(tmdbId),
+        tmdbId,
         mediaType,
         position: pos,
         preferredStream: preferredStream || null,
@@ -85,11 +94,20 @@ export async function PUT(
   const { sectionId } = await params
 
   try {
-    const { items } = await request.json()
+    const body = await request.json()
+    const schema = z.object({
+      items: z.array(z.object({
+        tmdbId: z.coerce.number().int().positive(),
+        mediaType: z.enum(['movie', 'tv']),
+        preferredStream: z.string().optional().nullable(),
+      }))
+    })
 
-    if (!Array.isArray(items)) {
-      return NextResponse.json({ error: 'items array required' }, { status: 400 })
+    const parsed = schema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Invalid input', details: parsed.error.format() }, { status: 400 })
     }
+    const { items } = parsed.data
 
     // Delete all items and re-create in new order
     await prisma.homeSectionItem.deleteMany({ where: { sectionId } })

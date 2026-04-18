@@ -3,6 +3,7 @@ import MediaInteractive from "@/components/MediaInteractive";
 import MediaCard from "@/components/MediaCard";
 import HistoryTracker from "@/components/HistoryTracker";
 import ColorExtractor from "@/components/ColorExtractor";
+import AdSlot from "@/components/ads/AdSlot";
 import Link from "next/link";
 import { VscArrowLeft } from "react-icons/vsc";
 import { notFound } from "next/navigation";
@@ -164,9 +165,12 @@ export default async function MediaPage({
           posterUrl={posterUrl} 
         />
 
+        {/* Ad between player and recommendations */}
+        <AdSlot />
+
         {/* Similar / Recommended Content */}
         {similar.length > 0 && (
-          <div style={{ marginTop: "5rem" }}>
+          <div style={{ marginTop: "3rem" }}>
             <h2 style={{ fontSize: "1.75rem", fontWeight: 700, marginBottom: "1.5rem" }}>You Might Also Like</h2>
             <div className="grid">
               {similar.map((item, index) => (

@@ -16,6 +16,7 @@ import { useRouter } from 'next/navigation';
 import { getImageUrl } from '@/lib/tmdb';
 import { ReelVideo } from '@/lib/reels';
 import { addToWatchlist, removeFromWatchlist, isInWatchlist } from '@/lib/watchlist';
+import ReelAdSlide from './ads/ReelAdSlide';
 
 // ─── Global YT types ─────────────────────────────────────────────────────────
 declare global {
@@ -79,11 +80,29 @@ export default function TrailerFeedClient({ initialReels, initialPage }: Trailer
     }
   }, [page, loadingMore]);
 
+  // Ad slides appear after every 4th reel (indices 3, 7, 11, ...)
+  // Scroll layout: [reel0, reel1, reel2, reel3, AD, reel4, reel5, reel6, reel7, AD, ...]
+  // Group size = 5 (4 reels + 1 ad)
+  const AD_INTERVAL = 4;
+  const GROUP_SIZE = AD_INTERVAL + 1;
+
   const handleScroll = useCallback(() => {
     if (!containerRef.current) return;
-    const idx = Math.round(containerRef.current.scrollTop / containerRef.current.offsetHeight);
-    if (idx !== activeIndex) setActiveIndex(idx);
-    if (idx >= reels.length - 4 && !loadingMore) fetchMore();
+    const scrollIdx = Math.round(containerRef.current.scrollTop / containerRef.current.offsetHeight);
+
+    const groupNumber = Math.floor(scrollIdx / GROUP_SIZE);
+    const posInGroup = scrollIdx % GROUP_SIZE;
+
+    let reelIdx: number;
+    if (posInGroup === AD_INTERVAL) {
+      // User is on an ad slide — keep the previous active reel paused
+      reelIdx = activeIndex;
+    } else {
+      reelIdx = groupNumber * AD_INTERVAL + posInGroup;
+    }
+
+    if (reelIdx !== activeIndex) setActiveIndex(reelIdx);
+    if (reelIdx >= reels.length - 4 && !loadingMore) fetchMore();
   }, [activeIndex, reels.length, loadingMore, fetchMore]);
 
   const handleVideoError = useCallback((id: string | number) => {
@@ -107,17 +126,20 @@ export default function TrailerFeedClient({ initialReels, initialPage }: Trailer
         }}
       >
         {reels.map((reel, i) => (
-          <ReelSlide
-            key={reel.id}
-            reel={reel}
-            slideIndex={i}
-            isActive={i === activeIndex}
-            isLast={i === reels.length - 1}
-            isPrefetch={i >= activeIndex - 1 && i <= activeIndex + 1}
-            muted={muted}
-            onToggleMute={() => setMuted(m => !m)}
-            onVideoError={handleVideoError}
-          />
+          <React.Fragment key={reel.id}>
+            <ReelSlide
+              reel={reel}
+              slideIndex={i}
+              isActive={i === activeIndex}
+              isLast={i === reels.length - 1}
+              isPrefetch={i >= activeIndex - 1 && i <= activeIndex + 1}
+              muted={muted}
+              onToggleMute={() => setMuted(m => !m)}
+              onVideoError={handleVideoError}
+            />
+            {/* Show an ad after every 4th reel */}
+            {(i + 1) % 4 === 0 && <ReelAdSlide key={`ad-${i}`} />}
+          </React.Fragment>
         ))}
       </div>
 

@@ -5,6 +5,7 @@ import ContinueWatchingRow from "@/components/ContinueWatchingRow";
 import RecommendedRow from "@/components/RecommendedRow";
 import Top10Row from "@/components/ui/Top10Row";
 import CountdownRow from "@/components/CountdownRow";
+import AdSlot from "@/components/ads/AdSlot";
 import { prisma } from "@/lib/admin";
 
 export const revalidate = 60;
@@ -125,48 +126,58 @@ export default async function HomePage() {
           </h1>
         </div>
 
-        {sections.map((section) => {
+        {sections.map((section, sectionIndex) => {
           if (!section.visible) return null;
 
-          if (section.type === 'continue_watching') {
-            return <ContinueWatchingRow key={section.key} />;
-          }
+          const sectionContent = (() => {
+            if (section.type === 'continue_watching') {
+              return <ContinueWatchingRow key={section.key} />;
+            }
 
-          if (section.type === 'top10') {
+            if (section.type === 'top10') {
+              return (
+                <Top10Section
+                  key={section.key}
+                  section={section}
+                  tmdbLookup={tmdbLookup}
+                  trendingData={trending}
+                />
+              );
+            }
+
+            // Coming Soon — horizontal slider with countdown overlays
+            if (section.type === 'countdown') {
+              return (
+                <ComingSoonSection
+                  key={section.key}
+                  section={section}
+                  tmdbLookup={tmdbLookup}
+                  upcomingData={upcoming as TMDBMovie[]}
+                />
+              );
+            }
+
+            if (section.type === 'recommended') {
+              return <RecommendedRow key={section.key} />;
+            }
+
+            // ALL other types (trending, latest, custom) — grid with visible limit
             return (
-              <Top10Section
+              <GridSection
                 key={section.key}
                 section={section}
                 tmdbLookup={tmdbLookup}
                 trendingData={trending}
               />
             );
-          }
+          })();
 
-          // Coming Soon — horizontal slider with countdown overlays
-          if (section.type === 'countdown') {
-            return (
-              <ComingSoonSection
-                key={section.key}
-                section={section}
-                tmdbLookup={tmdbLookup}
-                upcomingData={upcoming as TMDBMovie[]}
-              />
-            );
-          }
-
-          if (section.type === 'recommended') {
-            return <RecommendedRow key={section.key} />;
-          }
-
-          // ALL other types (trending, latest, custom) — grid with visible limit
           return (
-            <GridSection
-              key={section.key}
-              section={section}
-              tmdbLookup={tmdbLookup}
-              trendingData={trending}
-            />
+            <div key={section.key}>
+              {sectionContent}
+              {/* Show one ad after the 2nd visible section */}
+              {sectionIndex === 1 && <AdSlot />}
+            </div>
           );
         })}
       </div>

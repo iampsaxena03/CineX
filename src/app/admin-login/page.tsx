@@ -66,7 +66,7 @@ export default function AdminLoginPage() {
         <form onSubmit={handleLogin}>
           <div style={{ marginBottom: '1rem' }}>
             <input
-              type="text"
+              type="password"
               className="admin-input"
               placeholder="Admin Username"
               value={username}

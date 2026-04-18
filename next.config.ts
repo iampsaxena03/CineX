@@ -24,7 +24,6 @@ const nextConfig: NextConfig = {
     ],
   },
   transpilePackages: ["motion", "framer-motion"],
-  allowedDevOrigins: ["192.168.29.203", "localhost:3000"],
 };
 
 export default withPWA(nextConfig);

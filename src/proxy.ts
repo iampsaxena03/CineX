@@ -49,6 +49,20 @@ function cleanupRateLimits(): void {
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
+  // ─── HTTPS Enforcement ───
+  if (
+    process.env.NODE_ENV !== 'development' &&
+    request.headers.get('x-forwarded-proto') === 'http' &&
+    !request.nextUrl.hostname.includes('localhost') &&
+    !request.nextUrl.hostname.includes('127.0.0.1') &&
+    !request.nextUrl.hostname.includes('0.0.0.0') &&
+    !request.nextUrl.hostname.includes('192.168.')
+  ) {
+    const httpsUrl = request.nextUrl.clone()
+    httpsUrl.protocol = 'https:'
+    return NextResponse.redirect(httpsUrl)
+  }
+
   // Clean stale rate limit entries
   if (loginAttempts.size > 100) cleanupRateLimits()
 
@@ -105,14 +119,15 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  // ─── Add security headers to admin responses ───
+  // ─── Add security headers to ALL responses ───
   const response = NextResponse.next()
 
+  response.headers.set('X-Content-Type-Options', 'nosniff')
+  response.headers.set('X-Frame-Options', 'DENY')
+  response.headers.set('X-XSS-Protection', '1; mode=block')
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+
   if (pathname.startsWith('/admin') || pathname.startsWith('/api/admin')) {
-    response.headers.set('X-Content-Type-Options', 'nosniff')
-    response.headers.set('X-Frame-Options', 'DENY')
-    response.headers.set('X-XSS-Protection', '1; mode=block')
-    response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
     response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, private')
   }
 
@@ -121,8 +136,6 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/admin/:path*',
-    '/admin-login',
-    '/api/admin/:path*',
+    '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 }
