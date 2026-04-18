@@ -2,7 +2,7 @@ import { SignJWT, jwtVerify } from 'jose'
 import { prisma } from '@/lib/admin'
 
 // Session cookie name
-export const ADMIN_COOKIE = 'cinex_admin_session'
+export const ADMIN_COOKIE = 'cinexp_admin_session'
 
 // Session duration: 3 hours
 const SESSION_DURATION_HOURS = 3

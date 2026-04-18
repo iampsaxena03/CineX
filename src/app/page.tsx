@@ -122,7 +122,7 @@ export default async function HomePage() {
               margin: 0
             }}
           >
-            Welcome to CineX!
+            Welcome to CineXP!
           </h1>
         </div>
 
@@ -175,8 +175,8 @@ export default async function HomePage() {
           return (
             <div key={section.key}>
               {sectionContent}
-              {/* Sleek horizontal ad after Top 10 */}
-              {sectionIndex === 1 && <AdSlot variant="leaderboard" />}
+              {/* Compact 320x50 banner ad after Top 10 */}
+              {sectionIndex === 1 && <AdSlot variant="slim" />}
               {/* Square banner ad after Trending */}
               {sectionIndex === 2 && <AdSlot variant="banner" />}
             </div>

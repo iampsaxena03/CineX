@@ -185,8 +185,8 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
     if (!storyFile) return;
     try {
       const shareData: ShareData = {
-        title: `Watch ${title} on CineX`,
-        text: `Check out ${title} on CineX Premium!`,
+        title: `Watch ${title} on CineXP`,
+        text: `Check out ${title} on CineXP Premium!`,
         url: window.location.href,
       };
 
@@ -204,7 +204,7 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
     if (!storyPreviewUrl) return;
     const link = document.createElement('a');
     link.href = storyPreviewUrl;
-    link.download = `cinex-${title.toLowerCase().replace(/\s+/g, '-')}-story.png`;
+    link.download = `cinexp-${title.toLowerCase().replace(/\s+/g, '-')}-story.png`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

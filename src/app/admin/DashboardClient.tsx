@@ -29,7 +29,7 @@ export default function DashboardClient({ movieCount, tvCount, downloadCount, se
           animate={{ opacity: 0.5, y: 0 }}
           transition={{ duration: 0.4, delay: 0.1 }}
         >
-          Overview of your CineX platform
+          Overview of your CineXP platform
         </motion.p>
       </div>
 
@@ -80,7 +80,7 @@ export default function DashboardClient({ movieCount, tvCount, downloadCount, se
             </div>
             <div>
               <h3>View Live Site</h3>
-              <p>Open CineX in new tab</p>
+              <p>Open CineXP in new tab</p>
             </div>
           </a>
 

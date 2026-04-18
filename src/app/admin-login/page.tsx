@@ -60,7 +60,7 @@ export default function AdminLoginPage() {
           }} />
         </div>
 
-        <h1>CINEX Control</h1>
+        <h1>CINEXP Control</h1>
         <p>Enter your admin password to continue</p>
 
         <form onSubmit={handleLogin}>

@@ -5,8 +5,8 @@ import MediaCard from "@/components/MediaCard";
 export const revalidate = 3600;
 
 export const metadata = {
-  title: 'TV Series | CineX',
-  description: 'Browse the most popular TV series and web shows on CineX.',
+  title: 'TV Series | CineXP',
+  description: 'Browse the most popular TV series and web shows on CineXP.',
 };
 
 export default async function TVSeriesPage() {

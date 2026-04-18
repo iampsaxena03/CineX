@@ -11,7 +11,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   if (!genreName) return { title: 'Not Found' };
   
   return {
-    title: `${genreName} Content | CineX`,
+    title: `${genreName} Content | CineXP`,
     description: `Discover top rated and popular ${genreName} movies and TV shows.`
   }
 }

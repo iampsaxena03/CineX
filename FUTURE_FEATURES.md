@@ -29,7 +29,7 @@ This document outlines the high-end, disruptive features planned for the CineXP 
 - **Impact**: Turns every movie into an educational and engaging "Masterclass" experience for true cinephiles.
 
 ### 7. "Instant-Clip" Reel Creator (Viral Sharing)
-- **Concept**: A dedicated button on the player that automatically captures the last 15 seconds of video and formats it into a high-quality "Reel" (9:16) with a CineX watermark, ready for instant sharing on social media.
+- **Concept**: A dedicated button on the player that automatically captures the last 15 seconds of video and formats it into a high-quality "Reel" (9:16) with a CineXP watermark, ready for instant sharing on social media.
 - **Impact**: Drives massive viral growth by letting users easily share their favorite moments in a format that looks professional.
 
 ### 8. "The Movie Map" (3D Genre Galaxy)

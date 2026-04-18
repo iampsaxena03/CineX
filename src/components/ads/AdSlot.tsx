@@ -7,8 +7,9 @@ interface AdSlotProps {
   /**
    * "leaderboard" = sleek horizontal 728x90 (always, even on mobile it stays horizontal)
    * "banner"      = responsive: 728x90 on desktop, 300x250 on mobile (default)
+   * "slim"        = compact 320x50 mobile-style banner
    */
-  variant?: 'leaderboard' | 'banner';
+  variant?: 'leaderboard' | 'banner' | 'slim';
 }
 
 /**
@@ -31,6 +32,28 @@ export default function AdSlot({ variant = 'banner' }: AdSlotProps) {
   }, []);
 
   if (!mounted) return null;
+
+  // Slim variant: compact 320x50 banner
+  if (variant === 'slim') {
+    return (
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          width: '100%',
+          padding: '0.75rem 0',
+        }}
+      >
+        <AdBanner
+          adKey="47487de96b361fef4cd73964201393c1"
+          width={320}
+          height={50}
+          format="iframe"
+        />
+      </div>
+    );
+  }
 
   // Leaderboard variant: always the slim 728x90, just scale it on mobile
   if (variant === 'leaderboard') {

@@ -7,8 +7,8 @@ import { prisma } from "@/lib/admin";
 export const dynamic = 'force-dynamic';
 
 export const metadata = {
-  title: 'Trending | CineX',
-  description: 'See what is hot and trending right now on CineX.',
+  title: 'Trending | CineXP',
+  description: 'See what is hot and trending right now on CineXP.',
 };
 
 export default async function TrendingPage() {

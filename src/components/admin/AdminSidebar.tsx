@@ -40,7 +40,7 @@ export default function AdminSidebar() {
 
       <aside className={`admin-sidebar ${mobileOpen ? 'open' : ''}`}>
         <div className="admin-sidebar-brand">
-          <h1>CINEX</h1>
+          <h1>CINEXP</h1>
           <span>Control Panel</span>
         </div>
 

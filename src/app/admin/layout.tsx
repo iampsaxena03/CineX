@@ -5,8 +5,8 @@ import { ToastProvider } from '@/components/admin/Toast'
 import { isValidSessionFull, ADMIN_COOKIE } from '@/lib/auth'
 
 export const metadata = {
-  title: 'CineX Control Panel',
-  description: 'Admin panel for managing CineX streaming platform',
+  title: 'CineXP Control Panel',
+  description: 'Admin panel for managing CineXP streaming platform',
 }
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {

@@ -4,7 +4,7 @@ import Aurora from '@/components/ui/Aurora';
 import ScrollReveal from '@/components/ui/ScrollReveal';
 
 export const metadata = {
-  title: 'Genres | CineX',
+  title: 'Genres | CineXP',
   description: 'Explore movies and series by your favorite genres.',
 };
 

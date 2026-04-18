@@ -20,7 +20,7 @@ export interface UserSignals {
 
 const HISTORY_KEY = 'cinexp_watch_history';
 const WATCHLIST_KEY = 'cinexp_watchlist';
-const CINEX_HISTORY_KEY = 'cinexHistory';
+const CINEXP_HISTORY_KEY = 'cinexpHistory';
 const VIDLINK_KEY = 'vidLinkProgress';
 const VIDFAST_KEY = 'vidFastProgress';
 
@@ -63,9 +63,9 @@ export function getUserSignals(): UserSignals {
     }
   } catch {}
 
-  // 3. Internal progress (cinexHistory — has actual watch sessions)
+  // 3. Internal progress (cinexpHistory — has actual watch sessions)
   try {
-    const raw = localStorage.getItem(CINEX_HISTORY_KEY);
+    const raw = localStorage.getItem(CINEXP_HISTORY_KEY);
     if (raw) {
       const data = JSON.parse(raw) as Record<string, any>;
       Object.keys(data).forEach(key => {

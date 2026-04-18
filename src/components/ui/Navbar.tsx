@@ -74,7 +74,7 @@ export default function Navbar() {
   return (
     <>
       {/* ─── Top-Left Pill Logo (Static) ─── */}
-      <Link href="/" aria-label="CineX Home" className="pill-logo" id="pill-logo">
+      <Link href="/" aria-label="CineXP Home" className="pill-logo" id="pill-logo">
         <div className="pill-logo-sphere" />
       </Link>
 

@@ -148,13 +148,13 @@ export async function generateStoryCard(title: string, posterUrl: string, type: 
         }
         ctx.fillText(displayTitle, width / 2, 1650);
 
-        // --- 5. MINIMALIST LUXURY CINEX LOGO ---
+        // --- 5. MINIMALIST LUXURY CINEXP LOGO ---
         if ('letterSpacing' in ctx) {
             (ctx as any).letterSpacing = '10px';
         }
         ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
         ctx.font = '300 24px system-ui, -apple-system, sans-serif';
-        ctx.fillText('C I N E X', width / 2, 1800);
+        ctx.fillText('C I N E X P', width / 2, 1800);
 
         // Tiny Glowing Purple Diamond
         const diamondY = 1845;
@@ -178,7 +178,7 @@ export async function generateStoryCard(title: string, posterUrl: string, type: 
 
         canvas.toBlob((blob) => {
           if (!blob) return reject(new Error('Failed to create blob'));
-          const file = new File([blob], 'cinex-story.png', { type: 'image/png' });
+          const file = new File([blob], 'cinexp-story.png', { type: 'image/png' });
           resolve(file);
         }, 'image/png');
       };

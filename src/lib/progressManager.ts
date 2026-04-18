@@ -16,7 +16,7 @@ export function saveInternalProgress(
 ) {
   if (typeof window === 'undefined') return;
   try {
-    const historyStr = window.localStorage.getItem('cinexHistory') || '{}';
+    const historyStr = window.localStorage.getItem('cinexpHistory') || '{}';
     const history = JSON.parse(historyStr);
     const key = `${type === 'tv' ? 't' : 'm'}${tmdbId}`;
     
@@ -27,7 +27,7 @@ export function saveInternalProgress(
       last_updated: Date.now()
     };
 
-    window.localStorage.setItem('cinexHistory', JSON.stringify(history));
+    window.localStorage.setItem('cinexpHistory', JSON.stringify(history));
   } catch (e) {
     console.error('Failed to save internal progress', e);
   }
@@ -40,7 +40,7 @@ export function getInitialSync(tmdbId: string, type: 'movie' | 'tv'): WatchProgr
 
   // 0. Check Internal History (priority for provider/episode selection)
   try {
-    const historyStr = window.localStorage.getItem('cinexHistory');
+    const historyStr = window.localStorage.getItem('cinexpHistory');
     if (historyStr) {
       const history = JSON.parse(historyStr);
       const key = `${type === 'tv' ? 't' : 'm'}${tmdbId}`;
@@ -57,7 +57,7 @@ export function getInitialSync(tmdbId: string, type: 'movie' | 'tv'): WatchProgr
       }
     }
   } catch (e) {
-    console.error('Failed to parse cinexHistory', e);
+    console.error('Failed to parse cinexpHistory', e);
   }
   
   // 1. Check Vidlink
@@ -238,5 +238,5 @@ export function cleanupProgressCache() {
 
   cleanFor('vidLinkProgress');
   cleanFor('vidFastProgress');
-  cleanFor('cinexHistory');
+  cleanFor('cinexpHistory');
 }

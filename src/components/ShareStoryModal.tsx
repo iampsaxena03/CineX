@@ -198,7 +198,7 @@ export default function ShareStoryModal({
             </div>
 
             <p style={{ textAlign: 'center', fontSize: '0.65rem', opacity: 0.3, letterSpacing: '0.02em', flexShrink: 0 }}>
-              {title} • CineX Premium
+              {title} • CineXP Premium
             </p>
           </motion.div>
         </div>

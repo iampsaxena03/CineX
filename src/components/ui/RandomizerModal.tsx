@@ -137,7 +137,7 @@ export default function RandomizerModal({
 
             <div style={{ padding: '1.5rem', textAlign: 'center' }}>
               <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'white', marginBottom: '0.5rem', lineHeight: 1.2 }}>
-                CineX Chose For You!
+                CineXP Chose For You!
               </h2>
               <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)', marginBottom: '1.5rem' }}>
                 Dive into this random selection we picked just for you.
