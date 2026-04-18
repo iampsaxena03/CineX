@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/admin'
+import { requireAdmin } from '@/lib/guard'
 
 // GET: Fetch all sections ordered
-export async function GET() {
+export async function GET(request: Request) {
+  const authError = await requireAdmin(request)
+  if (authError) return authError
+
   try {
     const sections = await prisma.homeSection.findMany({
       orderBy: { order: 'asc' },
@@ -25,6 +29,9 @@ const TYPE_DEFAULTS: Record<string, number> = {
 
 // POST: Create a new section
 export async function POST(request: Request) {
+  const authError = await requireAdmin(request)
+  if (authError) return authError
+
   try {
     const { title, type, key } = await request.json()
 
@@ -58,6 +65,9 @@ export async function POST(request: Request) {
 
 // PUT: Update sections (reorder, visibility, settings)
 export async function PUT(request: Request) {
+  const authError = await requireAdmin(request)
+  if (authError) return authError
+
   try {
     const { sections } = await request.json()
 
@@ -90,6 +100,9 @@ export async function PUT(request: Request) {
 
 // DELETE: Remove a section
 export async function DELETE(request: Request) {
+  const authError = await requireAdmin(request)
+  if (authError) return authError
+
   const { searchParams } = new URL(request.url)
   const sectionId = searchParams.get('id')
 

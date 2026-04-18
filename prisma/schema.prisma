@@ -105,3 +105,10 @@ model AppSettings {
   value     String
   updatedAt DateTime @updatedAt
 }
+
+model AdminSession {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique          // SHA-256 hash of the JWT token
+  createdAt DateTime @default(now())
+  expiresAt DateTime                   // Hard 3-hour expiry
+}

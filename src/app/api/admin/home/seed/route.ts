@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/admin'
+import { requireAdmin } from '@/lib/guard'
 
 // Default maxItems for each section type
 const TYPE_DEFAULTS: Record<string, number> = {
@@ -20,7 +21,10 @@ const DEFAULT_SECTIONS = [
   { key: 'recommended', title: 'Recommended for You', type: 'recommended', order: 3 },
 ]
 
-export async function POST() {
+export async function POST(request: Request) {
+  const authError = await requireAdmin(request)
+  if (authError) return authError
+
   try {
     let created = 0
     let updated = 0

@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/admin'
+import { requireAdmin } from '@/lib/guard'
 
 // GET: Fetch download links for a specific tmdbId + type
 export async function GET(request: Request) {
+  const authError = await requireAdmin(request)
+  if (authError) return authError
+
   const { searchParams } = new URL(request.url)
   const tmdbId = searchParams.get('tmdbId')
   const type = searchParams.get('type')
@@ -39,6 +43,9 @@ export async function GET(request: Request) {
 
 // POST: Create/update download links
 export async function POST(request: Request) {
+  const authError = await requireAdmin(request)
+  if (authError) return authError
+
   try {
     const body = await request.json()
     const { tmdbId, type, links, episodeLinks } = body
@@ -139,6 +146,9 @@ export async function POST(request: Request) {
 
 // DELETE: Remove specific download links or all for a media post
 export async function DELETE(request: Request) {
+  const authError = await requireAdmin(request)
+  if (authError) return authError
+
   const { searchParams } = new URL(request.url)
   const linkId = searchParams.get('linkId')
   const tmdbId = searchParams.get('tmdbId')

@@ -2,9 +2,9 @@ import { getTrending, getMediaById, getUpcomingMovies, type TMDBMediaItem, type 
 import Aurora from "@/components/ui/Aurora";
 import MediaCard from "@/components/MediaCard";
 import ContinueWatchingRow from "@/components/ContinueWatchingRow";
+import RecommendedRow from "@/components/RecommendedRow";
 import Top10Row from "@/components/ui/Top10Row";
 import CountdownRow from "@/components/CountdownRow";
-import RecommendedSection from "@/components/RecommendedSection";
 import { prisma } from "@/lib/admin";
 
 export const revalidate = 60;
@@ -92,17 +92,33 @@ export default async function HomePage() {
       </div>
 
       <div className="page-wrapper container" style={{ position: "relative", zIndex: 1 }}>
-        <div style={{ textAlign: "center", padding: "4rem 0 6rem" }}>
+        <div style={{ textAlign: "center", padding: "5rem 0 7rem", position: "relative" }}>
+          {/* Deep Ambient Glow */}
+          <div style={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: "clamp(250px, 40vw, 400px)",
+            height: "clamp(250px, 40vw, 400px)",
+            background: "radial-gradient(circle, var(--primary-glow) 0%, transparent 70%)",
+            filter: "blur(60px)",
+            zIndex: -1,
+            pointerEvents: "none",
+            opacity: 0.8
+          }} />
+
           <h1
             style={{
-              fontSize: "clamp(2.5rem, 6vw, 5rem)",
-              fontWeight: 700,
-              marginBottom: "1rem",
-              background: "linear-gradient(135deg, #ffffff 10%, var(--accent) 50%, var(--primary) 90%)",
+              fontSize: "clamp(3.5rem, 9vw, 7rem)",
+              fontWeight: 800,
+              background: "linear-gradient(135deg, #ffffff 10%, #ecd3ff 40%, var(--primary) 100%)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
-              filter: "drop-shadow(0 4px 15px rgba(157, 0, 255, 0.4))",
-              lineHeight: 1.1,
+              filter: "drop-shadow(0px 10px 25px rgba(157, 0, 255, 0.4))",
+              lineHeight: 1.05,
+              letterSpacing: "-0.04em",
+              margin: 0
             }}
           >
             Welcome to CineX!
@@ -140,7 +156,7 @@ export default async function HomePage() {
           }
 
           if (section.type === 'recommended') {
-            return <RecommendedSection key={section.key} section={section} limit={section.maxItems || 6} />;
+            return <RecommendedRow key={section.key} />;
           }
 
           // ALL other types (trending, latest, custom) — grid with visible limit

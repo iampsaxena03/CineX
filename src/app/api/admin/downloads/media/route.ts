@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/admin'
+import { requireAdmin } from '@/lib/guard'
 
 // GET: List all media items that have download links
-export async function GET() {
+export async function GET(request: Request) {
+  const authError = await requireAdmin(request)
+  if (authError) return authError
+
   try {
     const mediaPosts = await prisma.mediaPost.findMany({
       orderBy: { updatedAt: 'desc' },

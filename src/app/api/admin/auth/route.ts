@@ -1,25 +1,28 @@
 import { NextResponse } from 'next/server'
-import { validateCredentials, generateSessionToken, isValidSession, ADMIN_COOKIE } from '@/lib/auth'
+import {
+  validateCredentials,
+  createSession,
+  isValidSessionFull,
+  revokeSession,
+  revokeAllSessions,
+  ADMIN_COOKIE,
+  SESSION_COOKIE_OPTIONS,
+} from '@/lib/auth'
 
 // POST: Login
 export async function POST(request: Request) {
   try {
     const { username, password } = await request.json()
-    
+
     if (!validateCredentials(username, password)) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
     }
 
-    const token = await generateSessionToken()
+    // Create session in DB and get JWT
+    const token = await createSession()
 
     const response = NextResponse.json({ success: true })
-    response.cookies.set(ADMIN_COOKIE, token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24, // 24 hours
-      path: '/',
-    })
+    response.cookies.set(ADMIN_COOKIE, token, SESSION_COOKIE_OPTIONS)
 
     return response
   } catch {
@@ -27,7 +30,7 @@ export async function POST(request: Request) {
   }
 }
 
-// GET: Check session
+// GET: Check session validity
 export async function GET(request: Request) {
   const cookieHeader = request.headers.get('cookie') || ''
   const cookies = Object.fromEntries(
@@ -36,9 +39,13 @@ export async function GET(request: Request) {
       return [key, val.join('=')]
     })
   )
-  
+
   const token = cookies[ADMIN_COOKIE]
-  const valid = token ? await isValidSession(token) : false
+  if (!token) {
+    return NextResponse.json({ authenticated: false }, { status: 401 })
+  }
+
+  const valid = await isValidSessionFull(token)
   if (!valid) {
     return NextResponse.json({ authenticated: false }, { status: 401 })
   }
@@ -46,7 +53,7 @@ export async function GET(request: Request) {
   return NextResponse.json({ authenticated: true })
 }
 
-// DELETE: Logout
+// DELETE: Logout current device
 export async function DELETE(request: Request) {
   const cookieHeader = request.headers.get('cookie') || ''
   const cookies = Object.fromEntries(
@@ -55,9 +62,26 @@ export async function DELETE(request: Request) {
       return [key, val.join('=')]
     })
   )
-  
-  // We just delete the cookie stateless
+
+  const token = cookies[ADMIN_COOKIE]
+  if (token) {
+    await revokeSession(token)
+  }
+
   const response = NextResponse.json({ success: true })
+  response.cookies.delete(ADMIN_COOKIE)
+  return response
+}
+
+// PUT: Logout from ALL devices
+export async function PUT() {
+  const revokedCount = await revokeAllSessions()
+
+  const response = NextResponse.json({
+    success: true,
+    message: `Logged out from all devices. ${revokedCount} session(s) revoked.`,
+    revokedCount,
+  })
   response.cookies.delete(ADMIN_COOKIE)
   return response
 }

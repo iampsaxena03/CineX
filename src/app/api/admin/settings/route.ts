@@ -1,9 +1,13 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/admin'
 import { revalidatePath } from 'next/cache'
+import { requireAdmin } from '@/lib/guard'
 
 // Fetch all AppSettings
 export async function GET(request: Request) {
+  const authError = await requireAdmin(request)
+  if (authError) return authError
+
   try {
     const settings = await prisma.appSettings.findMany()
     const config = settings.reduce((acc: any, s: any) => {
@@ -22,6 +26,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const authError = await requireAdmin(request)
+  if (authError) return authError
+
   try {
     const body = await request.json()
     const { action, value } = body

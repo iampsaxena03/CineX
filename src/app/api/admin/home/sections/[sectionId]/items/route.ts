@@ -1,11 +1,15 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/admin'
+import { requireAdmin } from '@/lib/guard'
 
 // GET: Fetch items for a section
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ sectionId: string }> }
 ) {
+  const authError = await requireAdmin(request)
+  if (authError) return authError
+
   const { sectionId } = await params
 
   try {
@@ -25,6 +29,9 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ sectionId: string }> }
 ) {
+  const authError = await requireAdmin(request)
+  if (authError) return authError
+
   const { sectionId } = await params
 
   try {
@@ -72,6 +79,9 @@ export async function PUT(
   request: Request,
   { params }: { params: Promise<{ sectionId: string }> }
 ) {
+  const authError = await requireAdmin(request)
+  if (authError) return authError
+
   const { sectionId } = await params
 
   try {
@@ -108,6 +118,9 @@ export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ sectionId: string }> }
 ) {
+  const authError = await requireAdmin(request)
+  if (authError) return authError
+
   const { sectionId } = await params
   const { searchParams } = new URL(request.url)
   const itemId = searchParams.get('itemId')
@@ -146,6 +159,9 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ sectionId: string }> }
 ) {
+  const authError = await requireAdmin(request)
+  if (authError) return authError
+
   const { sectionId } = await params
   
   try {

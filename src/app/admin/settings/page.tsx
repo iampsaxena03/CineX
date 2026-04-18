@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'motion/react'
-import { VscRefresh, VscTrash, VscDatabase, VscCheck, VscWarning } from 'react-icons/vsc'
+import { VscRefresh, VscTrash, VscDatabase, VscCheck, VscWarning, VscSignOut } from 'react-icons/vsc'
 import { useToast } from '@/components/admin/Toast'
 
 export default function SettingsPage() {
@@ -11,6 +11,7 @@ export default function SettingsPage() {
   const [appConfig, setAppConfig] = useState<any>(null)
   const [loadingAction, setLoadingAction] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
+  const [confirmLogoutAll, setConfirmLogoutAll] = useState(false)
 
   // Fetch DB stats and config
   useEffect(() => {
@@ -65,6 +66,28 @@ export default function SettingsPage() {
   const handleLogout = async () => {
     await fetch('/api/admin/auth', { method: 'DELETE' })
     window.location.href = '/admin-login'
+  }
+
+  const handleLogoutAllDevices = async () => {
+    setLoadingAction('logout_all')
+    try {
+      const res = await fetch('/api/admin/auth', { method: 'PUT' })
+      const data = await res.json()
+      if (res.ok) {
+        showToast(data.message || 'All sessions revoked', 'success')
+        // Redirect to login after a short delay
+        setTimeout(() => {
+          window.location.href = '/admin-login'
+        }, 1500)
+      } else {
+        showToast('Failed to revoke sessions', 'error')
+      }
+    } catch {
+      showToast('Network error', 'error')
+    } finally {
+      setLoadingAction(null)
+      setConfirmLogoutAll(false)
+    }
   }
 
   const toggleShortener = async () => {
@@ -219,20 +242,89 @@ export default function SettingsPage() {
         </div>
       </motion.div>
 
-      {/* Session */}
+      {/* Session & Security */}
       <motion.div
         className="admin-section-card"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
       >
-        <h2>🔑 Session</h2>
-        <p style={{ fontSize: '0.85rem', opacity: 0.5, marginBottom: '1rem' }}>
-          Your admin session expires after 24 hours of inactivity.
+        <h2>🔐 Session & Security</h2>
+        <p style={{ fontSize: '0.85rem', opacity: 0.5, marginBottom: '1.25rem' }}>
+          Admin sessions expire after 3 hours. All sessions are tracked server-side and can be revoked.
         </p>
-        <button className="admin-btn admin-btn-secondary" onClick={handleLogout}>
-          Logout
-        </button>
+
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', 
+          gap: '0.75rem', 
+          marginBottom: '1.25rem' 
+        }}>
+          <div style={{
+            padding: '0.85rem 1rem',
+            background: 'rgba(157, 0, 255, 0.06)',
+            borderRadius: '10px',
+            border: '1px solid rgba(157, 0, 255, 0.15)',
+          }}>
+            <div style={{ fontSize: '0.7rem', opacity: 0.5, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.3rem' }}>
+              Session Expiry
+            </div>
+            <div style={{ fontSize: '1.05rem', fontWeight: 600, color: 'var(--accent)' }}>3 Hours</div>
+          </div>
+          <div style={{
+            padding: '0.85rem 1rem',
+            background: 'rgba(16, 185, 129, 0.06)',
+            borderRadius: '10px',
+            border: '1px solid rgba(16, 185, 129, 0.15)',
+          }}>
+            <div style={{ fontSize: '0.7rem', opacity: 0.5, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.3rem' }}>
+              Protection
+            </div>
+            <div style={{ fontSize: '1.05rem', fontWeight: 600, color: 'var(--admin-success)' }}>Server-Side</div>
+          </div>
+          <div style={{
+            padding: '0.85rem 1rem',
+            background: 'rgba(59, 130, 246, 0.06)',
+            borderRadius: '10px',
+            border: '1px solid rgba(59, 130, 246, 0.15)',
+          }}>
+            <div style={{ fontSize: '0.7rem', opacity: 0.5, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.3rem' }}>
+              Rate Limiting
+            </div>
+            <div style={{ fontSize: '1.05rem', fontWeight: 600, color: 'var(--admin-info)' }}>5 / 15min</div>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <button className="admin-btn admin-btn-secondary" onClick={handleLogout}>
+            <VscSignOut size={14} />
+            Logout (This Device)
+          </button>
+
+          {confirmLogoutAll ? (
+            <button
+              className="admin-btn admin-btn-danger"
+              onClick={handleLogoutAllDevices}
+              disabled={loadingAction === 'logout_all'}
+              style={{ animation: 'pulse-danger 1.5s ease-in-out infinite' }}
+            >
+              <VscWarning size={14} />
+              {loadingAction === 'logout_all' ? 'Revoking All Sessions...' : 'Confirm: Logout All Devices'}
+            </button>
+          ) : (
+            <button
+              className="admin-btn admin-btn-danger"
+              onClick={() => setConfirmLogoutAll(true)}
+            >
+              <VscSignOut size={14} />
+              Logout From All Devices
+            </button>
+          )}
+        </div>
+
+        <p style={{ fontSize: '0.75rem', opacity: 0.35, marginTop: '0.85rem' }}>
+          &ldquo;Logout From All Devices&rdquo; will immediately revoke all active sessions. You will be redirected to the login page.
+        </p>
       </motion.div>
 
       {/* Danger Zone */}
@@ -288,6 +380,13 @@ export default function SettingsPage() {
           )}
         </div>
       </motion.div>
+
+      <style>{`
+        @keyframes pulse-danger {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+          50% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+        }
+      `}</style>
     </>
   )
 }
