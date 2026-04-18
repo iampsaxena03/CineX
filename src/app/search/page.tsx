@@ -1,40 +1,82 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { VscSearch } from 'react-icons/vsc';
 import Aurora from '@/components/ui/Aurora';
 import MediaCard from '@/components/MediaCard';
 import type { TMDBMediaItem } from '@/lib/tmdb';
 
 export default function SearchPage() {
-  const [query, setQuery] = useState('');
+  const searchParams = useSearchParams();
+  const initialQuery = searchParams.get('q') || '';
+  const [query, setQuery] = useState(initialQuery);
   const [results, setResults] = useState<TMDBMediaItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const abortRef = useRef<AbortController | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    if (!query.trim()) {
+  const doSearch = useCallback(async (q: string) => {
+    const trimmed = q.trim();
+    if (!trimmed) {
       setResults([]);
+      setLoading(false);
       return;
     }
 
-    const timer = setTimeout(async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(`/api/tmdb/search?q=${encodeURIComponent(query)}`);
-        if (!res.ok) throw new Error('Network response was not ok');
-        const data = await res.json();
-        if (data.results) {
-          setResults(data.results);
-        }
-      } catch (err) {
+    // Abort any in-flight request
+    if (abortRef.current) abortRef.current.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/tmdb/search?q=${encodeURIComponent(trimmed)}`, {
+        signal: controller.signal,
+      });
+      if (!res.ok) throw new Error('Network response was not ok');
+      const data = await res.json();
+      if (!controller.signal.aborted && data.results) {
+        setResults(data.results);
+      }
+    } catch (err: any) {
+      if (err?.name !== 'AbortError') {
         console.error("Search error:", err);
-      } finally {
+      }
+    } finally {
+      if (!controller.signal.aborted) {
         setLoading(false);
       }
-    }, 400); // 400ms debounce
+    }
+  }, []);
 
-    return () => clearTimeout(timer);
-  }, [query]);
+  // Debounced search on query change
+  useEffect(() => {
+    if (!query.trim()) {
+      setResults([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => doSearch(query), 300);
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [query, doSearch]);
+
+  // If navigated here with ?q=, trigger search immediately
+  useEffect(() => {
+    if (initialQuery.trim()) {
+      setQuery(initialQuery);
+      doSearch(initialQuery);
+    }
+    // Only run on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div style={{ position: "relative", minHeight: "100vh" }}>
@@ -79,7 +121,7 @@ export default function SearchPage() {
         {loading && query.trim() !== '' && (
            <div style={{ textAlign: "center", padding: "2rem", opacity: 0.5, fontSize: "1.2rem", display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
               <div className="spinner" style={{ width: 40, height: 40, border: '4px solid rgba(255,255,255,0.2)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-              <style jsx>{`
+              <style>{`
                 @keyframes spin { 100% { transform: rotate(360deg); } }
               `}</style>
               <span>Searching...</span>
@@ -89,7 +131,7 @@ export default function SearchPage() {
         {/* Empty State */}
         {!loading && query.trim() !== '' && results.length === 0 && (
            <div style={{ textAlign: "center", padding: "4rem", opacity: 0.5 }}>
-             <p style={{ fontSize: "1.5rem" }}>No results found for "{query}"</p>
+             <p style={{ fontSize: "1.5rem" }}>No results found for &quot;{query}&quot;</p>
              <p style={{ marginTop: '0.5rem' }}>Try modifying your search terms.</p>
            </div>
         )}

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence, Reorder } from 'motion/react'
 import { VscAdd, VscTrash, VscGripper, VscArrowRight } from 'react-icons/vsc'
 import AdminSearch from '@/components/admin/AdminSearch'
@@ -64,6 +64,11 @@ export default function HomeLayoutPage() {
   const [itemsLoading, setItemsLoading] = useState(false)
   const [dragItem, setDragItem] = useState<number | null>(null)
   const [dragOverSlot, setDragOverSlot] = useState<number | null>(null)
+
+  // Ref to always have fresh sections for debounced/blurred saves
+  const sectionsRef = useRef<Section[]>(sections)
+  useEffect(() => { sectionsRef.current = sections }, [sections])
+  const maxItemsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Fetch sections (auto-seed/fix defaults on every load)
   const fetchSections = useCallback(async () => {
@@ -502,8 +507,18 @@ export default function HomeLayoutPage() {
                         s.id === activeSection ? { ...s, maxItems: val } : s
                       )
                       setSections(updated)
+
+                      // Debounced auto-save: saves 600ms after user stops typing
+                      if (maxItemsTimerRef.current) clearTimeout(maxItemsTimerRef.current)
+                      maxItemsTimerRef.current = setTimeout(() => {
+                        saveSections(updated)
+                      }, 600)
                     }}
-                    onBlur={() => saveSections(sections)}
+                    onBlur={() => {
+                      // Cancel pending debounce and save immediately with fresh state
+                      if (maxItemsTimerRef.current) clearTimeout(maxItemsTimerRef.current)
+                      saveSections(sectionsRef.current)
+                    }}
                     className="admin-input"
                     style={{
                       width: '70px',

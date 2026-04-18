@@ -27,32 +27,64 @@ export default function AdminSearch({ onSelect, placeholder = 'Search movies & T
   const [isOpen, setIsOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const wrapperRef = useRef<HTMLDivElement>(null)
-  const debounceRef = useRef<NodeJS.Timeout | null>(null)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const abortRef = useRef<AbortController | null>(null)
 
   const searchTMDB = useCallback(async (q: string) => {
     if (!q.trim()) {
       setResults([])
       setIsOpen(false)
+      setIsLoading(false)
       return
     }
+
+    // Abort any in-flight request
+    if (abortRef.current) abortRef.current.abort()
+    const controller = new AbortController()
+    abortRef.current = controller
+
     setIsLoading(true)
     try {
-      const res = await fetch(`/api/tmdb/search?q=${encodeURIComponent(q)}`)
+      const res = await fetch(`/api/tmdb/search?q=${encodeURIComponent(q)}`, {
+        signal: controller.signal,
+      })
+      if (!res.ok) throw new Error('Search failed')
       const data = await res.json()
-      setResults(data.results || [])
-      setIsOpen(true)
-    } catch {
-      setResults([])
+      if (!controller.signal.aborted) {
+        setResults(data.results || [])
+        setIsOpen(true)
+      }
+    } catch (err: any) {
+      if (err?.name !== 'AbortError') {
+        setResults([])
+      }
     } finally {
-      setIsLoading(false)
+      if (!controller.signal.aborted) {
+        setIsLoading(false)
+      }
     }
   }, [])
 
   const handleInputChange = (value: string) => {
     setQuery(value)
+    if (!value.trim()) {
+      setResults([])
+      setIsOpen(false)
+      setIsLoading(false)
+      return
+    }
+    setIsLoading(true)
     if (debounceRef.current) clearTimeout(debounceRef.current)
-    debounceRef.current = setTimeout(() => searchTMDB(value), 350)
+    debounceRef.current = setTimeout(() => searchTMDB(value), 300)
   }
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+      if (abortRef.current) abortRef.current.abort()
+    }
+  }, [])
 
   const handleSelect = (item: SearchResult) => {
     onSelect(item)

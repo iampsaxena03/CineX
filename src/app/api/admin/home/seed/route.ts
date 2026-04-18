@@ -46,13 +46,9 @@ export async function POST(request: Request) {
           }
         })
         created++
-      } else if (existing.maxItems !== expectedMax && ['top10', 'trending', 'countdown'].includes(section.type)) {
-        await prisma.homeSection.update({
-          where: { key: section.key },
-          data: { maxItems: expectedMax }
-        })
-        updated++
       }
+      // Note: We intentionally do NOT reset maxItems for existing sections.
+      // The admin may have changed it via the "Visible titles on site" control.
     }
     return NextResponse.json({ success: true, created, updated, message: `${created} created, ${updated} fixed` })
   } catch (error) {
