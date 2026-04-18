@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { getDetails, getImageUrl, getBackdropUrl, getSimilar } from "@/lib/tmdb";
 import MediaInteractive from "@/components/MediaInteractive";
 import MediaCard from "@/components/MediaCard";
@@ -9,6 +10,40 @@ import { VscArrowLeft } from "react-icons/vsc";
 import { notFound } from "next/navigation";
 
 export const revalidate = 3600;
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ type: "movie" | "tv"; id: string }>;
+}): Promise<Metadata> {
+  const { type, id } = await params;
+  const details = await getDetails(type, id);
+
+  if (!details) {
+    return { title: "Not Found" };
+  }
+
+  const title = (details as any).title || (details as any).name;
+  const description = details.overview || "Watch the best movies and TV shows on CineXP.";
+  const posterUrl = getImageUrl(details.poster_path, "w500");
+
+  return {
+    title: title,
+    description: description,
+    openGraph: {
+      title: `${title} | CineXP`,
+      description: description,
+      images: posterUrl ? [posterUrl] : [],
+      type: type === "movie" ? "video.movie" : "video.tv_show",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${title} | CineXP`,
+      description: description,
+      images: posterUrl ? [posterUrl] : [],
+    },
+  };
+}
 
 export default async function MediaPage({
   params,
@@ -38,8 +73,27 @@ export default async function MediaPage({
     backdrop_path: details.backdrop_path,
   };
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": type === "movie" ? "Movie" : "TVSeries",
+    name: title,
+    image: posterUrl ? [posterUrl] : [],
+    description: details.overview,
+    datePublished: (details as any).release_date || (details as any).first_air_date || undefined,
+    aggregateRating: details.vote_average > 0 ? {
+      "@type": "AggregateRating",
+      ratingValue: details.vote_average,
+      bestRating: "10",
+      ratingCount: details.vote_count || 1,
+    } : undefined,
+  };
+
   return (
     <div style={{ minHeight: "100vh" }}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <HistoryTracker item={historyItem} />
       {posterUrl && <ColorExtractor imageUrl={posterUrl} />}
       
