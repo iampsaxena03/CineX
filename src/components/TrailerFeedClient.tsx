@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useRef, useCallback, useId } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { motion } from 'motion/react';
 import { 
   VscPlayCircle, 
@@ -139,6 +139,36 @@ export default function TrailerFeedClient({ initialReels, initialPage }: Trailer
   );
 }
 
+// ─── Helper: safely destroy a YT player and restore the placeholder div ──────
+function destroyPlayerSafely(playerRef: React.MutableRefObject<any>, wrapperRef: React.RefObject<HTMLDivElement | null>, playerId: string) {
+  if (!playerRef.current) return;
+  try {
+    // Get the iframe element before destroying
+    const iframe = playerRef.current.getIframe?.();
+    playerRef.current.destroy();
+    playerRef.current = null;
+
+    // After destroy, YouTube removes the iframe but doesn't restore the original div.
+    // We must recreate it so a future `new YT.Player(playerId, ...)` has a target.
+    if (wrapperRef.current) {
+      // Check if the placeholder div already exists (it won't after destroy)
+      const existing = document.getElementById(playerId);
+      if (!existing) {
+        const newDiv = document.createElement('div');
+        newDiv.id = playerId;
+        newDiv.style.width = '100%';
+        newDiv.style.height = '100%';
+        // Clear any leftover iframe fragments
+        wrapperRef.current.innerHTML = '';
+        wrapperRef.current.appendChild(newDiv);
+      }
+    }
+  } catch (err) {
+    // Player was already disposed or in a bad state — just null the ref
+    playerRef.current = null;
+  }
+}
+
 // ─── Single Reel Slide ────────────────────────────────────────────────────────
 function ReelSlide({
   reel, slideIndex, isActive, isLast, isPrefetch, muted, onToggleMute, onVideoError
@@ -154,9 +184,9 @@ function ReelSlide({
 }) {
   const { item, video } = reel;
   const router = useRouter();
-  // Stable unique DOM id for this player
   const playerId = `yt-player-${slideIndex}-${video.key}`;
   const playerRef = useRef<any>(null);
+  const ytWrapperRef = useRef<HTMLDivElement>(null);
   const [ready, setReady] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -168,41 +198,57 @@ function ReelSlide({
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasBuffered, setHasBuffered] = useState(false);
 
+  // Keep a mutable ref for isActive so event handlers always see the latest value
   const isActiveRef = useRef(isActive);
   useEffect(() => {
     isActiveRef.current = isActive;
   }, [isActive]);
 
+  // Keep mutable ref for isPrefetch to use in the cleanup
+  const isPrefetchRef = useRef(isPrefetch);
+  useEffect(() => {
+    isPrefetchRef.current = isPrefetch;
+  }, [isPrefetch]);
+
   useEffect(() => {
     loadYouTubeAPI().then(() => setApiReady(true));
   }, []);
 
-  // ── Init player only for active or adjacent slides ──
+  // ── Create / destroy player based on prefetch window ──
+  // CRITICAL: `isActive` is intentionally NOT in the dependency array.
+  // Play/pause is handled by the separate effect below. This effect only
+  // handles player creation (when entering the prefetch window) and
+  // destruction (when leaving it).
   useEffect(() => {
     let cancelled = false;
-    
-    // Unload the player if it's far away to save memory/bandwidth
-    if (!isActive && !isPrefetch) {
-      if (playerRef.current) {
-        playerRef.current.destroy();
-        playerRef.current = null;
-        setReady(false);
-      }
+
+    if (!isPrefetch) {
+      // Slide scrolled far away — tear down the player & restore the div
+      destroyPlayerSafely(playerRef, ytWrapperRef, playerId);
+      setReady(false);
+      setHasBuffered(false);
       return;
     }
 
+    // If we're in the prefetch window and don't have a player yet, create one
     if (!apiReady || playerRef.current) return;
 
     loadYouTubeAPI().then(() => {
       if (cancelled || playerRef.current) return;
+      // Make sure the target div exists (it should, but guard anyway)
+      const targetEl = document.getElementById(playerId);
+      if (!targetEl) {
+        console.warn(`[ReelSlide] Target element #${playerId} not found, skipping init`);
+        return;
+      }
       playerRef.current = new window.YT.Player(playerId, {
         videoId: video.key,
         width: '100%',
         height: '100%',
         playerVars: {
-          autoplay: 1, // ALWAYS 1 to reliably bypass browser restrictions
+          autoplay: 0,   // Don't autoplay — the play/pause effect handles it
           controls: 0,
-          mute: 1, // ALWAYS 1 for autoplay policy
+          mute: 1,       // ALWAYS 1 for autoplay policy
           loop: 1,
           playlist: video.key,
           modestbranding: 1,
@@ -215,12 +261,19 @@ function ReelSlide({
             if (cancelled) return;
             setReady(true);
             setDuration(e.target.getDuration());
-            e.target.setPlaybackQuality(isActiveRef.current ? 'auto' : 'small');
+            // If this slide is already the active one, start playing immediately
+            if (isActiveRef.current) {
+              e.target.setPlaybackQuality('auto');
+              e.target.playVideo();
+            } else {
+              e.target.setPlaybackQuality('small');
+            }
           },
           onStateChange: (e: any) => {
             if (e.data === window.YT.PlayerState.PLAYING) {
               setHasBuffered(true);
               if (!isActiveRef.current) {
+                // Adjacent slide started playing — immediately pause it
                 e.target.pauseVideo();
                 setIsPlaying(false);
               } else {
@@ -237,46 +290,61 @@ function ReelSlide({
             }
           },
           onError: (e: any) => {
-            // 2: invalid param, 5: HTML5 error, 100: not found/removed, 101/150: embedded playback disabled
             if ([2, 5, 100, 101, 150].includes(e.data)) {
-              if (onVideoError) {
-                  onVideoError(reel.id);
-              }
+              onVideoError(reel.id);
             }
           }
         }
       });
     });
+
     return () => {
       cancelled = true;
     };
-  }, [playerId, video.key, apiReady, isActive, isPrefetch]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playerId, video.key, apiReady, isPrefetch]);
+
+  // ── Cleanup player on unmount ─────────────────────────────────────────────
+  useEffect(() => {
+    return () => {
+      if (playerRef.current) {
+        try { playerRef.current.destroy(); } catch {}
+        playerRef.current = null;
+      }
+    };
+  }, []);
 
   // ── Auto Play/Pause when slide becomes active ─────────────────────────────
   useEffect(() => {
     if (!ready || !playerRef.current) return;
 
-    if (isActive) {
-      if (playerRef.current.setPlaybackQuality) playerRef.current.setPlaybackQuality('auto');
-      playerRef.current.playVideo();
-      setIsPlaying(true);
-    } else if (hasBuffered) {
-      // If it's NOT active, but it has already finished its initial buffer -> Pause it!
-      playerRef.current.pauseVideo();
-      setIsPlaying(false);
-      setProgress(0);
+    try {
+      if (isActive) {
+        if (playerRef.current.setPlaybackQuality) playerRef.current.setPlaybackQuality('auto');
+        playerRef.current.playVideo();
+        setIsPlaying(true);
+      } else if (hasBuffered) {
+        playerRef.current.pauseVideo();
+        setIsPlaying(false);
+        setProgress(0);
+      }
+    } catch (err) {
+      // Player may have been disposed between the check and the call
+      console.warn('[ReelSlide] Player method failed:', err);
     }
   }, [isActive, ready, hasBuffered]);
 
   // ── Mute / Unmute (NO reload) ───────────────────────────────────────────────
   useEffect(() => {
     if (!ready || !playerRef.current) return;
-    if (muted) {
-      playerRef.current.mute();
-    } else {
-      playerRef.current.unMute();
-      playerRef.current.setVolume(100);
-    }
+    try {
+      if (muted) {
+        playerRef.current.mute();
+      } else {
+        playerRef.current.unMute();
+        playerRef.current.setVolume(100);
+      }
+    } catch {}
   }, [muted, ready]);
 
   // ── Progress ticker ─────────────────────────────────────────────────────────
@@ -286,9 +354,11 @@ function ReelSlide({
       timerRef.current = setInterval(() => {
         const p = playerRef.current;
         if (!p?.getCurrentTime) return;
-        const cur = p.getCurrentTime();
-        const dur = p.getDuration();
-        if (dur > 0) setProgress((cur / dur) * 100);
+        try {
+          const cur = p.getCurrentTime();
+          const dur = p.getDuration();
+          if (dur > 0) setProgress((cur / dur) * 100);
+        } catch {}
       }, 200);
     } else {
       if (timerRef.current) clearInterval(timerRef.current);
@@ -323,7 +393,6 @@ function ReelSlide({
         url: url,
       }).catch(err => {
         console.error('Error sharing:', err);
-        // Fallback to clipboard
         copyToClipboard(url);
       });
     } else {
@@ -409,7 +478,10 @@ function ReelSlide({
           transform: 'translate(-50%, -50%)',
           pointerEvents: 'none',
         }}>
-          <div id={playerId} style={{ width: '100%', height: '100%' }} />
+          {/* This wrapper ref lets us restore the placeholder div after player.destroy() */}
+          <div ref={ytWrapperRef} style={{ width: '100%', height: '100%' }}>
+            <div id={playerId} style={{ width: '100%', height: '100%' }} />
+          </div>
         </div>
 
         {/* Interaction overlay (tap to toggle play/pause) */}
@@ -417,13 +489,15 @@ function ReelSlide({
           onClick={(e) => {
             e.stopPropagation();
             if (playerRef.current && ready) {
-              if (isPlaying) {
-                playerRef.current.pauseVideo();
-                setIsPlaying(false);
-              } else {
-                playerRef.current.playVideo();
-                setIsPlaying(true);
-              }
+              try {
+                if (isPlaying) {
+                  playerRef.current.pauseVideo();
+                  setIsPlaying(false);
+                } else {
+                  playerRef.current.playVideo();
+                  setIsPlaying(true);
+                }
+              } catch {}
             }
           }}
           style={{ position: 'absolute', inset: 0, zIndex: 10, cursor: 'pointer' }}

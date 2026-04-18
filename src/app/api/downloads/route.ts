@@ -88,8 +88,8 @@ export async function GET(request: Request) {
     return NextResponse.json({ links: [], episodeLinks: [] })
   }
 
-  // Determine Region from Request Headers (Geolocated by Vercel)
-  const country = request.headers.get('x-vercel-ip-country') || 'US'
+  // Determine Region from Request Headers (Geolocated by Cloudflare/Vercel)
+  const country = request.headers.get('cf-ipcountry') || request.headers.get('x-vercel-ip-country') || 'US'
   const region = ASIAN_COUNTRIES.includes(country) ? 'asia' : 'global'
 
   try {

@@ -282,8 +282,37 @@ export async function getSeason(tvId: string | number, seasonNumber: number) {
 }
 
 export async function searchMulti(query: string): Promise<TMDBMediaItem[]> {
-  const data = await tmdbFetch<TMDBSearchResult<TMDBMediaItem>>('/search/multi', { query })
-  return (data?.results || []).filter((r) => r.media_type === 'movie' || r.media_type === 'tv')
+  const data = await tmdbFetch<TMDBSearchResult<TMDBMediaItem>>('/search/multi', { query, include_adult: 'true' })
+  const results = (data?.results || []).filter((r) => r.media_type === 'movie' || r.media_type === 'tv')
+  
+  const qLower = query.toLowerCase()
+  
+  // Hybrid Sort: Relevance (Text Match) + Popularity
+  return results.sort((a: any, b: any) => {
+    const titleA = (a.title || a.name || '').toLowerCase()
+    const titleB = (b.title || b.name || '').toLowerCase()
+    
+    // 1. Exact match boost
+    const aExact = titleA === qLower
+    const bExact = titleB === qLower
+    if (aExact && !bExact) return -1
+    if (!aExact && bExact) return 1
+    
+    // 2. Starts with boost
+    const aStarts = titleA.startsWith(qLower)
+    const bStarts = titleB.startsWith(qLower)
+    if (aStarts && !bStarts) return -1
+    if (!aStarts && bStarts) return 1
+    
+    // 3. Includes boost
+    const aIncludes = titleA.includes(qLower)
+    const bIncludes = titleB.includes(qLower)
+    if (aIncludes && !bIncludes) return -1
+    if (!aIncludes && bIncludes) return 1
+    
+    // 4. Default to popularity
+    return (b.popularity || 0) - (a.popularity || 0)
+  })
 }
 
 export const GENRE_MAP: Record<number, string> = {
