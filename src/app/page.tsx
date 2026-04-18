@@ -98,9 +98,10 @@ export default async function HomePage() {
               fontSize: "clamp(2.5rem, 6vw, 5rem)",
               fontWeight: 700,
               marginBottom: "1rem",
-              background: "linear-gradient(135deg, #fff 30%, var(--accent))",
+              background: "linear-gradient(135deg, #ffffff 10%, var(--accent) 50%, var(--primary) 90%)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
+              filter: "drop-shadow(0 4px 15px rgba(157, 0, 255, 0.4))",
               lineHeight: 1.1,
             }}
           >
