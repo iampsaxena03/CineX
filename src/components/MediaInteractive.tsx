@@ -125,7 +125,7 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
     } else if (activeProvider === 'vidlink') {
       // Vidlink
       const base = 'https://vidlink.pro'
-      const params = 'primaryColor=63b8bc&secondaryColor=a2a2a2&iconColor=eefdec&icons=default&player=default&title=true&poster=true&autoplay=true&nextbutton=true'
+      const params = 'primaryColor=63b8bc&secondaryColor=a2a2a2&iconColor=eefdec&icons=default&player=default&title=true&poster=true&autoplay=false&nextbutton=true'
       return type === 'movie'
         ? `${base}/movie/${id}?${params}${timeParam}`
         : `${base}/tv/${id}/${season}/${episode}?${params}${timeParam}`
