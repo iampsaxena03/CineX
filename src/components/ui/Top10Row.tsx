@@ -5,13 +5,14 @@ import Link from 'next/link';
 import { getImageUrl, type TMDBMediaItem } from '@/lib/tmdb';
 import { generateSlug } from "@/lib/utils";
 
-export default function Top10Row({ items }: { items: TMDBMediaItem[] }) {
+export default function Top10Row({ items, title, maxItems }: { items: TMDBMediaItem[]; title?: string; maxItems?: number }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
 
-  // Strictly show exactly 10 items
-  const displayItems = items.slice(0, 10);
+  const limit = maxItems || 10;
+  // Show up to the configured maxItems
+  const displayItems = items.slice(0, limit);
 
   const checkScroll = () => {
     if (scrollRef.current) {
@@ -48,7 +49,7 @@ export default function Top10Row({ items }: { items: TMDBMediaItem[] }) {
   return (
     <div style={{ marginBottom: '4rem', position: 'relative' }}>
       <h2 style={{ fontSize: '1.6rem', fontWeight: 600, marginBottom: '1.5rem', paddingLeft: '1rem' }}>
-        <span style={{ color: 'var(--primary)' }}>🏆</span> Top 10 in India Today
+        <span style={{ color: 'var(--primary)' }}>🏆</span> {title || 'Top 10 in India Today'}
       </h2>
       
       <div style={{ position: 'relative', overflow: 'hidden' }} className="top10-container">
@@ -117,7 +118,7 @@ export default function Top10Row({ items }: { items: TMDBMediaItem[] }) {
         >
           {displayItems.map((item, index) => {
             const rank = index + 1;
-            const isTop10 = rank <= 10;
+            const isTop10 = rank <= limit;
             const mediaType = item.media_type === 'tv' ? 'tv' : 'movie';
             const title = (item as any).title || (item as any).name;
 

@@ -145,6 +145,7 @@ export default async function HomePage() {
               );
             }
 
+
             // Coming Soon — horizontal slider with countdown overlays
             if (section.type === 'countdown') {
               return (
@@ -194,22 +195,26 @@ function Top10Section({ section, tmdbLookup, trendingData }: {
   tmdbLookup: Map<number, TMDBMediaItem>
   trendingData: TMDBMediaItem[]
 }) {
+  const limit = section.maxItems || 10;
   const finalItems: TMDBMediaItem[] = [];
   const usedIds = new Set<number>();
 
   for (const adminItem of section.items) {
+    if (finalItems.length >= limit) break;
     const resolved = tmdbLookup.get(adminItem.tmdbId);
     if (resolved) { finalItems.push(resolved); usedIds.add(resolved.id); }
   }
 
-  // Fill remaining to exactly 10 from trending
-  for (const item of trendingData) {
-    if (finalItems.length >= 10) break;
-    if (!usedIds.has(item.id)) { finalItems.push(item); usedIds.add(item.id); }
+  // Fill remaining up to maxItems from trending
+  if (section.autoFill) {
+    for (const item of trendingData) {
+      if (finalItems.length >= limit) break;
+      if (!usedIds.has(item.id)) { finalItems.push(item); usedIds.add(item.id); }
+    }
   }
 
   if (finalItems.length === 0) return null;
-  return <Top10Row items={finalItems} />;
+  return <Top10Row items={finalItems} title={section.title} maxItems={limit} />;
 }
 
 // ─── Coming Soon Section (horizontal slider like Top 10) ─────────
@@ -272,9 +277,11 @@ function GridSection({ section, tmdbLookup, trendingData }: {
     if (resolved) { finalItems.push(resolved); usedIds.add(resolved.id); }
   }
 
-  // Auto-fill with trending (skip dupes)
+  // Auto-fill with trending (skip dupes), up to maxItems
+  const limit = section.maxItems || 6;
   if (section.autoFill) {
     for (const item of trendingData) {
+      if (finalItems.length >= limit) break;
       if (usedIds.has(item.id)) continue;
       finalItems.push(item);
       usedIds.add(item.id);
