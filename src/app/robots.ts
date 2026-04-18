@@ -1,13 +1,13 @@
 import { MetadataRoute } from 'next';
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://cinexp.vercel.app';
+  const baseUrl = 'https://cinexp.site';
 
   return {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: ['/admin/', '/api/'],
+      disallow: ['/api/', '/admin/', '/admin-login/'],
     },
     sitemap: `${baseUrl}/sitemap.xml`,
   };

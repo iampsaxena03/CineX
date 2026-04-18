@@ -1,5 +1,5 @@
-import type { Metadata } from "next";
 import { getDetails, getImageUrl, getBackdropUrl, getSimilar } from "@/lib/tmdb";
+import type { Metadata, ResolvingMetadata } from "next";
 import MediaInteractive from "@/components/MediaInteractive";
 import MediaCard from "@/components/MediaCard";
 import HistoryTracker from "@/components/HistoryTracker";
@@ -11,35 +11,35 @@ import { notFound } from "next/navigation";
 
 export const revalidate = 3600;
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ type: "movie" | "tv"; id: string }>;
-}): Promise<Metadata> {
+export async function generateMetadata(
+  { params }: { params: Promise<{ type: "movie" | "tv"; id: string }> },
+  parent: ResolvingMetadata
+): Promise<Metadata> {
   const { type, id } = await params;
   const details = await getDetails(type, id);
-
-  if (!details) {
-    return { title: "Not Found" };
-  }
+  if (!details) return { title: "Not Found" };
 
   const title = (details as any).title || (details as any).name;
-  const description = details.overview || "Watch the best movies and TV shows on CineXP.";
+  const overview = details.overview || "Watch this amazing content on CineXP.";
   const posterUrl = getImageUrl(details.poster_path, "w500");
+  const url = `https://cinexp.site/media/${type}/${id}`;
 
   return {
-    title: title,
-    description: description,
+    title,
+    description: overview,
+    alternates: {
+      canonical: url,
+    },
     openGraph: {
-      title: `${title} | CineXP`,
-      description: description,
-      images: posterUrl ? [posterUrl] : [],
-      type: type === "movie" ? "video.movie" : "video.tv_show",
+      title,
+      description: overview,
+      url,
+      images: posterUrl ? [{ url: posterUrl, width: 500, height: 750 }] : [],
     },
     twitter: {
       card: "summary_large_image",
-      title: `${title} | CineXP`,
-      description: description,
+      title,
+      description: overview,
       images: posterUrl ? [posterUrl] : [],
     },
   };
@@ -77,15 +77,9 @@ export default async function MediaPage({
     "@context": "https://schema.org",
     "@type": type === "movie" ? "Movie" : "TVSeries",
     name: title,
-    image: posterUrl ? [posterUrl] : [],
+    image: posterUrl,
     description: details.overview,
-    datePublished: (details as any).release_date || (details as any).first_air_date || undefined,
-    aggregateRating: details.vote_average > 0 ? {
-      "@type": "AggregateRating",
-      ratingValue: details.vote_average,
-      bestRating: "10",
-      ratingCount: details.vote_count || 1,
-    } : undefined,
+    dateCreated: year,
   };
 
   return (

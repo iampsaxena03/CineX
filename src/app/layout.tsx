@@ -5,13 +5,11 @@ import InstallPWA from "@/components/ui/InstallPWA";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://cinexp.vercel.app'),
   title: {
-    default: "CineXP | Premium Streaming",
     template: "%s | CineXP",
+    default: "CineXP | Premium Streaming",
   },
-  description: "Advanced Movie & TV Series streaming platform. Watch the latest blockbusters and trending shows in high quality.",
-  keywords: ["movies", "tv shows", "streaming", "cinexp", "watch online", "hd", "series", "cinema"],
+  description: "Advanced Movie & TV Series streaming platform. Watch the latest hit movies and TV shows for free in HD.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -19,20 +17,19 @@ export const metadata: Metadata = {
     statusBarStyle: "black-translucent",
   },
   applicationName: "CineXP",
+  metadataBase: new URL('https://cinexp.site'),
   openGraph: {
-    type: "website",
-    locale: "en_US",
-    url: "/",
     title: "CineXP | Premium Streaming",
-    description: "Advanced Movie & TV Series streaming platform. Watch the latest blockbusters and trending shows in high quality.",
-    siteName: "CineXP",
-    images: [{ url: "/icon-512x512.png" }],
+    description: "Advanced Movie & TV Series streaming platform. Watch the latest hit movies and TV shows for free in HD.",
+    url: 'https://cinexp.site',
+    siteName: 'CineXP',
+    locale: 'en_US',
+    type: 'website',
   },
   twitter: {
-    card: "summary_large_image",
-    title: "CineXP | Premium Streaming",
-    description: "Advanced Movie & TV Series streaming platform.",
-    images: ["/icon-512x512.png"],
+    card: 'summary_large_image',
+    title: 'CineXP | Premium Streaming',
+    description: 'Advanced Movie & TV Series streaming platform. Watch the latest hit movies and TV shows for free in HD.',
   },
 };
 
