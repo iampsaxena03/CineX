@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 /**
  * A fullscreen reel-style ad slide that blends into the vertical scroll feed.
  * Renders a 300x250 banner centered with a "Sponsored" label like Instagram.
+ * Uses iframe isolation to prevent atOptions global variable collision.
  * 
  * If an ad-blocker prevents loading, the entire slide collapses so the
  * scroll feed isn't interrupted by empty space.
@@ -18,32 +19,44 @@ export default function ReelAdSlide() {
     if (!adRef.current || injectedRef.current) return;
     injectedRef.current = true;
 
-    const confScript = document.createElement('script');
-    confScript.type = 'text/javascript';
-    confScript.innerHTML = `
-      atOptions = {
-        'key' : '87b1f98e2b43417d714893dfa11c7e9f',
-        'format' : 'iframe',
-        'height' : 250,
-        'width' : 300,
-        'params' : {}
-      };
-    `;
+    const adKey = '87b1f98e2b43417d714893dfa11c7e9f';
 
-    const invokeScript = document.createElement('script');
-    invokeScript.type = 'text/javascript';
-    invokeScript.src = '//www.highperformanceformat.com/87b1f98e2b43417d714893dfa11c7e9f/invoke.js';
-    invokeScript.async = true;
-    invokeScript.onerror = () => setAdFailed(true);
+    // Create isolated iframe for this ad
+    const iframe = document.createElement('iframe');
+    iframe.style.cssText = 'border:none;overflow:hidden;width:300px;height:250px;display:block;';
+    iframe.scrolling = 'no';
+    iframe.setAttribute('frameborder', '0');
 
-    adRef.current.appendChild(confScript);
-    adRef.current.appendChild(invokeScript);
+    adRef.current.appendChild(iframe);
+
+    const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+    if (iframeDoc) {
+      iframeDoc.open();
+      iframeDoc.write([
+        '<!DOCTYPE html><html><head>',
+        '<base target="_blank">',
+        '<style>*{margin:0;padding:0;}body{overflow:hidden;}</style>',
+        '</head><body>',
+        '<script>',
+        `atOptions={'key':'${adKey}','format':'iframe','height':250,'width':300,'params':{}};`,
+        '<\/script>',
+        `<script src="//www.highperformanceformat.com/${adKey}/invoke.js"><\/script>`,
+        '</body></html>',
+      ].join(''));
+      iframeDoc.close();
+    }
 
     const checkTimer = setTimeout(() => {
       if (!adRef.current) return;
-      const hasAdContent = adRef.current.querySelector('iframe, ins, img');
-      if (!hasAdContent) setAdFailed(true);
-    }, 3000);
+      try {
+        const doc = iframe.contentDocument || iframe.contentWindow?.document;
+        if (doc && doc.body && doc.body.childElementCount <= 2) {
+          setAdFailed(true);
+        }
+      } catch {
+        // Cross-origin means ad network redirected → working
+      }
+    }, 5000);
 
     return () => {
       clearTimeout(checkTimer);

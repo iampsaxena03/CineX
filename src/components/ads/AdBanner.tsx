@@ -10,71 +10,78 @@ interface AdBannerProps {
 }
 
 /**
- * Safely injects an Adsterra banner ad.
- * Uses direct DOM manipulation to avoid React virtual DOM conflicts
- * with ad network scripts that use document.write().
+ * Safely renders an Adsterra banner ad inside an isolated iframe.
  * 
- * Ad-blocker resilient: if the ad fails to load (blocked/timeout),
- * the container collapses to 0 height so no empty space is left.
+ * Each ad gets its own JavaScript scope via a sandboxed iframe, which
+ * prevents the global `atOptions` collision that occurs when multiple
+ * Adsterra ads are on the same page (the second ad would overwrite the
+ * first ad's atOptions before invoke.js could read it).
+ * 
+ * Ad-blocker resilient: if the ad fails to load after 5s, the container
+ * collapses to show no empty space.
  */
 export default function AdBanner({ adKey, width, height, format = 'iframe' }: AdBannerProps) {
-  const adRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const injectedRef = useRef(false);
   const [adFailed, setAdFailed] = useState(false);
 
   useEffect(() => {
-    if (!adRef.current || injectedRef.current) return;
+    if (!containerRef.current || injectedRef.current) return;
     injectedRef.current = true;
 
-    const confScript = document.createElement('script');
-    confScript.type = 'text/javascript';
-    confScript.innerHTML = `
-      atOptions = {
-        'key' : '${adKey}',
-        'format' : '${format}',
-        'height' : ${height},
-        'width' : ${width},
-        'params' : {}
-      };
-    `;
+    // Create an isolated iframe so each ad gets its own JS global scope
+    const iframe = document.createElement('iframe');
+    iframe.style.cssText = `border:none;overflow:hidden;width:${width}px;height:${height}px;display:block;`;
+    iframe.scrolling = 'no';
+    iframe.setAttribute('frameborder', '0');
 
-    const invokeScript = document.createElement('script');
-    invokeScript.type = 'text/javascript';
-    invokeScript.src = `//www.highperformanceformat.com/${adKey}/invoke.js`;
-    invokeScript.async = true;
+    containerRef.current.appendChild(iframe);
 
-    // If the script itself is blocked by adblocker, it'll fire onerror
-    invokeScript.onerror = () => setAdFailed(true);
+    // Write the ad code into the iframe's own document
+    const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+    if (iframeDoc) {
+      iframeDoc.open();
+      iframeDoc.write([
+        '<!DOCTYPE html><html><head>',
+        '<base target="_blank">',
+        '<style>*{margin:0;padding:0;}body{overflow:hidden;}</style>',
+        '</head><body>',
+        '<script>',
+        `atOptions={'key':'${adKey}','format':'${format}','height':${height},'width':${width},'params':{}};`,
+        '<\/script>',
+        `<script src="//www.highperformanceformat.com/${adKey}/invoke.js"><\/script>`,
+        '</body></html>',
+      ].join(''));
+      iframeDoc.close();
+    }
 
-    adRef.current.appendChild(confScript);
-    adRef.current.appendChild(invokeScript);
-
-    // Check after 5s if ANY child content was injected beyond our 2 scripts.
-    // Adsterra can inject iframes, divs, ins tags, etc. — so we check
-    // if there are more than 2 children (our config + invoke scripts).
+    // Ad-blocker check: if nothing rendered after 5s, collapse
     const checkTimer = setTimeout(() => {
-      if (!adRef.current) return;
-      if (adRef.current.childElementCount <= 2) {
-        // Only our two scripts exist, no ad was rendered
-        setAdFailed(true);
+      if (!containerRef.current) return;
+      try {
+        const doc = iframe.contentDocument || iframe.contentWindow?.document;
+        if (doc && doc.body && doc.body.childElementCount <= 2) {
+          setAdFailed(true);
+        }
+      } catch {
+        // Cross-origin means the ad network redirected → ad is working
       }
     }, 5000);
 
     return () => {
       clearTimeout(checkTimer);
       injectedRef.current = false;
-      if (adRef.current) {
-        adRef.current.innerHTML = '';
+      if (containerRef.current) {
+        containerRef.current.innerHTML = '';
       }
     };
   }, [adKey, width, height, format]);
 
-  // If ad was blocked, render nothing — no empty space
   if (adFailed) return null;
 
   return (
     <div
-      ref={adRef}
+      ref={containerRef}
       style={{
         display: 'flex',
         justifyContent: 'center',
