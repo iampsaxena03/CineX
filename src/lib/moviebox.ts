@@ -122,19 +122,26 @@ export async function getMovieBoxDownloadSources(subjectId: string, detailPath: 
         
         const content = processApiResponse(response);
         
+        // Extract English subtitle URL if available
+        const captions = content?.captions || [];
+        const englishSub = captions.find((c: any) => c.lan === 'en') || captions[0] || null;
+        
         if (content && content.downloads) {
-           return content.downloads.map((file: any) => ({
-               id: file.id,
-               quality: file.resolution ? file.resolution.toString() : 'Unknown',
-               directUrl: file.url,
-               size: file.size,
-               format: 'mp4'
-           }))
+           return {
+               sources: content.downloads.map((file: any) => ({
+                   id: file.id,
+                   quality: file.resolution ? file.resolution.toString() : 'Unknown',
+                   directUrl: file.url,
+                   size: file.size,
+                   format: 'mp4'
+               })),
+               subtitle: englishSub ? { url: englishSub.url, lang: englishSub.lan, name: englishSub.lanName } : null
+           };
         }
         
-        return [];
+        return { sources: [], subtitle: null };
     } catch (error) {
         console.error(`[MovieBox] Sources error for ${subjectId}:`, error);
-        return [];
+        return { sources: [], subtitle: null };
     }
 }

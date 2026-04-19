@@ -13,7 +13,9 @@ export async function GET(request: Request) {
   }
 
   const decodedUrl = decodeURIComponent(downloadUrl)
-  if (!decodedUrl.startsWith('https://bcdnxw.hakunaymatata.com/') && !decodedUrl.startsWith('https://valiw.hakunaymatata.com/')) {
+  const allowedHosts = ['bcdnxw.hakunaymatata.com', 'valiw.hakunaymatata.com', 'cacdn.hakunaymatata.com']
+  const isAllowed = allowedHosts.some(h => decodedUrl.startsWith(`https://${h}/`))
+  if (!isAllowed) {
      return NextResponse.json({ error: 'Invalid proxy target' }, { status: 403 })
   }
 

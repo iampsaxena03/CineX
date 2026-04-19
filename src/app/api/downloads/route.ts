@@ -150,10 +150,17 @@ export async function GET(request: Request) {
             if (mboxDetails && mboxDetails.detailPath) {
               const fetchS = season ? parseInt(season as string) : 0;
               const fetchE = episode ? parseInt(episode as string) : 0;
-              const sources = await getMovieBoxDownloadSources(match.subjectId, mboxDetails.detailPath, fetchS, fetchE);
+              const result = await getMovieBoxDownloadSources(match.subjectId, mboxDetails.detailPath, fetchS, fetchE);
+              const safeTitle = titleToSearch?.replace(/[^a-zA-Z0-9]/g, '_') || 'CineXP_Title';
               
-              sources.forEach((s: any) => {
-                const safeTitle = titleToSearch?.replace(/[^a-zA-Z0-9]/g, '_') || 'CineXP_Title';
+              // Build subtitle proxy URL if available
+              let subtitleProxyUrl = '';
+              if (result.subtitle && result.subtitle.url) {
+                const subFilename = `${safeTitle}_CineXP.srt`;
+                subtitleProxyUrl = `/api/proxy/moviebox?url=${encodeURIComponent(result.subtitle.url)}&filename=${encodeURIComponent(subFilename)}&cb=${Date.now()}`;
+              }
+
+              result.sources.forEach((s: any) => {
                 const filenameToUse = `${safeTitle}_CineXP_${s.quality}p.mp4`;
                 const proxyUrl = `/api/proxy/moviebox?url=${encodeURIComponent(s.directUrl)}&filename=${encodeURIComponent(filenameToUse)}&cb=${Date.now()}`;
                 
@@ -163,6 +170,7 @@ export async function GET(request: Request) {
                   label: s.quality + 'p',
                   size: s.size ? (parseInt(s.size) / (1024 * 1024)).toFixed(0) + ' MB' : '',
                   url: proxyUrl,
+                  subtitleUrl: subtitleProxyUrl || undefined,
                   isMoviebox: true
                 };
 

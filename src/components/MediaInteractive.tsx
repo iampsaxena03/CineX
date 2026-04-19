@@ -18,6 +18,7 @@ interface MediaInteractiveProps {
   seasons?: any[]
   title?: string
   posterUrl?: string
+  year?: string
 }
 
 const PROVIDERS = [
@@ -27,7 +28,7 @@ const PROVIDERS = [
   { id: 'vidsrc', name: 'Stream 4', color: '#ff4b2b' }
 ]
 
-export default function MediaInteractive({ id, imdbId, type, seasons, title = "Unknown Title", posterUrl }: MediaInteractiveProps) {
+export default function MediaInteractive({ id, imdbId, type, seasons, title = "Unknown Title", posterUrl, year }: MediaInteractiveProps) {
   const [activeProvider, setActiveProvider] = useState('vidlink')
   const [season, setSeason] = useState(seasons && seasons.length > 0 ? (seasons[0].season_number || 1) : 1)
   const [episode, setEpisode] = useState(1)
@@ -40,6 +41,11 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
   const [downloadLinks, setDownloadLinks] = useState<any[]>([])
   const [episodeDownloads, setEpisodeDownloads] = useState<any[]>([])
   const [downloadsLoading, setDownloadsLoading] = useState(true)
+  
+  // Premium Native Bypasser State
+  const [fastDownloadLinks, setFastDownloadLinks] = useState<{ label: string, proxyDownloadUrl: string }[]>([])
+  const [fastDownloadLoading, setFastDownloadLoading] = useState(false)
+  const [fastDownloadError, setFastDownloadError] = useState<string | null>(null)
 
   const searchParams = useSearchParams()
   const pathname = usePathname()
@@ -62,6 +68,27 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
       setDownloadsLoading(false)
     }
   }, [id, type, season, episode])
+
+  const handleGenerateFastLink = async () => {
+    setFastDownloadLoading(true);
+    setFastDownloadError(null);
+    try {
+      const qTitle = encodeURIComponent(title);
+      const qYear = year ? encodeURIComponent(year) : "";
+      // Fallback search ignores quality param now, it resolves all naturally.
+      const res = await fetch(`/api/media/sources?title=${qTitle}&year=${qYear}&type=${type}`);
+      const data = await res.json();
+      if (data.links && data.links.length > 0) {
+         setFastDownloadLinks(data.links);
+      } else {
+         setFastDownloadError(data.error || "Failed to generate links.");
+      }
+    } catch (e: any) {
+      setFastDownloadError(e.message || "Failed to contact scraper.");
+    } finally {
+      setFastDownloadLoading(false);
+    }
+  }
 
   useEffect(() => { fetchDownloads() }, [fetchDownloads])
 
@@ -419,11 +446,26 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
                         const isEpisode = link.id?.includes('-tv-') || link.label?.includes('Episode') || titleToSearchMatch(link);
                         
                         return (
-                          <a
+                          <div
                             key={link.id || i}
-                            href={link.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => {
+                              // Open video download
+                              window.open(link.url, '_blank');
+                              // Auto-trigger subtitle download after a short delay
+                              if (link.subtitleUrl) {
+                                setTimeout(() => {
+                                  const a = document.createElement('a');
+                                  a.href = link.subtitleUrl;
+                                  a.download = '';
+                                  a.style.display = 'none';
+                                  document.body.appendChild(a);
+                                  a.click();
+                                  document.body.removeChild(a);
+                                }, 800);
+                              }
+                            }}
                             style={{
                               display: 'flex',
                               alignItems: 'center',
@@ -437,6 +479,7 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
                               color: 'inherit',
                               position: 'relative',
                               overflow: 'hidden',
+                              cursor: 'pointer',
                             }}
                             onMouseEnter={(e) => {
                               e.currentTarget.style.borderColor = hexAccent;
@@ -468,6 +511,9 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
                                 <span style={{ fontSize: '0.95rem', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                   {link.label || link.quality}
                                 </span>
+                                {link.subtitleUrl && (
+                                  <span style={{ fontSize: '0.6rem', padding: '1px 5px', background: 'rgba(16,185,129,0.2)', color: '#6ee7b7', borderRadius: '4px', fontWeight: 700 }}>+ SUB</span>
+                                )}
                               </div>
                               <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
                                 {link.quality && link.label !== link.quality && (
@@ -478,7 +524,7 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
                                 )}
                               </div>
                             </div>
-                          </a>
+                          </div>
                         );
                       })}
                     </div>
@@ -495,6 +541,57 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
                 </>
               );
             })()}
+            
+            {/* Native Proxied Premium Link */}
+            {type === 'movie' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div style={{ paddingLeft: '0.75rem', borderLeft: `3px solid #9d00ff` }}>
+                <h4 style={{ fontSize: '1rem', fontWeight: 600, margin: 0, color: 'white', letterSpacing: '0.02em' }}>CineXP Premium Fast Node</h4>
+                <p style={{ fontSize: '0.8rem', opacity: 0.6, margin: '0.2rem 0 0 0' }}>Bypasses external timers natively to give you a pristine download directly through your server pipeline.</p>
+              </div>
+              
+              {fastDownloadLinks.length > 0 ? (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
+                   {fastDownloadLinks.map((link, idx) => (
+                     <a
+                        key={idx}
+                        href={link.proxyDownloadUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => {
+                           // Optional visual feedback
+                           const el = e.currentTarget;
+                           el.style.opacity = "0.7";
+                        }}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', background: 'rgba(157,0,255,0.08)', border: '1px solid #9d00ff', borderRadius: '16px', transition: 'all 0.3s ease', textDecoration: 'none', color: 'inherit', cursor: 'pointer'
+                        }}
+                      >
+                         <div style={{ width: 40, height: 40, borderRadius: '12px', background: `linear-gradient(135deg, #9d00ff, #5b00ff)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', flexShrink: 0, boxShadow: `0 4px 12px rgba(157,0,255,0.4)` }}>
+                           🚀
+                         </div>
+                         <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center' }}>
+                              <span style={{ fontSize: '1.05rem', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{link.label}</span>
+                         </div>
+                      </a>
+                   ))}
+                </div>
+              ) : (
+                <div>
+                  <button
+                    onClick={handleGenerateFastLink}
+                    disabled={fastDownloadLoading}
+                    style={{
+                      padding: '0.8rem 1.5rem', background: 'linear-gradient(135deg, #9d00ff, #5b00ff)', border: 'none', borderRadius: '12px', color: 'white', fontWeight: 600, cursor: fastDownloadLoading ? 'wait' : 'pointer', opacity: fastDownloadLoading ? 0.7 : 1, boxShadow: '0 4px 15px rgba(157,0,255,0.3)'
+                    }}
+                  >
+                    {fastDownloadLoading ? 'Scraping Private Networks (wait 5-10s)...' : '🌩️ Generate Premium Direct Links'}
+                  </button>
+                  {fastDownloadError && <div style={{ color: '#ff4b4b', marginTop: '0.5rem', fontSize: '0.85rem' }}>{fastDownloadError}</div>}
+                </div>
+              )}
+            </div>
+            )}
           </div>
         )}
       </div>

@@ -255,6 +255,7 @@ export default async function MediaPage({
           seasons={seasons} 
           title={title} 
           posterUrl={posterUrl} 
+          year={year}
         />
 
         {/* Ad between player and recommendations */}
