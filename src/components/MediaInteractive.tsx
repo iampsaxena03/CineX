@@ -397,76 +397,104 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
             </div>
           </GlassSurface>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
-            {[...downloadLinks, ...episodeDownloads].map((link: any, i: number) => {
-              const isEpisode = i >= downloadLinks.length;
-              const accentColor = isEpisode ? '#3b82f6' : 'var(--primary)';
-              const accentGradient = isEpisode ? 'linear-gradient(135deg, #3b82f6, #2563eb)' : 'linear-gradient(135deg, var(--primary), var(--secondary))';
-              
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+            {(() => {
+              const allLinks = [...downloadLinks, ...episodeDownloads];
+              const movieboxLinks = allLinks.filter((l: any) => l.isMoviebox || l.id?.startsWith('moviebox-'));
+              const mirrorLinks = allLinks.filter((l: any) => !l.isMoviebox && !l.id?.startsWith('moviebox-'));
+
+              const renderLinkGroup = (links: any[], title: string, subtitle: string, accentColor: string) => {
+                if (links.length === 0) return null;
+                const rgbAccent = accentColor === 'emerald' ? '16,185,129' : '245,158,11';
+                const hexAccent = accentColor === 'emerald' ? '#10b981' : '#f59e0b';
+                
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <div style={{ paddingLeft: '0.75rem', borderLeft: `3px solid ${hexAccent}` }}>
+                      <h4 style={{ fontSize: '1rem', fontWeight: 600, margin: 0, color: 'white', letterSpacing: '0.02em' }}>{title}</h4>
+                      {subtitle && <p style={{ fontSize: '0.8rem', opacity: 0.6, margin: '0.2rem 0 0 0' }}>{subtitle}</p>}
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
+                      {links.map((link: any, i: number) => {
+                        const isEpisode = link.id?.includes('-tv-') || link.label?.includes('Episode') || titleToSearchMatch(link);
+                        
+                        return (
+                          <a
+                            key={link.id || i}
+                            href={link.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '1rem',
+                              padding: '1rem',
+                              background: 'rgba(255,255,255,0.03)',
+                              border: '1px solid rgba(255,255,255,0.05)',
+                              borderRadius: '16px',
+                              transition: 'all 0.3s ease',
+                              textDecoration: 'none',
+                              color: 'inherit',
+                              position: 'relative',
+                              overflow: 'hidden',
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.borderColor = hexAccent;
+                              e.currentTarget.style.background = `rgba(${rgbAccent}, 0.08)`;
+                              e.currentTarget.style.transform = 'translateY(-2px)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)';
+                              e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
+                              e.currentTarget.style.transform = 'translateY(0)';
+                            }}
+                          >
+                            <div style={{
+                              width: 40,
+                              height: 40,
+                              borderRadius: '12px',
+                              background: `linear-gradient(135deg, ${hexAccent}, ${hexAccent}88)`,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: '1.2rem',
+                              flexShrink: 0,
+                              boxShadow: `0 4px 12px ${hexAccent}44`,
+                            }}>
+                              ⬇
+                            </div>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
+                                <span style={{ fontSize: '0.95rem', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                  {link.label || link.quality}
+                                </span>
+                              </div>
+                              <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                                {link.quality && link.label !== link.quality && (
+                                  <span style={{ fontSize: '0.7rem', padding: '2px 6px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', fontWeight: 600 }}>{link.quality}</span>
+                                )}
+                                {link.size && (
+                                  <span style={{ fontSize: '0.7rem', padding: '2px 6px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', opacity: 0.7 }}>{link.size}</span>
+                                )}
+                              </div>
+                            </div>
+                          </a>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              };
+
+              function titleToSearchMatch(l: any) { return false; } // dummy inline since we just render label
+
               return (
-                <a
-                  key={link.id || i}
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '1rem',
-                    padding: '1rem',
-                    background: 'rgba(255,255,255,0.03)',
-                    border: '1px solid rgba(255,255,255,0.05)',
-                    borderRadius: '16px',
-                    transition: 'all 0.3s ease',
-                    textDecoration: 'none',
-                    color: 'inherit',
-                    position: 'relative',
-                    overflow: 'hidden',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = accentColor;
-                    e.currentTarget.style.background = `rgba(${isEpisode ? '59,130,246' : '157,0,255'}, 0.08)`;
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)';
-                    e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
-                    e.currentTarget.style.transform = 'translateY(0)';
-                  }}
-                >
-                  <div style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: '12px',
-                    background: accentGradient,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '1.2rem',
-                    flexShrink: 0,
-                    boxShadow: `0 4px 12px ${accentColor}44`,
-                  }}>
-                    ⬇
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
-                      <span style={{ fontSize: '0.9rem', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {link.label || link.quality}
-                      </span>
-                      {isEpisode && (
-                        <span style={{ fontSize: '0.6rem', padding: '1px 4px', background: 'rgba(59,130,246,0.2)', color: '#60a5fa', borderRadius: '4px', fontWeight: 700 }}>EP</span>
-                      )}
-                    </div>
-                    <div style={{ display: 'flex', gap: '0.4rem' }}>
-                      <span style={{ fontSize: '0.7rem', padding: '2px 6px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', fontWeight: 600 }}>{link.quality || 'Auto'}</span>
-                      {link.size && (
-                        <span style={{ fontSize: '0.7rem', padding: '2px 6px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', opacity: 0.7 }}>{link.size}</span>
-                      )}
-                    </div>
-                  </div>
-                </a>
+                <>
+                  {renderLinkGroup(movieboxLinks, "Direct download links- NO BULLSHIT..!", "", 'emerald')}
+                  {renderLinkGroup(mirrorLinks, "Direct Link -2 ~ Use VPN", "", 'amber')}
+                </>
               );
-            })}
+            })()}
           </div>
         )}
       </div>

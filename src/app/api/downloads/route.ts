@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/admin'
+import { getDetails } from '@/lib/tmdb'
+import { searchMovieBox, getMovieBoxDetails, getMovieBoxDownloadSources } from '@/lib/moviebox'
 
 const ASIAN_COUNTRIES = [
   'IN', 'PK', 'BD', 'LK', 'NP', 'ID', 'MY', 'PH', 'SG', 'TH', 'VN', 
@@ -127,12 +129,62 @@ export async function GET(request: Request) {
     const isMovie = type === 'movie' || (!type && !season && !episode)
     const isTvEpisode = type === 'tv' && season && episode
 
-    if ((isMovie && movieLinks.length === 0) || (isTvEpisode && episodeLinks.length === 0)) {
+    const noAdminMovieLinks = isMovie && movieLinks.length === 0;
+    const noAdminEpisodeLinks = isTvEpisode && episodeLinks.length === 0;
+
+    if (noAdminMovieLinks || noAdminEpisodeLinks) {
+      // 1. Fetch from MovieBox API
+      try {
+        let titleToSearch: string | undefined;
+        if (!titleToSearch) {
+          const tmdbData = await getDetails(type === 'tv' ? 'tv' : 'movie', tmdbId);
+          titleToSearch = type === 'tv' ? (tmdbData as any)?.name : (tmdbData as any)?.title;
+        }
+
+        if (titleToSearch) {
+          const searchResults = await searchMovieBox(titleToSearch, type as 'movie' | 'tv');
+          const match = searchResults.find((r: any) => r.title?.toLowerCase() === titleToSearch?.toLowerCase()) || searchResults[0];
+
+          if (match && match.subjectId) {
+            const mboxDetails = await getMovieBoxDetails(match.subjectId);
+            if (mboxDetails && mboxDetails.detailPath) {
+              const fetchS = season ? parseInt(season as string) : 0;
+              const fetchE = episode ? parseInt(episode as string) : 0;
+              const sources = await getMovieBoxDownloadSources(match.subjectId, mboxDetails.detailPath, fetchS, fetchE);
+              
+              sources.forEach((s: any) => {
+                const safeTitle = titleToSearch?.replace(/[^a-zA-Z0-9]/g, '_') || 'CineXP_Title';
+                const filenameToUse = `${safeTitle}_CineXP_${s.quality}p.mp4`;
+                const proxyUrl = `/api/proxy/moviebox?url=${encodeURIComponent(s.directUrl)}&filename=${encodeURIComponent(filenameToUse)}&cb=${Date.now()}`;
+                
+                const linkObj = {
+                  id: `moviebox-${s.id}`,
+                  quality: s.quality + 'p',
+                  label: s.quality + 'p',
+                  size: s.size ? (parseInt(s.size) / (1024 * 1024)).toFixed(0) + ' MB' : '',
+                  url: proxyUrl,
+                  isMoviebox: true
+                };
+
+                if (isTvEpisode) {
+                    episodeLinks.push(linkObj);
+                } else {
+                    movieLinks.push(linkObj);
+                }
+              });
+            }
+          }
+        }
+      } catch (error) {
+        console.error('[Downloads Route] MovieBox fetch failed:', error);
+      }
+
+      // 2. Fetch from Vidsrc VIP (Original Fallback)
       // Check if URL shortener is globally enabled (defaults to true)
       const setting = await prisma.appSettings.findUnique({ where: { key: 'SHORTENER_ENABLED' } })
       const isShortenerEnabled = setting?.value !== "false"
 
-      if (isMovie && movieLinks.length === 0) {
+      if (noAdminMovieLinks) {
         const originalUrl = `https://dl.vidsrc.vip/movie/${tmdbId}`
         const shortUrl = isShortenerEnabled ? await getShortenedLink(originalUrl, region) : originalUrl
         movieLinks.push({
@@ -142,7 +194,7 @@ export async function GET(request: Request) {
           size: "",
           url: shortUrl
         })
-      } else if (isTvEpisode && episodeLinks.length === 0) {
+      } else if (noAdminEpisodeLinks) {
         const originalUrl = `https://dl.vidsrc.vip/tv/${tmdbId}/${season}/${episode}`
         const shortUrl = isShortenerEnabled ? await getShortenedLink(originalUrl, region) : originalUrl
         episodeLinks.push({
