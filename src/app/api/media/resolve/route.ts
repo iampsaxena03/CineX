@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { bypassModpro, extractDriveSeed } from '@/lib/scraper';
 
+export const runtime = 'edge';
+
 export async function GET(req: NextRequest) {
     const url = req.nextUrl.searchParams.get('url');
     const filename = req.nextUrl.searchParams.get('filename') || 'CineXP-Download.mkv';
@@ -15,7 +17,7 @@ export async function GET(req: NextRequest) {
         // 1. Bypass the Modpro Timer
         const driveSeedUrl = await bypassModpro(url);
         if (!driveSeedUrl) {
-            return NextResponse.json({ error: "Failed to bypass Modpro cyberlocker explicitly." }, { status: 502 });
+            return NextResponse.json({ error: "Failed to bypass Modpro. Vercel Datacenter IP is likely blocked by their Cloudflare." }, { status: 400 });
         }
 
         // 2. Extract final DriveSeed location
@@ -25,17 +27,10 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({ error: "Failed to resolve final stream from DriveSeed." }, { status: 502 });
         }
 
-        // 3. Return a 302 Redirect to our internal Download Proxy with the real stream.
-        const downloadProxyUrl = `/api/media/download?url=${encodeURIComponent(finalStreamUrl)}&filename=${encodeURIComponent(filename)}`;
-        
-        const protocol = req.headers.get('x-forwarded-proto') || 'http';
-        let host = req.headers.get('host') || 'localhost:3000';
-        // Fix for Windows Chrome ERR_ADDRESS_INVALID when bound to 0.0.0.0
-        if (host.includes('0.0.0.0')) host = host.replace('0.0.0.0', 'localhost');
-        const baseUrl = `${protocol}://${host}`;
-
-        console.log(`[CineXP Resolver] Success! Redirecting to internal streaming proxy.`);
-        return NextResponse.redirect(new URL(downloadProxyUrl, baseUrl));
+        // 3. Return a 302 Redirect directly to the Upstream Google CDN.
+        // Serverless (Vercel) cannot proxy 2GB file payloads continuously; it forcefully severs them after 30s causing 502s.
+        console.log(`[CineXP Resolver] Success! Executing strict off-load to Google CDN.`);
+        return NextResponse.redirect(finalStreamUrl);
 
     } catch (err: any) {
         console.error(`[CineXP Resolver] Error:`, err);
