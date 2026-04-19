@@ -199,6 +199,53 @@ export default function SettingsPage() {
             {loadingAction === 'revalidate_all' ? 'Clearing...' : 'Clear All Caches'}
           </button>
         </div>
+
+        {/* Browser Cache Section */}
+        <div style={{
+          marginTop: '1.5rem',
+          paddingTop: '1.25rem',
+          borderTop: '1px solid var(--admin-border)',
+        }}>
+          <h3 style={{ fontSize: '1rem', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            🌐 Browser Cache (All Users)
+          </h3>
+          <p style={{ fontSize: '0.82rem', opacity: 0.5, marginBottom: '1rem' }}>
+            Clears watch history, watchlist, playback progress &amp; all locally cached data for every user on their next visit.
+          </p>
+          {confirmDelete === 'bust_browser_cache' ? (
+            <button
+              className="admin-btn"
+              onClick={() => executeAction('bust_browser_cache')}
+              disabled={loadingAction !== null}
+              style={{
+                background: 'linear-gradient(135deg, #f97316, #ea580c)',
+                border: 'none',
+                color: 'white',
+                animation: 'pulse-danger 1.5s ease-in-out infinite',
+              }}
+            >
+              <VscWarning size={14} />
+              {loadingAction === 'bust_browser_cache' ? 'Deploying...' : 'Confirm: Clear All Browsers'}
+            </button>
+          ) : (
+            <button
+              className="admin-btn"
+              onClick={() => setConfirmDelete('bust_browser_cache')}
+              disabled={loadingAction !== null}
+              style={{
+                background: 'linear-gradient(135deg, #f97316, #ea580c)',
+                border: 'none',
+                color: 'white',
+              }}
+            >
+              <VscTrash size={14} />
+              Clear All Users&apos; Browser Cache
+            </button>
+          )}
+          <p style={{ fontSize: '0.72rem', opacity: 0.35, marginTop: '0.6rem' }}>
+            This increments a global version counter. When any user&apos;s browser detects the new version, it will automatically wipe their locally stored data.
+          </p>
+        </div>
       </motion.div>
 
       {/* Site Info */}

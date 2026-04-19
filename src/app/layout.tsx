@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import Navbar from "@/components/ui/Navbar";
 import CommandPalette from "@/components/ui/CommandPalette";
 import InstallPWA from "@/components/ui/InstallPWA";
+import CacheBuster from "@/components/CacheBuster";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -52,6 +53,7 @@ export default function RootLayout({
         <Navbar />
         <CommandPalette />
         <InstallPWA />
+        <CacheBuster />
         {children}
       </body>
     </html>

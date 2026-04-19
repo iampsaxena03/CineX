@@ -43,6 +43,23 @@ export async function POST(request: Request) {
         return NextResponse.json({ success: true, message: `URL Shortener ${value === 'true' || value === true ? 'Enabled' : 'Disabled'}` })
       }
 
+      case 'bust_browser_cache': {
+        // Get current version or default to "0"
+        const current = await prisma.appSettings.findUnique({
+          where: { key: 'CACHE_BUST_VERSION' },
+        })
+        const nextVersion = String((parseInt(current?.value || '0', 10) || 0) + 1)
+        await prisma.appSettings.upsert({
+          where: { key: 'CACHE_BUST_VERSION' },
+          update: { value: nextVersion },
+          create: { key: 'CACHE_BUST_VERSION', value: nextVersion },
+        })
+        return NextResponse.json({
+          success: true,
+          message: `Browser cache bust v${nextVersion} deployed. All users' local data will be cleared on next visit.`,
+        })
+      }
+
       case 'revalidate_home':
         revalidatePath('/')
         return NextResponse.json({ success: true, message: 'Home page cache cleared' })
