@@ -14,9 +14,10 @@ export const maxDuration = 30; // Max execution time for Vercel Hobby limits
 export async function GET(request: Request) {
   // Optional cron security check using Vercel's standard env variable
   const authHeader = request.headers.get('authorization');
+  const cronSecret = (process.env.CRON_SECRET || "").replace(/"/g, "");
   if (
-    process.env.CRON_SECRET &&
-    authHeader !== `Bearer ${process.env.CRON_SECRET}`
+    cronSecret &&
+    authHeader !== `Bearer ${cronSecret}`
   ) {
     return new NextResponse('Unauthorized', { status: 401 });
   }

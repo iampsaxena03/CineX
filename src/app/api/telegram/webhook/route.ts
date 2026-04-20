@@ -13,7 +13,7 @@ export async function POST(request: Request) {
 
     const text = update.message.text.trim();
     const chatId = update.message.chat.id;
-    const botToken = process.env.TELEGRAM_BOT_TOKEN;
+    const botToken = (process.env.TELEGRAM_BOT_TOKEN || "").replace(/"/g, "");
 
     // Helper to send message back to the sender
     const reply = async (msg: string) => {

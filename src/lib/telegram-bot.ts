@@ -1,6 +1,6 @@
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-const TELEGRAM_CHANNEL_ID = process.env.TELEGRAM_CHANNEL_ID || "@cine_xp";
-const TMDB_API_KEY = process.env.TMDB_API_KEY || process.env.NEXT_PUBLIC_TMDB_API_KEY;
+const TELEGRAM_BOT_TOKEN = (process.env.TELEGRAM_BOT_TOKEN || "").replace(/"/g, "");
+const TELEGRAM_CHANNEL_ID = (process.env.TELEGRAM_CHANNEL_ID || "@cine_xp").replace(/"/g, "");
+const TMDB_API_KEY = (process.env.TMDB_API_KEY || process.env.NEXT_PUBLIC_TMDB_API_KEY || "").replace(/"/g, "");
 
 export const CINEXP_BASE_URL = "https://cinexp.site";
 
