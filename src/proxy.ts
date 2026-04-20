@@ -49,6 +49,11 @@ function cleanupRateLimits(): void {
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
+  // ─── Allow Telegram webhook/cron to bypass middleware entirely ───
+  if (pathname.startsWith('/api/telegram')) {
+    return NextResponse.next()
+  }
+
   // ─── HTTPS Enforcement ───
   if (
     process.env.NODE_ENV !== 'development' &&
