@@ -17,15 +17,16 @@ export async function POST(request: Request) {
 
     // Helper to send message back to the sender
     const reply = async (msg: string) => {
-      await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      const res = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chat_id: chatId, text: msg, parse_mode: "Markdown" })
+        body: JSON.stringify({ chat_id: chatId, text: msg, parse_mode: "HTML" })
       });
+      if (!res.ok) console.error("Telegram Webhook Reply Error:", await res.text());
     };
 
     if (text.startsWith("/start") || text.startsWith("/help")) {
-      await reply("🤖 *CineXP Auto-Poster Bot (Vercel Serverless)*\n\nI automatically post 3 movies to your channel twice a day.\n\n*Commands:*\n`/post movie <id>` - Force post a movie (e.g. `/post movie 299534`)\n`/post tv <id>` - Force post a TV show");
+      await reply("🤖 <b>CineXP Auto-Poster Bot</b>\n\nI automatically post 3 movies to your channel twice a day.\n\n<b>Commands:</b>\n<code>/post movie &lt;id&gt;</code> - Force post a movie (e.g. <code>/post movie 299534</code>)\n<code>/post tv &lt;id&gt;</code> - Force post a TV show");
       return NextResponse.json({ ok: true });
     }
 
