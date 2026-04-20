@@ -430,3 +430,65 @@ export async function getVideosFromServer(type: string, id: string | number) {
     return [];
   }
 }
+
+export async function getTopRatedMovies(page = 1, region?: string): Promise<TMDBMovie[]> {
+  const params: Record<string, string> = { page: String(page) };
+  if (region) params.region = region;
+  const data = await tmdbFetch<TMDBSearchResult<TMDBMovie>>('/movie/top_rated', params);
+  return data?.results || [];
+}
+
+export async function getTopRatedTVShows(page = 1, region?: string): Promise<TMDBTVShow[]> {
+  const params: Record<string, string> = { page: String(page) };
+  if (region) params.region = region;
+  const data = await tmdbFetch<TMDBSearchResult<TMDBTVShow>>('/tv/top_rated', params);
+  return data?.results || [];
+}
+
+/**
+ * Aggregates a massive list of top SEO items to be used by `generateStaticParams`
+ * Fetches: Popular (Global & IN), Top Rated (Global), and Latest Hype.
+ */
+export async function getSEOPrebuildData(): Promise<{ type: 'movie' | 'tv', item: TMDBMediaItem }[]> {
+  // Limit to 5 pages per category (~100 items each) to easily stay under API limits and build timeouts
+  const PAGES = 5;
+
+  const fetchPages = async <T,>(fetchFn: (page: number, region?: string) => Promise<T[]>, region?: string): Promise<T[]> => {
+    const pagePromises = [];
+    for (let i = 1; i <= PAGES; i++) {
+        pagePromises.push(fetchFn(i, region));
+    }
+    const results = await Promise.all(pagePromises);
+    return results.flat();
+  };
+
+  // Fetch in parallel
+  const [m1, m2, m3, t1, t2, t3, h1] = await Promise.all([
+    fetchPages(getPopularMovies),
+    fetchPages(getPopularMovies, 'IN'),
+    fetchPages(getTopRatedMovies),
+    fetchPages(getPopularTVShows),
+    fetchPages(getPopularTVShows, 'IN'),
+    fetchPages(getTopRatedTVShows),
+    getLatestHype('IN')
+  ]);
+
+  const allMovies = [...m1, ...m2, ...m3].map(m => ({ ...m, media_type: 'movie' }));
+  const allTV = [...t1, ...t2, ...t3].map(t => ({ ...t, media_type: 'tv' }));
+  
+  const combined = [...allMovies, ...allTV, ...h1] as TMDBMediaItem[];
+
+  // Deduplicate by ID and Type to ensure Next.js route uniqueness
+  const map = new Map<string, TMDBMediaItem>();
+  for (const item of combined) {
+    const key = `${item.media_type}-${item.id}`;
+    if (!map.has(key)) {
+      map.set(key, item);
+    }
+  }
+
+  return Array.from(map.values()).map(item => ({
+    type: item.media_type === 'tv' ? 'tv' as const : 'movie' as const,
+    item
+  }));
+}

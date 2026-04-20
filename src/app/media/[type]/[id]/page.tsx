@@ -1,4 +1,5 @@
-import { getDetails, getImageUrl, getBackdropUrl, getSimilar } from "@/lib/tmdb";
+import { getDetails, getImageUrl, getBackdropUrl, getSimilar, getSEOPrebuildData } from "@/lib/tmdb";
+import { generateSlug } from "@/lib/utils";
 import Image from "next/image";
 import type { Metadata, ResolvingMetadata } from "next";
 import MediaInteractive from "@/components/MediaInteractive";
@@ -11,6 +12,24 @@ import { VscArrowLeft } from "react-icons/vsc";
 import { notFound } from "next/navigation";
 
 export const revalidate = 3600;
+export const dynamicParams = true;
+
+export async function generateStaticParams() {
+  try {
+    const prebuildData = await getSEOPrebuildData();
+    
+    return prebuildData.map(({ type, item }) => {
+      const title = (item as any).title || (item as any).name;
+      return {
+        type,
+        id: generateSlug(item.id, title)
+      };
+    });
+  } catch (err) {
+    console.error("Error in generateStaticParams:", err);
+    return []; // Fall back to pure ISR if build-time fetch fails
+  }
+}
 
 export async function generateMetadata(
   { params }: { params: Promise<{ type: "movie" | "tv"; id: string }> },

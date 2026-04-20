@@ -1,6 +1,8 @@
 import { MetadataRoute } from 'next';
-import { getTrending } from '@/lib/tmdb';
+import { getSEOPrebuildData } from '@/lib/tmdb';
 import { generateSlug } from "@/lib/utils";
+
+export const revalidate = 86400; // Cache sitemap for 24 hours
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://cinexp.site';
@@ -33,21 +35,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   try {
-    const trending = await getTrending();
+    const prebuildData = await getSEOPrebuildData();
     
-    const trendingRoutes: MetadataRoute.Sitemap = trending.map((item) => {
+    const dynamicRoutes: MetadataRoute.Sitemap = prebuildData.map(({ type, item }) => {
       const title = (item as any).title || (item as any).name;
       return {
-        url: `${baseUrl}/media/${item.media_type || 'movie'}/${generateSlug(item.id, title)}`,
+        url: `${baseUrl}/media/${type}/${generateSlug(item.id, title)}`,
         lastModified: new Date(),
         changeFrequency: 'weekly',
         priority: 0.7,
       };
     });
 
-    return [...staticRoutes, ...trendingRoutes];
+    return [...staticRoutes, ...dynamicRoutes];
   } catch (error) {
-    console.error("Failed to generate trending sitemap routes", error);
+    console.error("Failed to generate dynamic sitemap routes", error);
     return staticRoutes; // Fallback to basic static routes
   }
 }
