@@ -492,3 +492,32 @@ export async function getSEOPrebuildData(): Promise<{ type: 'movie' | 'tv', item
     item
   }));
 }
+
+/**
+ * Fetches a deep block of pages (e.g. 25 pages = 500 items) for sitemap pagination.
+ * Executed in parallel to stay within serverless 10-second request bounds.
+ */
+export async function getDeepCatalogData(type: 'movie' | 'tv', startPage: number, endPage: number): Promise<TMDBMediaItem[]> {
+  const promises = [];
+  
+  for (let i = startPage; i <= endPage; i++) {
+    // We use discover endpoint for reliable massive popularity sorting
+    const params: Record<string, string> = { page: String(i), sort_by: 'popularity.desc' };
+    const endpoint = type === 'movie' ? '/discover/movie' : '/discover/tv';
+    promises.push(tmdbFetch<TMDBSearchResult<any>>(endpoint, params));
+  }
+
+  const results = await Promise.all(promises);
+  
+  const allItems = results.flatMap(res => res?.results || []);
+  
+  // Deduplicate and append media_type
+  const map = new Map<number, TMDBMediaItem>();
+  for (const item of allItems) {
+    if (!map.has(item.id)) {
+      map.set(item.id, { ...item, media_type: type } as TMDBMediaItem);
+    }
+  }
+
+  return Array.from(map.values());
+}
