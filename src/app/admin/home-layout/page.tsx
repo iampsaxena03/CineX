@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence, Reorder } from 'motion/react'
-import { VscAdd, VscTrash, VscGripper, VscArrowRight } from 'react-icons/vsc'
+import { VscAdd, VscTrash, VscGripper, VscArrowRight, VscArrowLeft } from 'react-icons/vsc'
 import AdminSearch from '@/components/admin/AdminSearch'
 import { useToast } from '@/components/admin/Toast'
 import { getImageUrl } from '@/lib/tmdb'
@@ -380,6 +380,7 @@ export default function HomeLayoutPage() {
       <div className={`admin-home-editor-grid ${activeSection ? 'has-editor' : ''}`}>
         {/* Left: Section List */}
         <motion.div
+          className={`admin-home-section-list ${activeSection ? 'hidden-on-mobile' : ''}`}
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.4 }}
@@ -460,10 +461,19 @@ export default function HomeLayoutPage() {
               exit={{ opacity: 0, x: 20 }}
               transition={{ duration: 0.3 }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                <h2 style={{ fontSize: '1.1rem', fontWeight: 600 }}>
-                  {activeSectionData.title} — Content
-                </h2>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <button
+                    className="admin-btn-icon admin-mobile-back-btn"
+                    onClick={() => setActiveSection(null)}
+                    style={{ padding: '0.3rem' }}
+                  >
+                    <VscArrowLeft size={18} />
+                  </button>
+                  <h2 style={{ fontSize: '1.1rem', fontWeight: 600, margin: 0 }}>
+                    {activeSectionData.title} — Content
+                  </h2>
+                </div>
                 {!NON_EDITABLE_TYPES.includes(activeSectionData.type) && (
                   <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                     <span style={{ fontSize: '0.78rem', opacity: 0.5 }}>Auto-fill gaps:</span>

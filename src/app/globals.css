@@ -1354,6 +1354,10 @@ a { text-decoration: none; color: inherit; }
   padding: 1rem 0;
 }
 
+.admin-mobile-back-btn {
+  display: none;
+}
+
 /* ─── Tablet: ≤ 1024px ─── */
 @media (max-width: 1024px) {
   .admin-home-editor-grid.has-editor {
@@ -1442,6 +1446,14 @@ a { text-decoration: none; color: inherit; }
   /* Home Layout editor → stack */
   .admin-home-editor-grid.has-editor {
     grid-template-columns: 1fr;
+  }
+  
+  .admin-home-section-list.hidden-on-mobile {
+    display: none;
+  }
+  
+  .admin-mobile-back-btn {
+    display: flex;
   }
 
   .admin-section-drag-card {
