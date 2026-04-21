@@ -1,6 +1,6 @@
 import { getDetails, getImageUrl, getBackdropUrl, getSimilar, getSEOPrebuildData } from "@/lib/tmdb";
 import { generateSlug } from "@/lib/utils";
-import Image from "next/image";
+
 import type { Metadata, ResolvingMetadata } from "next";
 import MediaInteractive from "@/components/MediaInteractive";
 import MediaCard from "@/components/MediaCard";
@@ -201,12 +201,12 @@ export default async function MediaPage({
                 border: "1px solid rgba(157,0,255,0.25)",
               }}
             >
-              <Image 
+              <img 
                 src={posterUrl} 
                 alt={title} 
                 width={250} 
                 height={375} 
-                priority 
+                fetchPriority="high"
                 style={{ width: "100%", height: "auto", display: "block" }} 
               />
             </div>

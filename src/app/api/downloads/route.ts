@@ -4,8 +4,8 @@ import { getDetails } from '@/lib/tmdb'
 import { searchMovieBox, getMovieBoxDetails, getMovieBoxDownloadSources } from '@/lib/moviebox'
 
 const ASIAN_COUNTRIES = [
-  'IN', 'PK', 'BD', 'LK', 'NP', 'ID', 'MY', 'PH', 'SG', 'TH', 'VN', 
-  'CN', 'JP', 'KR', 'TW', 'HK', 'MM', 'KH', 'LA', 'BN', 'MO', 'MV', 
+  'IN', 'PK', 'BD', 'LK', 'NP', 'ID', 'MY', 'PH', 'SG', 'TH', 'VN',
+  'CN', 'JP', 'KR', 'TW', 'HK', 'MM', 'KH', 'LA', 'BN', 'MO', 'MV',
   'BT', 'AF', 'IR'
 ]
 
@@ -116,7 +116,7 @@ export async function GET(request: Request) {
 
     if (mediaPost) {
       movieLinks = mediaPost.downloadLinks || []
-      
+
       // If requesting specific episode
       if (season && episode) {
         const s = mediaPost.seasons.find(s => s.seasonNumber === parseInt(season))
@@ -152,7 +152,7 @@ export async function GET(request: Request) {
               const fetchE = episode ? parseInt(episode as string) : 0;
               const result = await getMovieBoxDownloadSources(match.subjectId, mboxDetails.detailPath, fetchS, fetchE);
               const safeTitle = titleToSearch?.replace(/[^a-zA-Z0-9]/g, '_') || 'CineXP_Title';
-              
+
               // Build subtitle proxy URL if available
               let subtitleProxyUrl = '';
               if (result.subtitle && result.subtitle.url) {
@@ -163,7 +163,7 @@ export async function GET(request: Request) {
               result.sources.forEach((s: any) => {
                 const filenameToUse = `${safeTitle}_CineXP_${s.quality}p.mp4`;
                 const proxyUrl = `/api/proxy/moviebox?url=${encodeURIComponent(s.directUrl)}&filename=${encodeURIComponent(filenameToUse)}&cb=${Date.now()}`;
-                
+
                 const linkObj = {
                   id: `moviebox-${s.id}`,
                   quality: s.quality + 'p',
@@ -175,9 +175,9 @@ export async function GET(request: Request) {
                 };
 
                 if (isTvEpisode) {
-                    episodeLinks.push(linkObj);
+                  episodeLinks.push(linkObj);
                 } else {
-                    movieLinks.push(linkObj);
+                  movieLinks.push(linkObj);
                 }
               });
             }

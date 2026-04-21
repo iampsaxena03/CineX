@@ -22,14 +22,15 @@ interface MediaInteractiveProps {
 }
 
 const PROVIDERS = [
-  { id: 'vidlink', name: 'Stream 1', color: '#63b8bc' },
-  { id: 'hdvb', name: 'Stream 2', color: '#00d2ff' },
+  { id: 'native', name: 'Native', color: '#FFD700' },
+  { id: 'hdvb', name: 'Stream 1', color: '#00d2ff' },
+  { id: 'vidlink', name: 'Stream 2', color: '#63b8bc' },
   { id: 'vidfast', name: 'Stream 3', color: '#9d00ff' },
   { id: 'vidsrc', name: 'Stream 4', color: '#ff4b2b' }
 ]
 
 export default function MediaInteractive({ id, imdbId, type, seasons, title = "Unknown Title", posterUrl, year }: MediaInteractiveProps) {
-  const [activeProvider, setActiveProvider] = useState('vidlink')
+  const [activeProvider, setActiveProvider] = useState('native')
   const [season, setSeason] = useState(seasons && seasons.length > 0 ? (seasons[0].season_number || 1) : 1)
   const [episode, setEpisode] = useState(1)
   const [isRestored, setIsRestored] = useState(false)
@@ -94,7 +95,7 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
 
   // Restore Watch Progress and URL param handling
   useEffect(() => {
-    let initialProvider = 'vidlink'
+    let initialProvider = 'native'
     
     if (streamParam) {
       // Direct stream match (e.g. vidlink, hdvb) or friendly name match (stream3)
@@ -144,6 +145,7 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
   const timeParam = startTime > 0 ? `&t=${startTime}` : '';
 
   const getEmbedUrl = () => {
+    if (activeProvider === 'native') return null;
     if (activeProvider === 'vidfast') {
       const base = 'https://vidfast.pro'
       return type === 'movie'
@@ -241,6 +243,20 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
     setShowShareModal(false);
     playerRef.current?.play();
   };
+
+  // Construct the Direct Video Object for Native Player
+  const mbxLinks = type === 'tv' 
+    ? episodeDownloads.filter((l: any) => l.isMoviebox) 
+    : downloadLinks.filter((l: any) => l.isMoviebox);
+
+  const directVideoObj = activeProvider === 'native' && mbxLinks.length > 0 ? {
+    sources: mbxLinks.map((l: any) => ({
+      src: l.url.replace('&cb=', `&cb=${Date.now()}`),
+      type: 'video/mp4',
+      size: parseInt(l.quality) || 0
+    })).sort((a: any, b: any) => b.size - a.size),
+    subtitleUrl: mbxLinks[0]?.subtitleUrl
+  } : undefined;
 
   return (
     <div className="media-interactive-wrapper" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%' }}>
@@ -401,7 +417,24 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
             transition={{ duration: 0.4 }}
             style={{ width: '100%', height: '100%' }}
           >
-            <StreamPlayer ref={playerRef} embedUrl={embedUrl} isPaused={showShareModal} startTime={startTime} />
+            {activeProvider === 'native' && !directVideoObj ? (
+              <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#0a0510' }}>
+                {downloadsLoading ? (
+                  <>
+                    <div style={{ width: 40, height: 40, border: '3px solid rgba(255,215,0,0.2)', borderTopColor: '#FFD700', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                    <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+                    <p style={{ marginTop: '1rem', fontSize: '0.9rem', opacity: 0.6 }}>Loading native stream...</p>
+                  </>
+                ) : (
+                  <div style={{ textAlign: 'center', opacity: 0.5 }}>
+                    <p style={{ fontSize: '1.1rem', fontWeight: 500 }}>Native source unavailable</p>
+                    <p style={{ fontSize: '0.85rem', marginTop: '0.5rem' }}>Try another provider for this title.</p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <StreamPlayer ref={playerRef} embedUrl={embedUrl} isPaused={showShareModal} startTime={startTime} directVideoObj={directVideoObj} tmdbId={id} type={type} season={season} episode={episode} />
+            )}
           </motion.div>
         </AnimatePresence>
       </div>

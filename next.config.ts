@@ -15,13 +15,6 @@ const nextConfig: NextConfig = {
   turbopack: {},
   images: {
     unoptimized: true,
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "image.tmdb.org",
-        pathname: "/t/p/**",
-      },
-    ],
   },
   transpilePackages: ["motion", "framer-motion"],
 };

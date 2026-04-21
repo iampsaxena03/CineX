@@ -3,7 +3,7 @@
 import React, { useRef, useState, MouseEvent, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import Link from "next/link";
-import Image from "next/image";
+
 import { getImageUrl, type TMDBMediaItem } from "@/lib/tmdb";
 import { generateSlug } from "@/lib/utils";
 import ScrollReveal from "@/components/ui/ScrollReveal";
@@ -135,13 +135,11 @@ const MediaCard: React.FC<MediaCardProps> = ({ item, stagger = 0, showRemoveHist
             />
           )}
           {item.poster_path ? (
-            <Image
+            <img
               src={getImageUrl(item.poster_path, "w342")}
               alt={title}
-              fill
-              sizes="(max-width: 600px) 50vw, (max-width: 1024px) 33vw, 20vw"
-              style={{ objectFit: "cover" }}
               loading="lazy"
+              style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
             />
           ) : (
             <div className="placeholder">No Image</div>

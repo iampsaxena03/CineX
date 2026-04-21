@@ -37,6 +37,27 @@ export async function GET(request: Request) {
 
     const proxyHeaders = new Headers(response.headers)
     proxyHeaders.delete('content-encoding') 
+    proxyHeaders.set('Access-Control-Allow-Origin', '*')
+
+    // Handle Subtitle Conversion (SRT -> VTT)
+    if (filename.endsWith('.srt') || filename.endsWith('.vtt')) {
+      proxyHeaders.set('Content-Type', 'text/vtt; charset=utf-8')
+      proxyHeaders.delete('Content-Disposition')
+      
+      let text = await response.text()
+      if (filename.endsWith('.srt')) {
+        // Simple SRT to VTT translation (replace time comma with dot)
+        text = 'WEBVTT\n\n' + text.replace(/(\d{2}:\d{2}:\d{2}),(\d{3})/g, '$1.$2')
+      }
+      
+      return new Response(text, {
+        status: response.status,
+        statusText: response.statusText,
+        headers: proxyHeaders,
+      })
+    }
+
+    // Normal Media Streaming
     proxyHeaders.set('Content-Disposition', `attachment; filename="${filename}"`)
 
     return new Response(response.body, {
