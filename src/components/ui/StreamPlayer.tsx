@@ -284,6 +284,14 @@ const StreamPlayer = forwardRef<StreamPlayerRef, StreamPlayerProps>(({ embedUrl,
           .plyr { height: 100% !important; }
           .plyr video { height: 100% !important; transition: object-fit 0.3s ease; }
           .plyr__video-wrapper { height: 100% !important; padding-bottom: 0 !important; }
+          
+          /* Mobile Controls Fix */
+          @media (max-width: 600px) {
+            .plyr__controls .plyr__controls__item:not([data-plyr="progress"]):not([data-plyr="play"]):not([data-plyr="fullscreen"]):not([data-plyr="settings"]):not(.custom-fill-btn) {
+              display: none !important;
+            }
+            .plyr__time { font-size: 11px !important; }
+          }
         `
         document.head.appendChild(style)
       }
@@ -323,6 +331,7 @@ const StreamPlayer = forwardRef<StreamPlayerRef, StreamPlayerProps>(({ embedUrl,
         captions: { active: true, language: 'en', update: true },
         invertTime: false,
         keyboard: { focused: true, global: true },
+        autoplay: true,
       })
 
       plyrInstanceRef.current = plyrInstance
@@ -366,26 +375,6 @@ const StreamPlayer = forwardRef<StreamPlayerRef, StreamPlayerProps>(({ embedUrl,
             else controls.appendChild(btn);
           }
         }, 300);
-
-        // Safe auto-play: try normal play, fallback to muted play (browser policy)
-        const tryPlay = () => {
-          if (!videoRef.current) return
-          videoRef.current.play().catch(() => {
-            // Browser blocked unmuted autoplay; try muted
-            if (videoRef.current) {
-              videoRef.current.muted = true
-              videoRef.current.play().catch(() => {})
-            }
-          })
-        }
-        if (videoRef.current && videoRef.current.readyState >= 2) {
-          tryPlay()
-        } else if (videoRef.current) {
-          videoRef.current.addEventListener('loadeddata', function onData() {
-            videoRef.current?.removeEventListener('loadeddata', onData)
-            tryPlay()
-          })
-        }
       })
 
       // Progress tracking (throttled to every 5 seconds)
