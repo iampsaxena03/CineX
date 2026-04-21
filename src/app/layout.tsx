@@ -28,9 +28,15 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: 'https://cinexp.site/og-image.png',
+        url: 'https://cinexp.site/og-rect-v2.png',
         width: 1200,
         height: 630,
+        alt: 'CineXP - Premium Streaming',
+      },
+      {
+        url: 'https://cinexp.site/og-square-v2.png',
+        width: 800,
+        height: 800,
         alt: 'CineXP - Premium Streaming',
       },
     ],
@@ -39,7 +45,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'CineXP | Premium Streaming',
     description: 'Advanced Movie & TV Series streaming platform. Watch the latest hit movies and TV shows for free in HD.',
-    images: ['https://cinexp.site/og-image.png'],
+    images: ['https://cinexp.site/og-rect-v2.png'],
   },
 };
 

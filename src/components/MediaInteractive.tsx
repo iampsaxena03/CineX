@@ -283,17 +283,17 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
             
             {/* Server Switcher */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
               <span style={{ fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.05em', opacity: 0.5, textTransform: 'uppercase' }}>Source</span>
-              <div style={{ display: 'flex', gap: '4px', background: 'rgba(0,0,0,0.3)', borderRadius: '99px', padding: '4px' }}>
+              <div style={{ display: 'flex', gap: '4px', background: 'rgba(0,0,0,0.3)', borderRadius: '16px', padding: '4px', flexWrap: 'wrap' }}>
                 {PROVIDERS.map((p) => (
                   <button
                     key={p.id}
                     onClick={() => changeProvider(p.id)}
                     style={{
                       position: 'relative',
-                      padding: '0.4rem 1rem',
-                      borderRadius: '99px',
+                      padding: '0.4rem 0.8rem',
+                      borderRadius: '12px',
                       border: 'none',
                       background: 'transparent',
                       color: activeProvider === p.id ? 'white' : 'rgba(255,255,255,0.5)',
@@ -302,13 +302,15 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
                       cursor: 'pointer',
                       transition: 'color 0.3s ease',
                       outline: 'none',
-                      zIndex: 1
+                      zIndex: 1,
+                      flexShrink: 0,
+                      whiteSpace: 'nowrap'
                     }}
                   >
                     {activeProvider === p.id && (
                       <motion.div
                         layoutId="active-pill"
-                        style={{ position: 'absolute', inset: 0, background: p.color, borderRadius: '99px', zIndex: -1, boxShadow: `0 0 15px ${p.color}44` }}
+                        style={{ position: 'absolute', inset: 0, background: p.color, borderRadius: '12px', zIndex: -1, boxShadow: `0 0 15px ${p.color}44` }}
                         transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
                       />
                     )}
@@ -321,8 +323,7 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
             {/* TV Controls */}
             {type === 'tv' && seasons && (
               <>
-                <div style={{ width: '1px', height: '24px', background: 'rgba(255,255,255,0.1)' }} />
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                   <select 
                     value={season} 
                     onChange={(e) => {
@@ -377,7 +378,7 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
           </div>
 
           {/* Right Side: Actions */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
             <WatchlistButton item={{ id, type, title, poster_path: posterUrl || null, backdrop_path: null }} />
             <button
               onClick={handleShare}

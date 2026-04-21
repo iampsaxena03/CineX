@@ -63,9 +63,15 @@ export async function generateMetadata(
       url,
       images: [
         {
-          url: 'https://cinexp.site/og-image.png',
+          url: 'https://cinexp.site/og-rect-v2.png',
           width: 1200,
           height: 630,
+          alt: 'CineXP - Premium Streaming',
+        },
+        {
+          url: 'https://cinexp.site/og-square-v2.png',
+          width: 800,
+          height: 800,
           alt: 'CineXP - Premium Streaming',
         },
       ],
@@ -74,7 +80,7 @@ export async function generateMetadata(
       card: "summary_large_image",
       title,
       description: overview,
-      images: ['https://cinexp.site/og-image.png'],
+      images: ['https://cinexp.site/og-rect-v2.png'],
     },
   };
 }
