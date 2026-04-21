@@ -562,7 +562,7 @@ const StreamPlayer = forwardRef<StreamPlayerRef, StreamPlayerProps>(({ embedUrl,
                 ref={videoRef}
                 crossOrigin="anonymous"
                 playsInline
-                preload="auto"
+                preload="metadata"
                 style={{ width: '100%', height: '100%' }}
               >
                 {directVideoObj.subtitleUrl && (

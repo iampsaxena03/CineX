@@ -251,7 +251,7 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
 
   const directVideoObj = activeProvider === 'native' && mbxLinks.length > 0 ? {
     sources: mbxLinks.map((l: any) => ({
-      src: l.url.replace('&cb=', `&cb=${Date.now()}`),
+      src: l.url.replace('&cb=', `&cb=${Date.now()}`) + '&inline=1',
       type: 'video/mp4',
       size: parseInt(l.quality) || 0
     })).sort((a: any, b: any) => b.size - a.size),

@@ -57,8 +57,14 @@ export async function GET(request: Request) {
       })
     }
 
+    const isInline = searchParams.get('inline') === '1'
+
     // Normal Media Streaming
-    proxyHeaders.set('Content-Disposition', `attachment; filename="${filename}"`)
+    if (isInline) {
+      proxyHeaders.set('Content-Disposition', `inline; filename="${filename}"`)
+    } else {
+      proxyHeaders.set('Content-Disposition', `attachment; filename="${filename}"`)
+    }
 
     return new Response(response.body, {
       status: response.status,
