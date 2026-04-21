@@ -61,13 +61,20 @@ export async function generateMetadata(
       title,
       description: overview,
       url,
-      images: posterUrl ? [{ url: posterUrl, width: 500, height: 750 }] : [],
+      images: [
+        {
+          url: 'https://cinexp.site/og-image.png',
+          width: 1200,
+          height: 630,
+          alt: 'CineXP - Premium Streaming',
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description: overview,
-      images: posterUrl ? [posterUrl] : [],
+      images: ['https://cinexp.site/og-image.png'],
     },
   };
 }
