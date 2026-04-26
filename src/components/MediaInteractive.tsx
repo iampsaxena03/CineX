@@ -91,8 +91,8 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
       } else {
           seasonParam = String(season);
       }
-      const scraperUrl = process.env.NEXT_PUBLIC_SCRAPER_URL || 'http://localhost:4000';
-      const res = await fetch(`${scraperUrl}/api/media/sources?title=${qTitle}&year=${qYear}&type=${type}&industry=${industry}&seasons=${seasonParam}`);
+      // Fallback search ignores quality param now, it resolves all naturally.
+      const res = await fetch(`/api/media/sources?title=${qTitle}&year=${qYear}&type=${type}&industry=${industry}&seasons=${seasonParam}`);
       const data = await res.json();
       if (data.links && data.links.length > 0) {
          setFastDownloadLinks(data.links);
@@ -618,7 +618,7 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
                          {links.map((link, idx) => (
                            <a
                               key={idx}
-                              href={`${process.env.NEXT_PUBLIC_SCRAPER_URL || 'http://localhost:4000'}${link.proxyDownloadUrl}`}
+                              href={link.proxyDownloadUrl}
                               target="_blank"
                               rel="noopener noreferrer"
                               onClick={(e) => {
