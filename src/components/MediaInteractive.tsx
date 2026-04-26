@@ -480,13 +480,12 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
                         const isEpisode = link.id?.includes('-tv-') || link.label?.includes('Episode') || titleToSearchMatch(link);
                         
                         return (
-                          <div
+                          <a
                             key={link.id || i}
-                            role="button"
-                            tabIndex={0}
-                            onClick={() => {
-                              // Open video download
-                              window.open(link.url, '_blank');
+                            href={link.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => {
                               // Auto-trigger subtitle download after a short delay
                               if (link.subtitleUrl) {
                                 setTimeout(() => {
@@ -558,7 +557,7 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
                                 )}
                               </div>
                             </div>
-                          </div>
+                          </a>
                         );
                       })}
                     </div>

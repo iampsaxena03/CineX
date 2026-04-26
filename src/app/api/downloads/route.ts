@@ -156,11 +156,13 @@ export async function GET(request: Request) {
               // Build subtitle proxy URL if available
               let subtitleProxyUrl = '';
               if (result.subtitle && result.subtitle.url) {
-                subtitleProxyUrl = `https://cinexp-proxy.renelclark.workers.dev/?url=${encodeURIComponent(result.subtitle.url)}`;
+                const subFilename = `${safeTitle}_CineXP.srt`;
+                subtitleProxyUrl = `https://cinexp-proxy.renelclark.workers.dev/?url=${encodeURIComponent(result.subtitle.url)}&filename=${encodeURIComponent(subFilename)}`;
               }
 
               result.sources.forEach((s: any) => {
-                const proxyUrl = `https://cinexp-proxy.renelclark.workers.dev/?url=${encodeURIComponent(s.directUrl)}`;
+                const filenameToUse = `${safeTitle}_CineXP_${s.quality}p.mp4`;
+                const proxyUrl = `https://cinexp-proxy.renelclark.workers.dev/?url=${encodeURIComponent(s.directUrl)}&filename=${encodeURIComponent(filenameToUse)}`;
 
                 const linkObj = {
                   id: `moviebox-${s.id}`,
