@@ -1,5 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { searchMovies, extractShortlinks, bypassModpro, extractDriveSeed } from "@/lib/scraper";
+
+const HF_URL = 'https://cinexp-cinexp-scraper.hf.space/api/scrape';
+
+async function searchMovies(title: string, year: string, type: 'movie' | 'tv' = 'movie', domain: string = 'moviesmod.farm', season?: string) {
+    const res = await fetch(HF_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'searchMovies', title, year, type, domain, season }) });
+    const data = await res.json();
+    return data.result;
+}
+
+async function extractShortlinks(postUrl: string, type: 'movie' | 'tv' = 'movie', targetSeason?: number) {
+    const res = await fetch(HF_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'extractShortlinks', postUrl, type, targetSeason }) });
+    const data = await res.json();
+    return data.result || [];
+}
 
 export async function GET(req: NextRequest) {
     const searchParams = req.nextUrl.searchParams;

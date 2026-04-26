@@ -1,5 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { bypassModpro, extractDriveSeed } from '@/lib/scraper';
+
+const HF_URL = 'https://cinexp-cinexp-scraper.hf.space/api/scrape';
+
+async function bypassModpro(shortUrl: string) {
+    const res = await fetch(HF_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'bypassModpro', shortUrl }) });
+    const data = await res.json();
+    return data.result;
+}
+
+async function extractDriveSeed(driveseedUrl: string) {
+    const res = await fetch(HF_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'extractDriveSeed', driveseedUrl }) });
+    const data = await res.json();
+    return data.result;
+}
 
 export const runtime = 'edge';
 
