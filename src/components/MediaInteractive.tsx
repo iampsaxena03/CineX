@@ -19,6 +19,7 @@ interface MediaInteractiveProps {
   title?: string
   posterUrl?: string
   year?: string
+  industry?: string
 }
 
 const PROVIDERS = [
@@ -29,7 +30,7 @@ const PROVIDERS = [
   { id: 'vidsrc', name: 'Stream 4', color: '#ff4b2b' }
 ]
 
-export default function MediaInteractive({ id, imdbId, type, seasons, title = "Unknown Title", posterUrl, year }: MediaInteractiveProps) {
+export default function MediaInteractive({ id, imdbId, type, seasons, title = "Unknown Title", posterUrl, year, industry = "hollywood" }: MediaInteractiveProps) {
   const [activeProvider, setActiveProvider] = useState('native')
   const [season, setSeason] = useState(seasons && seasons.length > 0 ? (seasons[0].season_number || 1) : 1)
   const [episode, setEpisode] = useState(1)
@@ -44,7 +45,7 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
   const [downloadsLoading, setDownloadsLoading] = useState(true)
   
   // Premium Native Bypasser State
-  const [fastDownloadLinks, setFastDownloadLinks] = useState<{ label: string, proxyDownloadUrl: string }[]>([])
+  const [fastDownloadLinks, setFastDownloadLinks] = useState<{ label: string, proxyDownloadUrl: string, season?: number }[]>([])
   const [fastDownloadLoading, setFastDownloadLoading] = useState(false)
   const [fastDownloadError, setFastDownloadError] = useState<string | null>(null)
 
@@ -76,8 +77,22 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
     try {
       const qTitle = encodeURIComponent(title);
       const qYear = year ? encodeURIComponent(year) : "";
+      // For TV shows, send season:year pairs so the backend can guess the correct URL per season
+      // (moviesleech uses each season's release year in URLs, not the show's first air year)
+      let seasonParam = '';
+      if (type === 'tv' && seasons) {
+          const seasonPairs = seasons
+              .filter(s => s.season_number > 0)
+              .map(s => {
+                  const airYear = s.air_date ? s.air_date.substring(0, 4) : year;
+                  return `${s.season_number}:${airYear}`;
+              });
+          seasonParam = seasonPairs.join(',');
+      } else {
+          seasonParam = String(season);
+      }
       // Fallback search ignores quality param now, it resolves all naturally.
-      const res = await fetch(`/api/media/sources?title=${qTitle}&year=${qYear}&type=${type}`);
+      const res = await fetch(`/api/media/sources?title=${qTitle}&year=${qYear}&type=${type}&industry=${industry}&seasons=${seasonParam}`);
       const data = await res.json();
       if (data.links && data.links.length > 0) {
          setFastDownloadLinks(data.links);
@@ -576,7 +591,7 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
             })()}
             
             {/* Native Proxied Premium Link */}
-            {type === 'movie' && (
+            {(type === 'movie' || type === 'tv') && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div style={{ paddingLeft: '0.75rem', borderLeft: `3px solid #9d00ff` }}>
                 <h4 style={{ fontSize: '1rem', fontWeight: 600, margin: 0, color: 'white', letterSpacing: '0.02em' }}>CineXP Premium Fast Node</h4>
@@ -584,29 +599,47 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
               </div>
               
               {fastDownloadLinks.length > 0 ? (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
-                   {fastDownloadLinks.map((link, idx) => (
-                     <a
-                        key={idx}
-                        href={link.proxyDownloadUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={(e) => {
-                           // Optional visual feedback
-                           const el = e.currentTarget;
-                           el.style.opacity = "0.7";
-                        }}
-                        style={{
-                          display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', background: 'rgba(157,0,255,0.08)', border: '1px solid #9d00ff', borderRadius: '16px', transition: 'all 0.3s ease', textDecoration: 'none', color: 'inherit', cursor: 'pointer'
-                        }}
-                      >
-                         <div style={{ width: 40, height: 40, borderRadius: '12px', background: `linear-gradient(135deg, #9d00ff, #5b00ff)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', flexShrink: 0, boxShadow: `0 4px 12px rgba(157,0,255,0.4)` }}>
-                           🚀
-                         </div>
-                         <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center' }}>
-                              <span style={{ fontSize: '1.05rem', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{link.label}</span>
-                         </div>
-                      </a>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                   {Object.entries(
+                     fastDownloadLinks.reduce((acc, link) => {
+                       const s = link.season || season;
+                       if (!acc[s]) acc[s] = [];
+                       acc[s].push(link);
+                       return acc;
+                     }, {} as Record<number, typeof fastDownloadLinks>)
+                   ).map(([s, links]) => (
+                     <div key={s} style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                       {type === 'tv' && (
+                           <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'rgba(255,255,255,0.8)', paddingLeft: '0.6rem', borderLeft: '3px solid rgba(157,0,255,0.5)' }}>
+                               Season {s}
+                           </div>
+                       )}
+                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
+                         {links.map((link, idx) => (
+                           <a
+                              key={idx}
+                              href={link.proxyDownloadUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => {
+                                 // Optional visual feedback
+                                 const el = e.currentTarget;
+                                 el.style.opacity = "0.7";
+                              }}
+                              style={{
+                                display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', background: 'rgba(157,0,255,0.08)', border: '1px solid #9d00ff', borderRadius: '16px', transition: 'all 0.3s ease', textDecoration: 'none', color: 'inherit', cursor: 'pointer'
+                              }}
+                            >
+                               <div style={{ width: 40, height: 40, borderRadius: '12px', background: `linear-gradient(135deg, #9d00ff, #5b00ff)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', flexShrink: 0, boxShadow: `0 4px 12px rgba(157,0,255,0.4)` }}>
+                                 🚀
+                               </div>
+                               <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center' }}>
+                                    <span style={{ fontSize: '1.05rem', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{link.label}</span>
+                               </div>
+                            </a>
+                         ))}
+                       </div>
+                     </div>
                    ))}
                 </div>
               ) : (

@@ -8,28 +8,28 @@ export async function searchMovies(title: string, year: string, type: 'movie' | 
      let urlsToTry: string[] = [];
 
      if (type === 'movie') {
-         // Generic (language-agnostic) patterns first — WordPress 301-redirects to the full slug
-         urlsToTry = [
-           `https://moviesleech.link/download-${safeTitle}-${year}/`,
-           `https://moviesleech.link/download-${safeTitle}-${year}-hindi-movie/`,
-           `https://moviesleech.link/download-${safeTitle}-${year}-hindi-movie-hdtc/`,
-           `https://moviesleech.link/download-${safeTitle}-${year}-hindi-dubbed-movie/`,
-           `https://moviesleech.link/download-${safeTitle}-${year}-movie/`,
-           `https://moviesleech.link/${safeTitle}-${year}/`
-         ];
-     } else if (type === 'tv' && season) {
-         // Generic (language-agnostic) patterns first for non-Hindi Indian TV
-         urlsToTry = [
-           `https://moviesleech.link/download-${safeTitle}-${year}-season-${season}/`,
-           `https://moviesleech.link/download-${safeTitle}-season-${season}/`,
-           `https://moviesleech.link/download-${safeTitle}-${year}-season-${season}-hindi/`,
-           `https://moviesleech.link/download-${safeTitle}-season-${season}-hindi/`,
-           `https://moviesleech.link/download-${safeTitle}-${year}-season-${season}-hindi-web-series/`,
-           `https://moviesleech.link/download-${safeTitle}-season-${season}-hindi-web-series/`,
-           `https://moviesleech.link/${safeTitle}-${year}-season-${season}/`,
-           `https://moviesleech.link/${safeTitle}-season-${season}/`
-         ];
-     }
+          // Generic (language-agnostic) patterns first — WordPress 301-redirects to the full slug
+          urlsToTry = [
+            `https://moviesleech.link/download-${safeTitle}-${year}/`,
+            `https://moviesleech.link/download-${safeTitle}-${year}-hindi-movie/`,
+            `https://moviesleech.link/download-${safeTitle}-${year}-hindi-movie-hdtc/`,
+            `https://moviesleech.link/download-${safeTitle}-${year}-hindi-dubbed-movie/`,
+            `https://moviesleech.link/download-${safeTitle}-${year}-movie/`,
+            `https://moviesleech.link/${safeTitle}-${year}/`
+          ];
+      } else if (type === 'tv' && season) {
+          // Generic (language-agnostic) patterns first for non-Hindi Indian TV
+          urlsToTry = [
+            `https://moviesleech.link/download-${safeTitle}-${year}-season-${season}/`,
+            `https://moviesleech.link/download-${safeTitle}-season-${season}/`,
+            `https://moviesleech.link/download-${safeTitle}-${year}-season-${season}-hindi/`,
+            `https://moviesleech.link/download-${safeTitle}-season-${season}-hindi/`,
+            `https://moviesleech.link/download-${safeTitle}-${year}-season-${season}-hindi-web-series/`,
+            `https://moviesleech.link/download-${safeTitle}-season-${season}-hindi-web-series/`,
+            `https://moviesleech.link/${safeTitle}-${year}-season-${season}/`,
+            `https://moviesleech.link/${safeTitle}-season-${season}/`
+          ];
+      }
 
      console.log(`[Scraper] Bypassing Cloudflare Search for moviesleech.link, guessing post URL for ${title}...`);
      for (const url of urlsToTry) {
@@ -57,9 +57,6 @@ export async function searchMovies(title: string, year: string, type: 'movie' | 
     const html = await res.text();
     const $ = cheerio.load(html);
     
-    // Most wordpress themes use article or .post
-    // Let's grab the first article link
-    // Moviesmod often uses .post-title a or .title a
     const firstResult = $('article').first().find('a').attr('href') || $('.post-title a').first().attr('href') || $('h2.title a').first().attr('href');
     
     if (!firstResult) {
@@ -91,24 +88,19 @@ export async function extractShortlinks(postUrl: string, type: 'movie' | 'tv' = 
         
         let contextText = (text + " " + pre1 + " " + pre2 + " " + pre3).toLowerCase();
 
-        // Construct an authentic label from the exact lines above the link
         let rawLabel = (pre1.length > 5 && pre1.length < 100) ? pre1 : 
                        (pre2.length > 5 && pre2.length < 100) ? pre2 : "Download Link";
                        
-        // If the text above is just a generic 'Download Links', go one level higher
         if (rawLabel.toLowerCase().includes('download link') && pre2 && pre2.length > 5) {
             rawLabel = pre2;
         }
 
-        // Clean up the label
         let label = rawLabel.replace(/^Download\s*/i, '').replace(/Links?$/i, '').trim() || "Premium Node";
         
-        // Strip out the movie title and year if present, keeping only the technical details (e.g., '1080p 10bit x265')
         const qualityMatch = label.match(/(480p|720p|1080p|2160p|4k).*$/i);
         if (qualityMatch) {
             label = qualityMatch[0].trim();
         }
-        // Strip out random trailing brackets
         label = label.replace(/\[.*?\]$/, '').trim();
         
         if (type === 'tv') {
@@ -117,38 +109,30 @@ export async function extractShortlinks(postUrl: string, type: 'movie' | 'tv' = 
              const explicitlyEpisode = episodeRegex.test(text) || episodeRegex.test(pre1);
              const immediatePack = /(zip|pack|batch|season|complete)/i.test(text) || /(zip|pack|batch|season|complete)/i.test(pre1);
              
-             // Strict Season-only filter based on DOM paragraph context above the button
              if (!isSeasonPack || (explicitlyEpisode && !immediatePack)) {
                  return;
              }
 
-             // If a specific season is requested, filter by it
              if (targetSeason !== undefined) {
                  const seasonRegex = /season\s*(\d+)/i;
                  const foundSeasonMatch = contextText.match(seasonRegex) || rawLabel.match(seasonRegex);
                  if (foundSeasonMatch) {
                      const foundSeason = parseInt(foundSeasonMatch[1]);
                      if (foundSeason !== targetSeason) {
-                         return; // skip if it explicitly mentions a different season
+                         return;
                      }
                  }
              }
              
-             // Check if this button is a Batch/Zip button
              const isBatchZipBtn = /(batch|zip|📂)/i.test(text);
 
-             // TV SHOW DEDUPLICATION: The user requested ONLY one link per season quality combo.
-             // We prefer "📂 Batch/Zip" links over standard G-Drive links.
              const existingIdx = possibleLinks.findIndex(l => l.label === label);
              if (existingIdx === -1) {
-                  // Quality not found yet, push it and track if it's a batch link
                   possibleLinks.push({ url: href.replace(/#clickimage$/, ''), label, _isBatch: isBatchZipBtn });
              } else if (isBatchZipBtn && !possibleLinks[existingIdx]._isBatch) {
-                  // Found a batch/zip link for a quality that previously had a non-batch link. Overwrite it!
                   possibleLinks[existingIdx] = { url: href.replace(/#clickimage$/, ''), label, _isBatch: true };
              }
         } else {
-            // MOVIE DEDUPLICATION: Preserve mirrors by appending (Alt X) if label matches but URL differs
             if (!possibleLinks.find(l => l.url === href.replace(/#clickimage$/, ''))) {
                 const dupCount = possibleLinks.filter(l => l.label.includes(label)).length;
                 const finalLabel = dupCount > 0 ? `${label} (Alt ${dupCount + 1})` : label;
@@ -179,7 +163,6 @@ export async function bypassModpro(shortUrl: string) {
         let html1 = await r1.text();
         let $ = cheerio.load(html1);
 
-        // Check for Fast Server Button
         const fastSrvBtn = $('a.maxbutton-fast-server-gdrive').attr('href');
         if (fastSrvBtn) {
             r1 = await fetch(fastSrvBtn, { method: 'POST', headers: defaultHeaders });
@@ -289,7 +272,6 @@ export async function extractDriveSeed(driveseedUrl: string) {
         const html = await res.text();
         const $ = cheerio.load(html);
         
-        // Find Instant Download or Resume Download
         let finalCdnLink: string | null = null;
         let zfileLink: string | null = null;
         
@@ -308,7 +290,6 @@ export async function extractDriveSeed(driveseedUrl: string) {
             }
         });
 
-        // If it's a batch/zip TV file, it usually points to a /zfile/ page first.
         if (!finalCdnLink && zfileLink) {
              const zUrl = (zfileLink as string).startsWith('http') ? zfileLink as string : new URL(zfileLink as string, driveseedUrl).toString();
              console.log(`[Scraper] Following zfile link: ${zUrl}`);
@@ -329,8 +310,6 @@ export async function extractDriveSeed(driveseedUrl: string) {
         
         if (!finalCdnLink) return null;
 
-        // DriveSeed CDNs now issue a 302 Found redirect to their VideoSeed player.
-        // The real Google stream url is embedded in the `?url=` parameter of the Location header.
         const redirRes = await fetch(finalCdnLink, { 
             headers: { 'User-Agent': USER_AGENT },
             redirect: 'manual' 

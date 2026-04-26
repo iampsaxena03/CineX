@@ -106,6 +106,17 @@ export default async function MediaPage({
   const posterUrl = getImageUrl(details.poster_path, "w500");
   const seasons = (details as any).seasons as any[] | undefined;
 
+  // Comprehensive Indian content detection — covers all Indian languages, not just Hindi
+  const INDIAN_LANGUAGES = ['hi', 'ta', 'te', 'ml', 'kn', 'bn', 'mr', 'pa', 'gu', 'or', 'as', 'ur', 'bh', 'sa'];
+  const origLang = (details as any).original_language || '';
+  const originCountries: string[] = (details as any).origin_country || [];
+  const prodCountries: { iso_3166_1: string }[] = (details as any).production_countries || [];
+  const isIndian =
+    originCountries.includes('IN') ||
+    INDIAN_LANGUAGES.includes(origLang) ||
+    prodCountries.some((c: any) => c.iso_3166_1 === 'IN');
+  const industry = isIndian ? 'bollywood' : 'hollywood';
+
   const historyItem = {
     id: String(id),
     type,
@@ -288,6 +299,7 @@ export default async function MediaPage({
           title={title} 
           posterUrl={posterUrl} 
           year={year}
+          industry={industry}
         />
 
         {/* Ad between player and recommendations */}
