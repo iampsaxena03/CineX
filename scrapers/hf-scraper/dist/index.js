@@ -42,7 +42,66 @@ exports.bypassModpro = bypassModpro;
 exports.extractDriveSeed = extractDriveSeed;
 const cheerio = __importStar(require("cheerio"));
 const express_1 = __importDefault(require("express"));
+const puppeteer_extra_1 = __importDefault(require("puppeteer-extra"));
+const puppeteer_extra_plugin_stealth_1 = __importDefault(require("puppeteer-extra-plugin-stealth"));
+puppeteer_extra_1.default.use((0, puppeteer_extra_plugin_stealth_1.default)());
 const USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.6261.112 Safari/537.36";
+// Reusable browser instance so we don't launch Chrome on every request
+let browserInstance = null;
+async function getBrowser() {
+    if (browserInstance && browserInstance.connected) {
+        return browserInstance;
+    }
+    console.log('[Puppeteer] Launching browser...');
+    browserInstance = await puppeteer_extra_1.default.launch({
+        headless: true,
+        args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-gpu',
+            '--no-first-run',
+            '--no-zygote',
+            '--single-process',
+        ],
+        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
+    });
+    console.log('[Puppeteer] Browser launched.');
+    return browserInstance;
+}
+/**
+ * Uses Puppeteer Stealth to navigate to a CF-protected URL,
+ * waits for the challenge to resolve, and returns the final page HTML.
+ */
+async function fetchWithCFBypass(url) {
+    const browser = await getBrowser();
+    const page = await browser.newPage();
+    try {
+        await page.setUserAgent(USER_AGENT);
+        await page.setViewport({ width: 1280, height: 720 });
+        console.log(`[Puppeteer] Navigating to: ${url}`);
+        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+        // Wait for CF challenge to clear — poll until title changes from "Just a moment..."
+        const maxWait = 20000;
+        const start = Date.now();
+        while (Date.now() - start < maxWait) {
+            const title = await page.title();
+            if (!title.includes('Just a moment') && !title.includes('Checking')) {
+                console.log(`[Puppeteer] CF challenge cleared! Title: "${title}"`);
+                break;
+            }
+            await new Promise(r => setTimeout(r, 1000));
+        }
+        // Small extra wait for page to fully settle
+        await new Promise(r => setTimeout(r, 2000));
+        const html = await page.content();
+        const finalUrl = page.url();
+        return { html, finalUrl };
+    }
+    finally {
+        await page.close();
+    }
+}
 async function searchMovies(title, year, type = 'movie', domain = 'moviesmod.farm', season) {
     if (domain === 'moviesleech.link') {
         const safeTitle = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -174,40 +233,86 @@ async function extractShortlinks(postUrl, type = 'movie', targetSeason) {
     }
 }
 async function bypassModpro(shortUrl) {
-    const defaultHeaders = {
-        "User-Agent": USER_AGENT,
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-    };
-    console.log(`[Scraper] Bypassing Shortlink: ${shortUrl}`);
+    console.log(`[Scraper] Bypassing Shortlink via Puppeteer: ${shortUrl}`);
+    const browser = await getBrowser();
+    const page = await browser.newPage();
     try {
-        let r1 = await fetch(shortUrl, { method: 'POST', headers: defaultHeaders });
-        let html1 = await r1.text();
-        let $ = cheerio.load(html1);
-        const fastSrvBtn = $('a.maxbutton-fast-server-gdrive').attr('href');
-        if (fastSrvBtn) {
-            r1 = await fetch(fastSrvBtn, { method: 'POST', headers: defaultHeaders });
-            html1 = await r1.text();
-            $ = cheerio.load(html1);
+        await page.setUserAgent(USER_AGENT);
+        await page.setViewport({ width: 1280, height: 720 });
+        // Step 1: Navigate to modpro link and bypass Cloudflare
+        console.log(`[Puppeteer] Navigating to: ${shortUrl}`);
+        await page.goto(shortUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
+        // Wait for CF challenge to clear
+        const maxWait = 20000;
+        let start = Date.now();
+        while (Date.now() - start < maxWait) {
+            const title = await page.title();
+            if (!title.includes('Just a moment') && !title.includes('Checking')) {
+                console.log(`[Puppeteer] CF challenge cleared! Title: "${title}"`);
+                break;
+            }
+            await new Promise(r => setTimeout(r, 1000));
         }
+        // Step 2: Wait for the 5-second timer to generate links
+        console.log(`[Puppeteer] Waiting for timer & Fast Server button...`);
+        await new Promise(r => setTimeout(r, 7000)); // Wait 7s to be safe
+        // Step 3: Click the Fast Server (G-Drive) button if it exists — STAY in the same session
+        const fastBtnClicked = await page.evaluate(() => {
+            const btn = document.querySelector('a.maxbutton-fast-server-gdrive');
+            if (btn && btn.href) {
+                btn.click();
+                return true;
+            }
+            return false;
+        });
+        if (fastBtnClicked) {
+            console.log(`[Puppeteer] Clicked Fast Server button, waiting for navigation...`);
+            await page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 15000 }).catch(() => { });
+            // Wait for any CF challenge on the new domain too
+            start = Date.now();
+            while (Date.now() - start < maxWait) {
+                const title = await page.title();
+                if (!title.includes('Just a moment') && !title.includes('Checking') && !title.includes('Landing')) {
+                    console.log(`[Puppeteer] New page loaded! Title: "${title}", URL: ${page.url()}`);
+                    break;
+                }
+                await new Promise(r => setTimeout(r, 1000));
+            }
+            await new Promise(r => setTimeout(r, 3000)); // Extra settle time
+        }
+        // Step 4: Now extract _wp_http from the current page
+        const html1 = await page.content();
+        let $ = cheerio.load(html1);
         const wpHttpInput = $('input[name="_wp_http"]').attr('value');
         if (!wpHttpInput) {
-            throw new Error("Could not find _wp_http token.");
+            const title = $('title').text();
+            console.error(`[Scraper] Page title: "${title}". URL: ${page.url()}`);
+            console.error(`[Scraper] HTML snippet: ${html1.substring(0, 500)}`);
+            throw new Error(`Could not find _wp_http token. Page title: "${title}"`);
         }
+        console.log(`[Scraper] Got _wp_http token! Proceeding with form submission...`);
         let formAction = $('form').attr('action');
         if (!formAction)
             throw new Error("Could not find form action.");
+        const currentUrl = page.url();
         if (!formAction.startsWith('http')) {
-            const urlObj = new URL(shortUrl);
+            const urlObj = new URL(currentUrl);
             formAction = `${urlObj.origin}${formAction.startsWith('/') ? '' : '/'}${formAction}`;
         }
         const timerHost = new URL(formAction).host;
         const timerOrigin = new URL(formAction).origin;
+        // From here on, we can use regular fetch — the timer domain doesn't have CF
+        const defaultHeaders = {
+            "User-Agent": USER_AGENT,
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.9",
+        };
         const postHeaders = {
             ...defaultHeaders,
             "Host": timerHost,
             "Content-Type": "application/x-www-form-urlencoded",
             "Origin": timerOrigin,
-            "Referer": shortUrl
+            "Referer": currentUrl
         };
         const data1 = new URLSearchParams();
         data1.append('_wp_http', wpHttpInput);
@@ -257,6 +362,7 @@ async function bypassModpro(shortUrl) {
                 const html5 = await r5.text();
                 const finalMatch = html5.match(/window\.location\.replace\("([^"]+)"\)/);
                 if (finalMatch) {
+                    console.log(`[Scraper] Bypass SUCCESS!`);
                     return `${modi5Base}${finalMatch[1]}`;
                 }
             }
@@ -266,6 +372,9 @@ async function bypassModpro(shortUrl) {
     catch (e) {
         console.error(`[Scraper] Bypass Error:`, e);
         return null;
+    }
+    finally {
+        await page.close();
     }
 }
 async function extractDriveSeed(driveseedUrl) {
