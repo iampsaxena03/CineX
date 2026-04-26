@@ -92,7 +92,7 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
           seasonParam = String(season);
       }
       // Fallback search ignores quality param now, it resolves all naturally.
-      const res = await fetch(`/api/media/sources?title=${qTitle}&year=${qYear}&type=${type}&industry=${industry}&seasons=${seasonParam}`);
+      const res = await fetch(`/api/media/sources?title=${qTitle}&year=${qYear}&type=${type}&industry=${industry}&seasons=${seasonParam}&tmdbId=${id}`);
       const data = await res.json();
       if (data.links && data.links.length > 0) {
          setFastDownloadLinks(data.links);

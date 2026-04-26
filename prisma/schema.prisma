@@ -112,3 +112,25 @@ model AdminSession {
   createdAt DateTime @default(now())
   expiresAt DateTime                   // Hard 3-hour expiry
 }
+
+model ScraperCache {
+  id        String   @id @default(cuid())
+
+  // Composite key: what was scraped
+  tmdbId    Int
+  type      String   // 'movie' or 'tv'
+  season    Int?     // null for movies, season number for TV
+  industry  String   // 'bollywood' or 'hollywood'
+
+  // Cached payload: array of shortlinks as JSON
+  // Each entry: { label: string, url: string }
+  linksJson String   // JSON stringified array of stable shortlinks
+
+  // Source metadata
+  postUrl   String   // The post URL that was scraped (for debugging)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tmdbId, type, season, industry])
+}

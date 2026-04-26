@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { searchMovies, extractShortlinks, bypassModpro, extractDriveSeed } from "@/lib/scraper";
+import { searchMovies, extractShortlinks } from "@/lib/scraper";
+import { prisma } from "@/lib/admin";
+
+const CACHE_TTL_MS = 15 * 24 * 60 * 60 * 1000; // 15 days
 
 export async function GET(req: NextRequest) {
     const searchParams = req.nextUrl.searchParams;
@@ -7,9 +10,9 @@ export async function GET(req: NextRequest) {
     const year = searchParams.get('year') || "";
     const type = searchParams.get('type') || "movie"; // "movie" or "tv"
     const industry = searchParams.get('industry') || "hollywood"; // "bollywood" or "hollywood"
-    const quality = searchParams.get('quality') || "1080p";
     const season = searchParams.get('season') || undefined;
     const seasons = searchParams.get('seasons') || undefined;
+    const tmdbId = searchParams.get('tmdbId');
 
     if (!title) {
         return NextResponse.json({ error: "Missing title parameter" }, { status: 400 });
@@ -17,7 +20,19 @@ export async function GET(req: NextRequest) {
 
     try {
         const targetDomain = industry.toLowerCase() === 'bollywood' ? 'moviesleech.link' : 'moviesmod.farm';
+        const parsedTmdbId = tmdbId ? parseInt(tmdbId) : null;
 
+        // ── CACHE CHECK ──────────────────────────────────────────────
+        if (parsedTmdbId) {
+            const cachedLinks = await getCachedLinks(parsedTmdbId, type, industry, seasons, season);
+            if (cachedLinks) {
+                console.log(`[ScraperCache] HIT for tmdbId=${parsedTmdbId} type=${type} industry=${industry}`);
+                return NextResponse.json({ success: true, links: cachedLinks, cached: true });
+            }
+            console.log(`[ScraperCache] MISS for tmdbId=${parsedTmdbId} type=${type} industry=${industry}`);
+        }
+
+        // ── SCRAPE (cache miss) ──────────────────────────────────────
         console.log(`[CineXP Pipeline] Starting search for ${title} ${year} on ${targetDomain}`);
         
         let allLinks: any[] = [];
@@ -41,14 +56,14 @@ export async function GET(req: NextRequest) {
                     console.log(`[CineXP Pipeline] Moviesmod search failed, falling back to moviesleech per-season...`);
                     const results = await Promise.all(seasonEntries.map(async ({ season: s, year: seasonYear }) => {
                         const leechUrl = await searchMovies(title, seasonYear, 'tv', 'moviesleech.link', s);
-                        if (leechUrl) return processPost(leechUrl, 'tv', title, Number(s));
+                        if (leechUrl) return processPost(leechUrl, 'tv', title, Number(s), parsedTmdbId, industry);
                         return [];
                     }));
                     allLinks = results.flat();
                 } else {
                     // Found the multi-season page — extract each season's links from the same page
                     const results = await Promise.all(seasonEntries.map(async ({ season: s }) => {
-                        return processPost(postUrl!, 'tv', title, Number(s));
+                        return processPost(postUrl!, 'tv', title, Number(s), parsedTmdbId, industry);
                     }));
                     allLinks = results.flat();
                 }
@@ -61,7 +76,7 @@ export async function GET(req: NextRequest) {
                         postUrl = await searchMovies(title, seasonYear, type as any, altDomain, s);
                     }
                     if (postUrl) {
-                        return processPost(postUrl, type as any, title, Number(s));
+                        return processPost(postUrl, type as any, title, Number(s), parsedTmdbId, industry);
                     }
                     return [];
                 }));
@@ -77,7 +92,7 @@ export async function GET(req: NextRequest) {
                 postUrl = await searchMovies(title, year, type as any, altDomain, season);
             }
             if (postUrl) {
-                allLinks = await processPost(postUrl, type as any, title, season ? Number(season) : undefined);
+                allLinks = await processPost(postUrl, type as any, title, season ? Number(season) : undefined, parsedTmdbId, industry);
             }
         }
 
@@ -95,7 +110,135 @@ export async function GET(req: NextRequest) {
     }
 }
 
-async function processPost(postUrl: string, type: 'movie' | 'tv', movieTitle: string, season?: number) {
+// ── CACHE HELPERS ────────────────────────────────────────────────────
+
+async function getCachedLinks(
+    tmdbId: number,
+    type: string,
+    industry: string,
+    seasons?: string,
+    singleSeason?: string
+): Promise<any[] | null> {
+    try {
+        if (type === 'tv' && seasons) {
+            // Multi-season: check cache for each season
+            const seasonNumbers = seasons.split(',').map(entry => {
+                const s = entry.includes(':') ? entry.split(':')[0] : entry;
+                return parseInt(s);
+            });
+
+            const cached = await prisma.scraperCache.findMany({
+                where: {
+                    tmdbId,
+                    type,
+                    industry,
+                    season: { in: seasonNumbers }
+                }
+            });
+
+            // ALL seasons must be cached and fresh for a hit
+            const freshEntries = cached.filter(c => Date.now() - c.updatedAt.getTime() < CACHE_TTL_MS);
+            if (freshEntries.length !== seasonNumbers.length) return null;
+
+            // Rebuild the response from cached JSON
+            return freshEntries.flatMap(entry => {
+                const rawLinks: { label: string; url: string }[] = JSON.parse(entry.linksJson);
+                return buildResponseLinks(rawLinks, entry.postUrl, entry.season);
+            });
+        } else {
+            // Single movie or single season
+            const seasonNum = singleSeason ? parseInt(singleSeason) : null;
+            const cached = await prisma.scraperCache.findFirst({
+                where: {
+                    tmdbId,
+                    type,
+                    season: seasonNum,
+                    industry
+                }
+            });
+
+            if (!cached) return null;
+            if (Date.now() - cached.updatedAt.getTime() > CACHE_TTL_MS) return null;
+
+            const rawLinks: { label: string; url: string }[] = JSON.parse(cached.linksJson);
+            return buildResponseLinks(rawLinks, cached.postUrl, cached.season);
+        }
+    } catch (err) {
+        console.error('[ScraperCache] Read error:', err);
+        return null;
+    }
+}
+
+async function saveCacheEntry(
+    tmdbId: number,
+    type: string,
+    season: number | null,
+    industry: string,
+    postUrl: string,
+    rawLinks: { label: string; url: string }[]
+) {
+    try {
+        const existing = await prisma.scraperCache.findFirst({
+            where: { tmdbId, type, season, industry }
+        });
+
+        if (existing) {
+            await prisma.scraperCache.update({
+                where: { id: existing.id },
+                data: {
+                    linksJson: JSON.stringify(rawLinks),
+                    postUrl,
+                    updatedAt: new Date()
+                }
+            });
+        } else {
+            await prisma.scraperCache.create({
+                data: {
+                    tmdbId,
+                    type,
+                    season,
+                    industry,
+                    linksJson: JSON.stringify(rawLinks),
+                    postUrl
+                }
+            });
+        }
+        console.log(`[ScraperCache] SAVED tmdbId=${tmdbId} type=${type} season=${season} industry=${industry} (${rawLinks.length} links)`);
+    } catch (err) {
+        console.error('[ScraperCache] Write error:', err);
+    }
+}
+
+function buildResponseLinks(
+    rawLinks: { label: string; url: string }[],
+    postUrl: string,
+    season: number | null | undefined
+): any[] {
+    // Reconstruct the title from the postUrl for filename generation
+    const titleSlug = postUrl.split('/').filter(Boolean).pop() || 'CineXP-Download';
+    const safeTitleBase = titleSlug.replace(/-/g, ' ').replace(/[^a-zA-Z0-9\s]/g, '').trim().replace(/\s+/g, '-');
+
+    return rawLinks.map(link => {
+        const cleanLabel = link.label.replace(/[^a-zA-Z0-9\s-]/g, '').trim().replace(/\s+/g, '-');
+        const finalFilename = `${safeTitleBase}-${cleanLabel}_CineXP.mkv`;
+        return {
+            label: link.label,
+            proxyDownloadUrl: `/api/media/resolve?url=${encodeURIComponent(link.url)}&filename=${encodeURIComponent(finalFilename)}`,
+            season: season ?? undefined
+        };
+    });
+}
+
+// ── SCRAPE + CACHE PIPELINE ──────────────────────────────────────────
+
+async function processPost(
+    postUrl: string,
+    type: 'movie' | 'tv',
+    movieTitle: string,
+    season?: number,
+    tmdbId?: number | null,
+    industry?: string
+) {
     console.log(`[CineXP Pipeline] Post URL found: ${postUrl}. Extracting shortlinks...`);
     const shortLinks = await extractShortlinks(postUrl, type, season);
     
@@ -103,9 +246,16 @@ async function processPost(postUrl: string, type: 'movie' | 'tv', movieTitle: st
         return [];
     }
 
-    // Instead of bypassing modpro multiple times at once causing the server to stall and hit rate limits,
-    // we return the shortlinks dynamically to the frontend so the user can see them instantly.
-    // The actual bypass will occur specifically for the chosen link via a dedicated resolver route natively.
+    // Save raw shortlinks to cache if we have a tmdbId
+    if (tmdbId && industry) {
+        const rawLinks = shortLinks.map(link => ({
+            label: link.label,
+            url: link.url
+        }));
+        await saveCacheEntry(tmdbId, type, season ?? null, industry, postUrl, rawLinks);
+    }
+
+    // Build the response (same format as before)
     const safeTitleBase = movieTitle.replace(/[^a-zA-Z0-9\s]/g, '').trim().replace(/\s+/g, '-');
     return shortLinks.map(link => {
         const cleanLabel = link.label.replace(/[^a-zA-Z0-9\s-]/g, '').trim().replace(/\s+/g, '-');
