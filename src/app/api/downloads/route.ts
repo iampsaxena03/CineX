@@ -161,15 +161,12 @@ export async function GET(request: Request) {
               }
 
               result.sources.forEach((s: any) => {
-                const filenameToUse = `${safeTitle}_CineXP_${s.quality}p.mp4`;
-                const proxyUrl = `/api/proxy/moviebox?url=${encodeURIComponent(s.directUrl)}&filename=${encodeURIComponent(filenameToUse)}&cb=${Date.now()}`;
-
                 const linkObj = {
                   id: `moviebox-${s.id}`,
                   quality: s.quality + 'p',
                   label: s.quality + 'p',
                   size: s.size ? (parseInt(s.size) / (1024 * 1024)).toFixed(0) + ' MB' : '',
-                  url: proxyUrl,
+                  url: s.directUrl, // DIRECT url to prevent Vercel bandwidth billing
                   subtitleUrl: subtitleProxyUrl || undefined,
                   isMoviebox: true
                 };

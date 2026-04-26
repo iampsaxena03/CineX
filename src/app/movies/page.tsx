@@ -2,7 +2,7 @@ import { getPopularMovies, type TMDBMediaItem } from "@/lib/tmdb";
 import Aurora from "@/components/ui/Aurora";
 import MediaCard from "@/components/MediaCard";
 
-export const revalidate = 3600;
+
 
 export const metadata = {
   title: 'Movies | CineXP',

@@ -3,7 +3,7 @@ import Aurora from "@/components/ui/Aurora";
 import MediaCard from "@/components/MediaCard";
 import { notFound } from "next/navigation";
 
-export const revalidate = 3600;
+
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

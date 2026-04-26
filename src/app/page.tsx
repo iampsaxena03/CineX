@@ -8,7 +8,7 @@ import CountdownRow from "@/components/CountdownRow";
 import AdSlot from "@/components/ads/AdSlot";
 import { prisma } from "@/lib/admin";
 
-export const revalidate = 60;
+
 
 interface SectionItem {
   tmdbId: number
