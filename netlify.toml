@@ -1,0 +1,13 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "20"
+  # Ensures we use the latest Next.js Runtime (v5)
+  NETLIFY_NEXT_PLUGIN_SKIP = "false"
+
+[[plugins]]
+  # Although v5 is often automatic, explicitly including it 
+  # can help if the site was previously stuck on an older version.
+  package = "@netlify/plugin-nextjs"

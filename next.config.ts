@@ -16,6 +16,7 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
+  output: "standalone",
   transpilePackages: ["motion", "framer-motion"],
 };
 
