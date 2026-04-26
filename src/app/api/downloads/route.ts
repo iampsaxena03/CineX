@@ -156,17 +156,18 @@ export async function GET(request: Request) {
               // Build subtitle proxy URL if available
               let subtitleProxyUrl = '';
               if (result.subtitle && result.subtitle.url) {
-                const subFilename = `${safeTitle}_CineXP.srt`;
-                subtitleProxyUrl = `/api/proxy/moviebox?url=${encodeURIComponent(result.subtitle.url)}&filename=${encodeURIComponent(subFilename)}&cb=${Date.now()}`;
+                subtitleProxyUrl = `https://cinexp-proxy.renelclark.workers.dev/?url=${encodeURIComponent(result.subtitle.url)}`;
               }
 
               result.sources.forEach((s: any) => {
+                const proxyUrl = `https://cinexp-proxy.renelclark.workers.dev/?url=${encodeURIComponent(s.directUrl)}`;
+
                 const linkObj = {
                   id: `moviebox-${s.id}`,
                   quality: s.quality + 'p',
                   label: s.quality + 'p',
                   size: s.size ? (parseInt(s.size) / (1024 * 1024)).toFixed(0) + ' MB' : '',
-                  url: s.directUrl, // DIRECT url to prevent Vercel bandwidth billing
+                  url: proxyUrl, // Restored proxy to inject Referer headers (CDN requires them)
                   subtitleUrl: subtitleProxyUrl || undefined,
                   isMoviebox: true
                 };
