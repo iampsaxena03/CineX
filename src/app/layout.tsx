@@ -3,6 +3,8 @@ import Navbar from "@/components/ui/Navbar";
 import CommandPalette from "@/components/ui/CommandPalette";
 import InstallPWA from "@/components/ui/InstallPWA";
 import CacheBuster from "@/components/CacheBuster";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -74,6 +76,8 @@ export default function RootLayout({
         <InstallPWA />
         <CacheBuster />
         {children}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
