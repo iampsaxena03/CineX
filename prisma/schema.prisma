@@ -1,0 +1,136 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model MediaPost {
+  id                String  @id @default(cuid())
+  tmdbId            Int     @unique
+  type              String  // 'movie' or 'tv'
+  
+  // Movie specific
+  streamingEmbedUrl String?
+  
+  // TV Shows specific
+  seasons           Season[]
+
+  // Polymorphic relations for downloads
+  downloadLinks     DownloadLink[]
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model Season {
+  id            String  @id @default(cuid())
+  seasonNumber  Int
+  mediaPostId   String
+  mediaPost     MediaPost @relation(fields: [mediaPostId], references: [id], onDelete: Cascade)
+  episodes      Episode[]
+
+  @@unique([mediaPostId, seasonNumber])
+}
+
+model Episode {
+  id                String  @id @default(cuid())
+  episodeNumber     Int
+  seasonId          String
+  season            Season  @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  streamingEmbedUrl String?
+  downloadLinks     DownloadLink[]
+
+  @@unique([seasonId, episodeNumber])
+}
+
+model DownloadLink {
+  id          String @id @default(cuid())
+  quality     String // e.g., 480p, 720p, 1080p, 4K
+  label       String // e.g., 1080p Web-DL, 4K HDR
+  size        String // e.g., 2.1 GB
+  url         String 
+  
+  mediaPostId String?
+  mediaPost   MediaPost? @relation(fields: [mediaPostId], references: [id], onDelete: Cascade)
+  
+  episodeId   String?
+  episode     Episode?   @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model HomeSection {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  title     String
+  type      String   // "top10" | "trending" | "latest" | "continue_watching" | "countdown" | "custom"
+  order     Int
+  visible   Boolean  @default(true)
+  maxItems  Int      @default(20)
+  autoFill  Boolean  @default(true)
+  items     HomeSectionItem[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model HomeSectionItem {
+  id        String   @id @default(cuid())
+  tmdbId    Int
+  mediaType String   // "movie" or "tv"
+  position  Int
+  preferredStream String?
+  sectionId String
+  section   HomeSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([sectionId, position])
+}
+
+model ShortenedLink {
+  id          String   @id @default(cuid())
+  originalUrl String   
+  region      String   // 'asia' or 'global'
+  shortUrl    String
+  createdAt   DateTime @default(now())
+
+  @@unique([originalUrl, region])
+}
+
+model AppSettings {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+model AdminSession {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique          // SHA-256 hash of the JWT token
+  createdAt DateTime @default(now())
+  expiresAt DateTime                   // Hard 3-hour expiry
+}
+
+model ScraperCache {
+  id        String   @id @default(cuid())
+
+  // Composite key: what was scraped
+  tmdbId    Int
+  type      String   // 'movie' or 'tv'
+  season    Int?     // null for movies, season number for TV
+  industry  String   // 'bollywood' or 'hollywood'
+
+  // Cached payload: array of shortlinks as JSON
+  // Each entry: { label: string, url: string }
+  linksJson String   // JSON stringified array of stable shortlinks
+
+  // Source metadata
+  postUrl   String   // The post URL that was scraped (for debugging)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tmdbId, type, season, industry])
+}
