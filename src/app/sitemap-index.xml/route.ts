@@ -1,5 +1,5 @@
 export async function GET() {
-  const baseUrl = 'https://cinexp.site';
+  const baseUrl = 'https://www.cinexp.site';
   
   // We have 10 paginated sitemaps (0.xml through 9.xml) from generateSitemaps
   let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';

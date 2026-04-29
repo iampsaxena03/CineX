@@ -13,6 +13,7 @@ import { notFound } from "next/navigation";
 
 
 export const dynamicParams = true;
+export const maxDuration = 60;
 
 export async function generateStaticParams() {
   try {
@@ -38,7 +39,7 @@ export async function generateMetadata(
   const { type, id: rawId } = await params;
   const id = rawId.split("-")[0];
   const details = await getDetails(type, id);
-  if (!details) return { title: "Not Found" };
+  if (!details) return { title: "Not Found", robots: { index: false, follow: false } };
 
   const baseTitle = (details as any).title || (details as any).name;
   const year = ((details as any).release_date || (details as any).first_air_date || "").split("-")[0];
@@ -49,7 +50,7 @@ export async function generateMetadata(
   const overview = `Watch ${baseTitle} full ${typeText.toLowerCase()} online for free in HD. ${details.overview || "Stream the best movies and TV shows on CineXP."}`;
   
   const posterUrl = getImageUrl(details.poster_path, "w500");
-  const url = `https://cinexp.site/media/${type}/${rawId}`;
+  const url = `https://www.cinexp.site/media/${type}/${rawId}`;
 
   return {
     title,
@@ -63,13 +64,13 @@ export async function generateMetadata(
       url,
       images: [
         {
-          url: 'https://cinexp.site/og-rect-v2.png',
+          url: 'https://www.cinexp.site/og-rect-v2.png',
           width: 1200,
           height: 630,
           alt: 'CineXP - Premium Streaming',
         },
         {
-          url: 'https://cinexp.site/og-square-v2.png',
+          url: 'https://www.cinexp.site/og-square-v2.png',
           width: 800,
           height: 800,
           alt: 'CineXP - Premium Streaming',
@@ -80,7 +81,7 @@ export async function generateMetadata(
       card: "summary_large_image",
       title,
       description: overview,
-      images: ['https://cinexp.site/og-rect-v2.png'],
+      images: ['https://www.cinexp.site/og-rect-v2.png'],
     },
   };
 }
@@ -125,14 +126,30 @@ export default async function MediaPage({
     backdrop_path: details.backdrop_path,
   };
 
-  const jsonLd = {
+  const jsonLd: Record<string, any> = {
     "@context": "https://schema.org",
     "@type": type === "movie" ? "Movie" : "TVSeries",
     name: title,
     image: posterUrl,
-    description: details.overview,
+    description: details.overview || `Watch ${title} online for free in HD on CineXP.`,
     dateCreated: year,
+    url: `https://www.cinexp.site/media/${type}/${rawId}`,
   };
+
+  // Enrich with aggregateRating if TMDB has votes
+  if (details.vote_average > 0 && details.vote_count > 0) {
+    jsonLd.aggregateRating = {
+      "@type": "AggregateRating",
+      ratingValue: details.vote_average.toFixed(1),
+      bestRating: "10",
+      ratingCount: details.vote_count,
+    };
+  }
+
+  // Enrich with genre list
+  if (details.genres && details.genres.length > 0) {
+    jsonLd.genre = details.genres.map((g: any) => g.name);
+  }
 
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
@@ -142,19 +159,19 @@ export default async function MediaPage({
         "@type": "ListItem",
         position: 1,
         name: "Home",
-        item: "https://cinexp.site",
+        item: "https://www.cinexp.site",
       },
       {
         "@type": "ListItem",
         position: 2,
         name: type === "movie" ? "Movies" : "TV Shows",
-        item: `https://cinexp.site/${type === "movie" ? "movies" : "tv"}`,
+        item: `https://www.cinexp.site/${type === "movie" ? "movies" : "tv"}`,
       },
       {
         "@type": "ListItem",
         position: 3,
         name: title,
-        item: `https://cinexp.site/media/${type}/${rawId}`,
+        item: `https://www.cinexp.site/media/${type}/${rawId}`,
       },
     ],
   };
@@ -264,11 +281,9 @@ export default async function MediaPage({
               </span>
             </div>
 
-            {details.overview && (
-              <p style={{ fontSize: "1.05rem", lineHeight: 1.8, marginBottom: "1.75rem", maxWidth: "700px", opacity: 0.85 }}>
-                {details.overview}
-              </p>
-            )}
+            <p style={{ fontSize: "1.05rem", lineHeight: 1.8, marginBottom: "1.75rem", maxWidth: "700px", opacity: 0.85 }}>
+              {details.overview || `Watch ${title}${year ? ` (${year})` : ''} full ${type === 'movie' ? 'movie' : 'TV show'} online for free in HD. Stream the latest and best content on CineXP — no sign-up required.`}
+            </p>
 
             <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
               {details.genres?.map((g: any) => (

@@ -182,7 +182,7 @@ export default function Top10Row({ items, title, maxItems }: { items: TMDBMediaI
                     <img
                       src={getImageUrl(item.poster_path, 'w342')}
                       alt={title}
-                      loading="lazy"
+                      loading={index < 5 ? "eager" : "lazy"}
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
                   ) : (

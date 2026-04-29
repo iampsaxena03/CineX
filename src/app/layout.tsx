@@ -18,23 +18,23 @@ export const metadata: Metadata = {
     statusBarStyle: "black-translucent",
   },
   applicationName: "CineXP",
-  metadataBase: new URL('https://cinexp.site'),
+  metadataBase: new URL('https://www.cinexp.site'),
   openGraph: {
     title: "CineXP | Premium Streaming",
     description: "Advanced Movie & TV Series streaming platform. Watch the latest hit movies and TV shows for free in HD.",
-    url: 'https://cinexp.site',
+    url: 'https://www.cinexp.site',
     siteName: 'CineXP',
     locale: 'en_US',
     type: 'website',
     images: [
       {
-        url: 'https://cinexp.site/og-rect-v2.png',
+        url: 'https://www.cinexp.site/og-rect-v2.png',
         width: 1200,
         height: 630,
         alt: 'CineXP - Premium Streaming',
       },
       {
-        url: 'https://cinexp.site/og-square-v2.png',
+        url: 'https://www.cinexp.site/og-square-v2.png',
         width: 800,
         height: 800,
         alt: 'CineXP - Premium Streaming',
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'CineXP | Premium Streaming',
     description: 'Advanced Movie & TV Series streaming platform. Watch the latest hit movies and TV shows for free in HD.',
-    images: ['https://cinexp.site/og-rect-v2.png'],
+    images: ['https://www.cinexp.site/og-rect-v2.png'],
   },
 };
 
@@ -64,6 +64,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link rel="preconnect" href="https://pl29183322.profitablecpmratenetwork.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://www.highperformanceformat.com" crossOrigin="anonymous" />
+      </head>
       <body>
         <Navbar />
         <CommandPalette />

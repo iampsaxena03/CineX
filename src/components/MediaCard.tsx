@@ -14,13 +14,14 @@ interface MediaCardProps {
   item: TMDBMediaItem;
   stagger?: number;
   showRemoveHistory?: boolean;
+  priority?: boolean;
 }
 
 /**
  * MediaCard: A client-side card wrapper that handles the 
  * scroll-reveal and an interactive 3D tilt effect on hover.
  */
-const MediaCard: React.FC<MediaCardProps> = ({ item, stagger = 0, showRemoveHistory = false }) => {
+const MediaCard: React.FC<MediaCardProps> = ({ item, stagger = 0, showRemoveHistory = false, priority = false }) => {
   const mediaType = item.media_type === "tv" ? "tv" : "movie";
   const title = (item as any).title || (item as any).name;
   const year = ((item as any).release_date || (item as any).first_air_date || "").split("-")[0];
@@ -138,7 +139,7 @@ const MediaCard: React.FC<MediaCardProps> = ({ item, stagger = 0, showRemoveHist
             <img
               src={getImageUrl(item.poster_path, "w342")}
               alt={title}
-              loading="lazy"
+              loading={priority ? "eager" : "lazy"}
               style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
             />
           ) : (

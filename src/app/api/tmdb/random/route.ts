@@ -10,7 +10,7 @@ export async function GET() {
     const trending = await getTrending('IN');
     
     if (!trending || trending.length === 0) {
-      return NextResponse.redirect(new URL('/', process.env.NEXT_PUBLIC_SITE_URL || 'https://cinexp.site'));
+      return NextResponse.redirect(new URL('/', 'https://www.cinexp.site'));
     }
 
     // Pick a random item

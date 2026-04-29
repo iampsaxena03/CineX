@@ -2,8 +2,10 @@ import { MetadataRoute } from 'next';
 import { getSEOPrebuildData } from '@/lib/tmdb';
 import { generateSlug } from "@/lib/utils";
 
+export const maxDuration = 60;
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://cinexp.site';
+  const baseUrl = 'https://www.cinexp.site';
 
   const staticRoutes: MetadataRoute.Sitemap = [
     {

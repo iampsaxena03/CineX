@@ -17,6 +17,21 @@ const nextConfig: NextConfig = {
     unoptimized: true,
   },
   transpilePackages: ["motion", "framer-motion"],
+  async redirects() {
+    return [
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'host',
+            value: 'cinexp.site',
+          },
+        ],
+        destination: 'https://www.cinexp.site/:path*',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default withPWA(nextConfig);
