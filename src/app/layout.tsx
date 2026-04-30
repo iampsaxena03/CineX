@@ -49,6 +49,11 @@ export const metadata: Metadata = {
     description: 'Advanced Movie & TV Series streaming platform. Watch the latest hit movies and TV shows for free in HD.',
     images: ['https://www.cinexp.site/og-rect-v2.png'],
   },
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon-16x16.png',
+    apple: '/apple-touch-icon.png',
+  },
 };
 
 export const viewport: Viewport = {
@@ -69,6 +74,39 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://pl29183322.profitablecpmratenetwork.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://www.highperformanceformat.com" crossOrigin="anonymous" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@graph": [
+                {
+                  "@type": "WebSite",
+                  "@id": "https://www.cinexp.site/#website",
+                  "url": "https://www.cinexp.site/",
+                  "name": "CineXP",
+                  "alternateName": ["CineXP.site", "Cine XP"],
+                  "description": "Advanced Movie & TV Series streaming platform. Watch the latest hit movies and TV shows for free in HD.",
+                  "publisher": {
+                    "@id": "https://www.cinexp.site/#organization"
+                  }
+                },
+                {
+                  "@type": "Organization",
+                  "@id": "https://www.cinexp.site/#organization",
+                  "name": "CineXP",
+                  "url": "https://www.cinexp.site/",
+                  "logo": {
+                    "@type": "ImageObject",
+                    "url": "https://www.cinexp.site/og-square-v2.png",
+                    "width": 800,
+                    "height": 800
+                  }
+                }
+              ]
+            }),
+          }}
+        />
       </head>
       <body>
         <Navbar />

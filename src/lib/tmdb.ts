@@ -10,7 +10,8 @@ function getApiKey() {
 
 export function getImageUrl(path: string | null | undefined, size = 'w500'): string {
   if (!path) return ''
-  return `${TMDB_IMAGE_BASE}/${size}${path}`
+  const tmdbUrl = `image.tmdb.org/t/p/${size}${path}`
+  return `https://wsrv.nl/?url=${encodeURIComponent(tmdbUrl)}&output=webp`
 }
 
 export function getBackdropUrl(path: string | null | undefined): string {
