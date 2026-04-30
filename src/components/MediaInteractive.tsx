@@ -164,8 +164,8 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
     if (activeProvider === 'vidfast') {
       const base = 'https://vidfast.pro'
       return type === 'movie'
-        ? `${base}/movie/${id}?autoPlay=false${timeParam}`
-        : `${base}/tv/${id}/${season}/${episode}?autoPlay=false&title=true&poster=true&theme=9B59B6&nextButton=true&autoNext=true${timeParam}`
+        ? `${base}/movie/${id}?autoPlay=true${timeParam}`
+        : `${base}/tv/${id}/${season}/${episode}?autoPlay=true&title=true&poster=true&theme=9B59B6&nextButton=true&autoNext=true${timeParam}`
     } else if (activeProvider === 'vidlink') {
       // Vidlink
       const base = 'https://vidlink.pro'
