@@ -164,8 +164,8 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
     if (activeProvider === 'vidfast') {
       const base = 'https://vidfast.pro'
       return type === 'movie'
-        ? `${base}/movie/${id}?autoPlay=true${timeParam}`
-        : `${base}/tv/${id}/${season}/${episode}?autoPlay=true&title=true&poster=true&theme=9B59B6&nextButton=true&autoNext=true${timeParam}`
+        ? `${base}/movie/${id}?autoPlay=false${timeParam}`
+        : `${base}/tv/${id}/${season}/${episode}?autoPlay=false&title=true&poster=true&theme=9B59B6&nextButton=true&autoNext=true${timeParam}`
     } else if (activeProvider === 'vidlink') {
       // Vidlink
       const base = 'https://vidlink.pro'
@@ -594,7 +594,7 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
             {(type === 'movie' || type === 'tv') && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div style={{ paddingLeft: '0.75rem', borderLeft: `3px solid #9d00ff` }}>
-                <h4 style={{ fontSize: '1rem', fontWeight: 600, margin: 0, color: 'white', letterSpacing: '0.02em' }}>CineXP Premium Fast Node</h4>
+                <h4 style={{ fontSize: '1rem', fontWeight: 600, margin: 0, color: 'white', letterSpacing: '0.02em' }}>CineXP Premium Fast Node <span style={{ color: 'var(--primary)', fontSize: '0.85em' }}>(Recommended)</span></h4>
                 <p style={{ fontSize: '0.8rem', opacity: 0.6, margin: '0.2rem 0 0 0' }}>Bypasses external timers natively to give you a pristine download directly through your server pipeline.</p>
               </div>
               
@@ -651,7 +651,7 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
                       padding: '0.8rem 1.5rem', background: 'linear-gradient(135deg, #9d00ff, #5b00ff)', border: 'none', borderRadius: '12px', color: 'white', fontWeight: 600, cursor: fastDownloadLoading ? 'wait' : 'pointer', opacity: fastDownloadLoading ? 0.7 : 1, boxShadow: '0 4px 15px rgba(157,0,255,0.3)'
                     }}
                   >
-                    {fastDownloadLoading ? 'Scraping Private Networks (wait 5-10s)...' : '🌩️ Generate Premium Direct Links'}
+                    {fastDownloadLoading ? '🍿 Preparing your popcorn (wait 5-10s)...' : '🌩️ Generate Premium Direct Links'}
                   </button>
                   {fastDownloadError && <div style={{ color: '#ff4b4b', marginTop: '0.5rem', fontSize: '0.85rem' }}>{fastDownloadError}</div>}
                 </div>

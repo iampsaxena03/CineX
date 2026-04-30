@@ -331,7 +331,7 @@ const StreamPlayer = forwardRef<StreamPlayerRef, StreamPlayerProps>(({ embedUrl,
         captions: { active: true, language: 'en', update: true },
         invertTime: false,
         keyboard: { focused: true, global: true },
-        autoplay: true,
+        autoplay: false,
       })
 
       plyrInstanceRef.current = plyrInstance

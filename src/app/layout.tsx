@@ -5,8 +5,15 @@ import InstallPWA from "@/components/ui/InstallPWA";
 import CacheBuster from "@/components/CacheBuster";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Outfit } from 'next/font/google';
 import "./globals.css";
 
+const outfit = Outfit({ 
+  subsets: ['latin'], 
+  display: 'swap', 
+  variable: '--font-outfit',
+  weight: ['300', '400', '500', '600', '700'] 
+});
 export const metadata: Metadata = {
   title: {
     template: "%s | CineXP",
@@ -70,7 +77,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={outfit.variable}>
       <head>
         <link rel="preconnect" href="https://pl29183322.profitablecpmratenetwork.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://www.highperformanceformat.com" crossOrigin="anonymous" />
@@ -113,7 +120,9 @@ export default function RootLayout({
         <CommandPalette />
         <InstallPWA />
         <CacheBuster />
-        {children}
+        <main>
+          {children}
+        </main>
         <Analytics />
         <SpeedInsights />
       </body>

@@ -79,13 +79,13 @@ export default function InstallPWA() {
     <AnimatePresence>
       {showPopup && (
         <motion.div
-          initial={{ y: 50, opacity: 0 }}
+          initial={{ y: -50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          exit={{ y: 20, opacity: 0 }}
+          exit={{ y: -20, opacity: 0 }}
           transition={{ type: "spring", stiffness: 300, damping: 25 }}
           style={{
             position: "fixed",
-            bottom: "20px",
+            top: "80px",
             right: "20px",
             zIndex: 9999,
             background: "rgba(20, 10, 35, 0.85)",
