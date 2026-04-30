@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/admin'
 import { requireAdmin } from '@/lib/guard'
 import { z } from 'zod'
+import { revalidatePath } from 'next/cache'
 
 // GET: Fetch items for a section
 export async function GET(
@@ -76,6 +77,7 @@ export async function POST(
       }
     })
 
+    revalidatePath('/')
     return NextResponse.json({ item })
   } catch (error: any) {
     console.error('Items POST error:', error)
@@ -124,6 +126,7 @@ export async function PUT(
       })
     }
 
+    revalidatePath('/')
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Items PUT error:', error)
@@ -165,6 +168,7 @@ export async function DELETE(
       )
     )
 
+    revalidatePath('/')
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Items DELETE error:', error)
@@ -194,6 +198,7 @@ export async function PATCH(
       data: { preferredStream: preferredStream || null }
     })
 
+    revalidatePath('/')
     return NextResponse.json({ item: updated })
   } catch (error) {
     console.error('Items PATCH error:', error)

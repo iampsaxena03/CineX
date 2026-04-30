@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/admin'
 import { requireAdmin } from '@/lib/guard'
+import { revalidatePath } from 'next/cache'
 
 // GET: Fetch all sections ordered
 export async function GET(request: Request) {
@@ -53,6 +54,7 @@ export async function POST(request: Request) {
       }
     })
 
+    revalidatePath('/')
     return NextResponse.json({ section })
   } catch (error: any) {
     if (error.code === 'P2002') {
@@ -91,6 +93,7 @@ export async function PUT(request: Request) {
       )
     )
 
+    revalidatePath('/')
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Sections PUT error:', error)
@@ -112,6 +115,7 @@ export async function DELETE(request: Request) {
 
   try {
     await prisma.homeSection.delete({ where: { id: sectionId } })
+    revalidatePath('/')
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Section DELETE error:', error)

@@ -1,5 +1,6 @@
 import { getTrending, getMediaById, getUpcomingMovies, type TMDBMediaItem, type TMDBMovie } from "@/lib/tmdb";
-import Aurora from "@/components/ui/Aurora";
+
+export const revalidate = 3600;
 import MediaCard from "@/components/MediaCard";
 import ContinueWatchingRow from "@/components/ContinueWatchingRow";
 import RecommendedRow from "@/components/RecommendedRow";
@@ -83,14 +84,7 @@ export default async function HomePage() {
 
   return (
     <div style={{ position: "relative", minHeight: "100vh" }}>
-      <div style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none" }}>
-        <Aurora
-          colorStops={["#1c0436", "#6c1b9b", "#9d00ff"]}
-          blend={0.5}
-          amplitude={1.2}
-          speed={0.5}
-        />
-      </div>
+      <div style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none", background: "radial-gradient(ellipse at top, #6c1b9b 0%, #1c0436 40%, #04010a 100%)" }} />
 
       <div className="page-wrapper container" style={{ position: "relative", zIndex: 1 }}>
         <div style={{ textAlign: "center", padding: "5rem 0 7rem", position: "relative" }}>
