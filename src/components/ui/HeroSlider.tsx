@@ -28,11 +28,13 @@ export default function HeroSlider({ items }: { items: TMDBMediaItem[] }) {
       className="hero-slider"
       style={{
         position: 'relative',
-        width: '100%',
-        height: 'clamp(500px, 75vh, 800px)',
+        width: '100vw',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        height: 'clamp(60vh, 56.25vw, 90vh)', // 16:9 aspect ratio, but min 60vh for mobile
         overflow: 'hidden',
         marginBottom: '4rem',
-        marginTop: '-5rem' // To pull it up under the navbar
+        marginTop: '-6rem' // Pull up under the navbar
       }}
     >
       {items.map((item, index) => {
@@ -93,11 +95,12 @@ export default function HeroSlider({ items }: { items: TMDBMediaItem[] }) {
             {/* Content Container */}
             <div className="container" style={{
               position: 'absolute',
-              bottom: '15%',
-              left: 0,
-              right: 0,
+              bottom: '10%',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: '100%',
               zIndex: 2,
-              padding: '0 2rem'
+              padding: '0 1.5rem'
             }}>
               <div style={{
                 maxWidth: '600px',
@@ -124,27 +127,27 @@ export default function HeroSlider({ items }: { items: TMDBMediaItem[] }) {
                 </span>
 
                 <h1 style={{
-                  fontSize: 'clamp(2.5rem, 6vw, 4.5rem)',
+                  fontSize: 'clamp(2rem, 5vw, 4rem)',
                   fontWeight: 800,
                   lineHeight: 1.1,
                   marginBottom: '1rem',
                   color: '#ffffff',
-                  textShadow: '0 4px 12px rgba(0,0,0,0.5)'
+                  textShadow: '0 4px 12px rgba(0,0,0,0.8)'
                 }}>
                   {title}
                 </h1>
                 
                 <p style={{
-                  fontSize: 'clamp(1rem, 1.5vw, 1.1rem)',
-                  lineHeight: 1.6,
-                  color: 'rgba(255,255,255,0.8)',
+                  fontSize: 'clamp(0.9rem, 1.2vw, 1.1rem)',
+                  lineHeight: 1.5,
+                  color: 'rgba(255,255,255,0.9)',
                   marginBottom: '2rem',
                   display: '-webkit-box',
                   WebkitLineClamp: 3,
                   WebkitBoxOrient: 'vertical',
                   overflow: 'hidden',
-                  textShadow: '0 2px 4px rgba(0,0,0,0.5)',
-                  maxWidth: '500px'
+                  textShadow: '0 2px 4px rgba(0,0,0,0.8)',
+                  maxWidth: '600px'
                 }}>
                   {item.overview}
                 </p>
