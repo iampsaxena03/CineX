@@ -49,7 +49,7 @@ export default function BackgroundGradient() {
       
       // Use a more robust mixing function for the index
       // Multiplying by a prime number and adding an offset helps spread the results
-      const index = (epoch8Hour * 13 + 7) % gradients.length;
+      const index = (epoch8Hour * 17 + 5) % gradients.length;
       
       setGradient(gradients[index]);
     };
@@ -67,7 +67,7 @@ export default function BackgroundGradient() {
         style={{ 
           position: "fixed", 
           inset: 0, 
-          zIndex: -1, 
+          zIndex: -100, 
           pointerEvents: "none", 
           background: gradients[0]
         }} 
@@ -80,7 +80,7 @@ export default function BackgroundGradient() {
       style={{ 
         position: "fixed", 
         inset: 0, 
-        zIndex: -1, 
+        zIndex: -100, 
         pointerEvents: "none", 
         background: gradient,
         transition: "background 2s ease-in-out" 

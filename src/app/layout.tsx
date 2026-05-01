@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import Navbar from "@/components/ui/Navbar";
 import InstallPWA from "@/components/ui/InstallPWA";
 import CacheBuster from "@/components/CacheBuster";
+import BackgroundGradient from "@/components/ui/BackgroundGradient";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Script from "next/script";
@@ -116,6 +117,7 @@ export default function RootLayout({
         />
       </head>
       <body>
+        <BackgroundGradient />
         <Navbar />
         <InstallPWA />
         <CacheBuster />
