@@ -305,6 +305,11 @@ export default async function MediaPage({
           </div>
         </div>
 
+        {/* Ad between header and interactive section */}
+        <div style={{ marginBottom: "1rem" }}>
+          <AdSlot variant="slim" />
+        </div>
+
         {/* Interactive: Season picker + Player + Downloads */}
         <MediaInteractive 
           id={id} 
@@ -328,6 +333,11 @@ export default async function MediaPage({
               {similar.map((item, index) => (
                 <MediaCard key={`${item.media_type}-${item.id}`} item={item} stagger={index * 0.05} />
               ))}
+            </div>
+            
+            {/* Ad at the very bottom of the content */}
+            <div style={{ marginTop: "3rem" }}>
+              <AdSlot variant="banner" />
             </div>
           </div>
         )}

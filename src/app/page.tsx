@@ -170,10 +170,8 @@ export default async function HomePage() {
           return (
             <div key={section.key}>
               {sectionContent}
-              {/* Compact 320x50 banner ad after Top 10 */}
-              {sectionIndex === 1 && <AdSlot variant="slim" />}
-              {/* Square banner ad after Trending */}
-              {sectionIndex === 2 && <AdSlot variant="banner" />}
+              {/* Alternate between slim and banner ads between sections to maximize impressions without cluttering */}
+              {sectionIndex % 2 === 0 ? <AdSlot variant="slim" /> : <AdSlot variant="banner" />}
             </div>
           );
         })}
