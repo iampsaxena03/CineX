@@ -1,20 +1,18 @@
 import type { Metadata, Viewport } from "next";
 import Navbar from "@/components/ui/Navbar";
-import CommandPalette from "@/components/ui/CommandPalette";
 import InstallPWA from "@/components/ui/InstallPWA";
 import CacheBuster from "@/components/CacheBuster";
-import BackgroundGradient from "@/components/ui/BackgroundGradient";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Script from "next/script";
-import { Montserrat } from 'next/font/google';
+import { Outfit } from 'next/font/google';
 import "./globals.css";
 
-const montserrat = Montserrat({ 
+const outfit = Outfit({ 
   subsets: ['latin'], 
   display: 'swap', 
-  variable: '--font-montserrat',
-  weight: ['300', '400', '500', '600', '700', '800', '900'] 
+  variable: '--font-outfit',
+  weight: ['300', '400', '500', '600', '700'] 
 });
 export const metadata: Metadata = {
   title: {
@@ -79,7 +77,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={montserrat.variable}>
+    <html lang="en" className={outfit.variable}>
       <head>
         <link rel="preconnect" href="https://pl29183322.profitablecpmratenetwork.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://www.highperformanceformat.com" crossOrigin="anonymous" />
@@ -118,9 +116,7 @@ export default function RootLayout({
         />
       </head>
       <body>
-        <BackgroundGradient />
         <Navbar />
-        <CommandPalette />
         <InstallPWA />
         <CacheBuster />
         <main>

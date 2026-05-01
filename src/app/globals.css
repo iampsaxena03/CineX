@@ -16,10 +16,14 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-body {
+html {
   background-color: var(--background);
+}
+
+body {
+  background-color: transparent;
   color: var(--foreground);
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Outfit', sans-serif;
   min-height: 100vh;
   overflow-x: hidden;
 }
@@ -301,57 +305,13 @@ a { text-decoration: none; color: inherit; }
 }
 .admin-pill:hover { background: var(--primary); color: white; }
 
-/* ─── Progressive Blur ─── */
-.progressive-blur-container {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1000;
-}
 
-.progressive-blur-top,
-.progressive-blur-bottom {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 140px; /* Sightly larger for smoother transition */
-}
-
-.progressive-blur-top { top: 0; }
-.progressive-blur-bottom { bottom: 0; }
-
-.blur-layer {
-  position: absolute;
-  inset: 0;
-  backdrop-filter: blur(var(--blur-amount));
-  -webkit-backdrop-filter: blur(var(--blur-amount));
-  mask-image: linear-gradient(
-    var(--direction),
-    rgba(0, 0, 0, 1) 0%,
-    rgba(0, 0, 0, 0) var(--end)
-  );
-  -webkit-mask-image: linear-gradient(
-    var(--direction),
-    rgba(0, 0, 0, 1) 0%,
-    rgba(0, 0, 0, 0) var(--end)
-  );
-  will-change: backdrop-filter;
-}
-
-.progressive-blur-top .blur-layer { --direction: to bottom; }
-.progressive-blur-bottom .blur-layer { --direction: to top; }
-
-/* 3-layer high-perf stack */
-.layer-1 { --blur-amount: 4px; --end: 30%; }
-.layer-2 { --blur-amount: 12px; --end: 65%; }
-.layer-3 { --blur-amount: 32px; --end: 100%; }
 
 /* ─── Mobile ─── */
 @media (max-width: 768px) {
   .dock-hide-mobile { display: none !important; }
   .grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 1rem; }
   .pill-logo { top: 1rem; left: 1rem; }
-  .progressive-blur-top, .progressive-blur-bottom { height: 100px; }
 }
 
 /* ─── Genre Card ─── */
@@ -646,7 +606,7 @@ a { text-decoration: none; color: inherit; }
   border-radius: 10px;
   color: white;
   font-size: 0.9rem;
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Outfit', sans-serif;
   transition: all 0.2s ease;
   outline: none;
 }
@@ -668,7 +628,7 @@ a { text-decoration: none; color: inherit; }
   border-radius: 10px;
   color: white;
   font-size: 0.9rem;
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Outfit', sans-serif;
   cursor: pointer;
   outline: none;
   transition: all 0.2s ease;
@@ -690,7 +650,7 @@ a { text-decoration: none; color: inherit; }
   border-radius: 10px;
   font-size: 0.85rem;
   font-weight: 600;
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Outfit', sans-serif;
   cursor: pointer;
   transition: all 0.2s ease;
   border: none;
@@ -778,7 +738,7 @@ a { text-decoration: none; color: inherit; }
   border-radius: 14px;
   color: white;
   font-size: 0.95rem;
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Outfit', sans-serif;
   outline: none;
   transition: all 0.3s ease;
 }
@@ -1211,7 +1171,7 @@ a { text-decoration: none; color: inherit; }
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Outfit', sans-serif;
 }
 
 .admin-tab.active {

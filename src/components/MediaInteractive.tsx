@@ -6,7 +6,6 @@ import { VscShare, VscChevronDown } from 'react-icons/vsc'
 import StreamPlayer, { StreamPlayerRef } from './ui/StreamPlayer'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import GlassSurface from './ui/GlassSurface'
-import { generateStoryCard } from '@/lib/storyCard'
 import WatchlistButton from './WatchlistButton'
 import ShareStoryModal from './ShareStoryModal'
 import { getInitialSync, getStartTimeFor, saveInternalProgress } from '@/lib/progressManager'
@@ -120,6 +119,19 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
   }
 
   useEffect(() => { fetchDownloads() }, [fetchDownloads])
+
+  // Adsterra Redirect Logic (Cooldown-based to prevent excessive popups)
+  const handleAdRedirect = useCallback(() => {
+    const lastAdTime = sessionStorage.getItem('lastDownloadAdTime');
+    const now = Date.now();
+    // 15 seconds cooldown (15000 ms)
+    if (!lastAdTime || now - parseInt(lastAdTime) > 15000) {
+      sessionStorage.setItem('lastDownloadAdTime', now.toString());
+      setTimeout(() => {
+        window.location.href = 'https://eagerdazzle.com/tsy4jdcf?key=a1098a5f49912838eff6c5dd7f197787';
+      }, 500); // Wait for target="_blank" to open download safely
+    }
+  }, []);
 
   // Restore Watch Progress and URL param handling
   useEffect(() => {
@@ -260,6 +272,7 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
       let file: File | null = null;
       if (posterUrl) {
         try {
+          const { generateStoryCard } = await import('@/lib/storyCard');
           file = await generateStoryCard(title, posterUrl, type);
           setStoryFile(file);
           const url = URL.createObjectURL(file);
@@ -340,6 +353,7 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
         brightness={20} 
         opacity={0.6} 
         blur={10}
+        style={{ overflow: 'visible' }}
       >
         <div style={{ 
           padding: '0.75rem 1.25rem', 
@@ -354,7 +368,7 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
             
             {/* Server Switcher */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.05em', opacity: 0.5, textTransform: 'uppercase' }}>Source</span>
+              <span style={{ fontSize: '0.85rem', fontWeight: 700, letterSpacing: '0.05em', opacity: 0.6, textTransform: 'uppercase' }}>Source</span>
               <div style={{ display: 'flex', gap: '4px', background: 'rgba(0,0,0,0.3)', borderRadius: '16px', padding: '4px', flexWrap: 'wrap' }}>
                 {PROVIDERS.map((p) => (
                   <button
@@ -370,8 +384,8 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
                       border: 'none',
                       background: 'transparent',
                       color: activeProvider === p.id ? 'white' : 'rgba(255,255,255,0.5)',
-                      fontSize: '0.8rem',
-                      fontWeight: 600,
+                      fontSize: '0.9rem',
+                      fontWeight: 700,
                       cursor: 'pointer',
                       transition: 'color 0.3s ease',
                       outline: 'none',
@@ -469,8 +483,8 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
                               border: 'none',
                               background: activeProvider === p.id ? p.color : 'transparent',
                               color: 'white',
-                              fontSize: '0.75rem',
-                              fontWeight: 600,
+                              fontSize: '0.85rem',
+                              fontWeight: 700,
                               textAlign: 'left',
                               cursor: 'pointer',
                               transition: 'all 0.2s',
@@ -612,7 +626,7 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
       {/* Downloads Section */}
       <div className="download-section">
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem', gap: '0.5rem' }}>
-          <h3 style={{ fontSize: '1.2rem', fontWeight: 600, margin: 0 }}>Downloads</h3>
+          <h3 style={{ fontSize: '1.4rem', fontWeight: 700, margin: 0 }}>Downloads</h3>
           <span style={{ fontSize: '0.7rem', padding: '2px 8px', borderRadius: '10px', background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Available</span>
         </div>
         
@@ -667,6 +681,9 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
                                   document.body.removeChild(a);
                                 }, 800);
                               }
+                              
+                              // Trigger Ad Redirect
+                              handleAdRedirect();
                             }}
                             style={{
                               display: 'flex',
@@ -779,6 +796,9 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
                                  // Optional visual feedback
                                  const el = e.currentTarget;
                                  el.style.opacity = "0.7";
+                                 
+                                 // Trigger Ad Redirect
+                                 handleAdRedirect();
                               }}
                               style={{
                                 display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', background: 'rgba(157,0,255,0.08)', border: '1px solid #9d00ff', borderRadius: '16px', transition: 'all 0.3s ease', textDecoration: 'none', color: 'inherit', cursor: 'pointer'

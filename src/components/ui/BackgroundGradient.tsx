@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 
 const gradients = [
-  // 1. Current (Purple)
+  // 1. Original (Purple)
   "radial-gradient(ellipse at top, #6c1b9b 0%, #1c0436 40%, #04010a 100%)",
   // 2. Cosmic Blue
   "radial-gradient(ellipse at top, #1b3b9b 0%, #041236 40%, #04010a 100%)",
@@ -23,6 +23,18 @@ const gradients = [
   "radial-gradient(ellipse at top, #122147 0%, #050b1a 40%, #04010a 100%)",
   // 10. Phantom Green
   "radial-gradient(ellipse at top, #184712 0%, #071705 40%, #04010a 100%)",
+  // 11. Deep Space
+  "radial-gradient(ellipse at top, #000428 0%, #004e92 40%, #04010a 100%)",
+  // 12. Electric Purple
+  "radial-gradient(ellipse at top, #4b0082 0%, #000000 70%, #04010a 100%)",
+  // 13. Forest Night
+  "radial-gradient(ellipse at top, #0b3d1d 0%, #051d0e 50%, #04010a 100%)",
+  // 14. Golden Shadow
+  "radial-gradient(ellipse at top, #3d300b 0%, #1d1705 50%, #04010a 100%)",
+  // 15. Cyber Neon
+  "radial-gradient(ellipse at top, #0b3d3d 0%, #051d1d 50%, #04010a 100%)",
+  // 16. Blood Moon
+  "radial-gradient(ellipse at top, #4d0b0b 0%, #260505 50%, #04010a 100%)",
 ];
 
 export default function BackgroundGradient() {
@@ -32,27 +44,17 @@ export default function BackgroundGradient() {
   useEffect(() => {
     setMounted(true);
     const updateGradient = () => {
-      // Calculate an index that changes every 8 hours
-      // 8 hours = 8 * 60 * 60 * 1000 = 28800000 ms
+      // 8 hours = 28800000 ms
       const epoch8Hour = Math.floor(Date.now() / 28800000);
       
-      // We want to use epoch8Hour as a pseudo-random seed so it feels randomized
-      // but stays consistent for the 8 hour period across all tabs
-      // A simple hash function
-      let hash = 0;
-      const str = epoch8Hour.toString();
-      for (let i = 0; i < str.length; i++) {
-        hash = (hash << 5) - hash + str.charCodeAt(i);
-        hash = hash & hash;
-      }
+      // Use a more robust mixing function for the index
+      // Multiplying by a prime number and adding an offset helps spread the results
+      const index = (epoch8Hour * 13 + 7) % gradients.length;
       
-      const index = Math.abs(hash) % gradients.length;
       setGradient(gradients[index]);
     };
 
     updateGradient();
-    
-    // Check every minute if the 8-hour window has rolled over
     const interval = setInterval(updateGradient, 60000);
     return () => clearInterval(interval);
   }, []);
@@ -65,7 +67,7 @@ export default function BackgroundGradient() {
         style={{ 
           position: "fixed", 
           inset: 0, 
-          zIndex: 0, 
+          zIndex: -1, 
           pointerEvents: "none", 
           background: gradients[0]
         }} 
@@ -78,7 +80,7 @@ export default function BackgroundGradient() {
       style={{ 
         position: "fixed", 
         inset: 0, 
-        zIndex: 0, 
+        zIndex: -1, 
         pointerEvents: "none", 
         background: gradient,
         transition: "background 2s ease-in-out" 
