@@ -1,45 +1,21 @@
 import type { Metadata, Viewport } from "next";
 import Navbar from "@/components/ui/Navbar";
+import CommandPalette from "@/components/ui/CommandPalette";
 import InstallPWA from "@/components/ui/InstallPWA";
 import CacheBuster from "@/components/CacheBuster";
 import BackgroundGradient from "@/components/ui/BackgroundGradient";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Script from "next/script";
-import { 
-  Montserrat, 
-  Oswald, 
-  Michroma, 
-  Bebas_Neue, 
-  Satisfy 
-} from 'next/font/google';
+import { Montserrat } from 'next/font/google';
 import "./globals.css";
 
-const montserrat = Montserrat({ subsets: ['latin'], variable: '--font-montserrat', weight: ['300', '400', '500', '600', '700', '800', '900'] });
-const oswald = Oswald({ subsets: ['latin'], variable: '--font-oswald', weight: ['200', '300', '400', '500', '600', '700'] });
-const michroma = Michroma({ subsets: ['latin'], variable: '--font-michroma', weight: '400' });
-const bebas = Bebas_Neue({ subsets: ['latin'], variable: '--font-bebas', weight: '400' });
-const satisfy = Satisfy({ subsets: ['latin'], variable: '--font-satisfy', weight: '400' });
-
-const fonts = [montserrat, oswald, michroma, bebas, satisfy];
-
-function getDailyFont() {
-  // Use a stable date seed (YYYY-MM-DD) to ensure consistency across server/client on the same day
-  const now = new Date();
-  const dateString = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
-  
-  // Simple hash for the date string
-  let hash = 0;
-  for (let i = 0; i < dateString.length; i++) {
-    hash = ((hash << 5) - hash) + dateString.charCodeAt(i);
-    hash |= 0;
-  }
-  
-  const index = Math.abs(hash) % fonts.length;
-  return fonts[index];
-}
-
-export const revalidate = 3600; // Revalidate every hour to check for date changes
+const montserrat = Montserrat({ 
+  subsets: ['latin'], 
+  display: 'swap', 
+  variable: '--font-montserrat',
+  weight: ['300', '400', '500', '600', '700', '800', '900'] 
+});
 export const metadata: Metadata = {
   title: {
     template: "%s | CineXP",
@@ -102,10 +78,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const selectedFont = getDailyFont();
-
   return (
-    <html lang="en" className={selectedFont.variable} style={{ "--font-main": selectedFont.style.fontFamily } as any}>
+    <html lang="en" className={montserrat.variable}>
       <head>
         <link rel="preconnect" href="https://pl29183322.profitablecpmratenetwork.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://www.highperformanceformat.com" crossOrigin="anonymous" />
@@ -146,6 +120,7 @@ export default function RootLayout({
       <body>
         <BackgroundGradient />
         <Navbar />
+        <CommandPalette />
         <InstallPWA />
         <CacheBuster />
         <main>

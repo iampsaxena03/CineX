@@ -48,7 +48,7 @@ export default function Top10Row({ items, title, maxItems }: { items: TMDBMediaI
 
   return (
     <div style={{ marginBottom: '4rem', position: 'relative' }}>
-      <h2 style={{ fontSize: '1.95rem', fontWeight: 700, marginBottom: '1.8rem', paddingLeft: '1rem' }}>
+      <h2 style={{ fontSize: '1.6rem', fontWeight: 600, marginBottom: '1.5rem', paddingLeft: '1rem' }}>
         <span style={{ color: 'var(--primary)' }}>🏆</span> {title || 'Top 10 in India Today'}
       </h2>
       

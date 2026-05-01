@@ -8,7 +8,6 @@ import Top10Row from "@/components/ui/Top10Row";
 import CountdownRow from "@/components/CountdownRow";
 import AdSlot from "@/components/ads/AdSlot";
 import { prisma } from "@/lib/admin";
-import HeroSlider from "@/components/ui/HeroSlider";
 
 
 
@@ -86,7 +85,37 @@ export default async function HomePage() {
   return (
     <div style={{ position: "relative", minHeight: "100vh" }}>
       <div className="page-wrapper container" style={{ position: "relative", zIndex: 1 }}>
-        <div style={{ textAlign: "center", padding: "1rem 0", position: "relative" }}>
+        <div style={{ textAlign: "center", padding: "5rem 0 7rem", position: "relative" }}>
+          {/* Deep Ambient Glow */}
+          <div style={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: "clamp(250px, 40vw, 400px)",
+            height: "clamp(250px, 40vw, 400px)",
+            background: "radial-gradient(circle, var(--primary-glow) 0%, transparent 70%)",
+            filter: "blur(60px)",
+            zIndex: -1,
+            pointerEvents: "none",
+            opacity: 0.8
+          }} />
+
+          <h1
+            style={{
+              fontSize: "clamp(3.5rem, 9vw, 7rem)",
+              fontWeight: 800,
+              background: "linear-gradient(135deg, #ffffff 10%, #ecd3ff 40%, var(--primary) 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              filter: "drop-shadow(0px 10px 25px rgba(157, 0, 255, 0.4))",
+              lineHeight: 1.05,
+              letterSpacing: "-0.04em",
+              margin: 0
+            }}
+          >
+            Welcome to CineXP!
+          </h1>
         </div>
 
         {sections.map((section, sectionIndex) => {
@@ -95,17 +124,6 @@ export default async function HomePage() {
           const sectionContent = (() => {
             if (section.type === 'continue_watching') {
               return <ContinueWatchingRow key={section.key} />;
-            }
-
-            if (section.type === 'hero') {
-              return (
-                <HeroSection
-                  key={section.key}
-                  section={section}
-                  tmdbLookup={tmdbLookup}
-                  trendingData={trending}
-                />
-              );
             }
 
             if (section.type === 'top10') {
@@ -150,8 +168,8 @@ export default async function HomePage() {
           return (
             <div key={section.key}>
               {sectionContent}
-              {/* Alternate between slim and banner ads between sections, skipping the first one to keep experience clean */}
-              {sectionIndex !== 0 && (sectionIndex % 2 === 0 ? <AdSlot variant="slim" /> : <AdSlot variant="banner" />)}
+              {/* Alternate between slim and banner ads between sections to maximize impressions without cluttering */}
+              {sectionIndex % 2 === 0 ? <AdSlot variant="slim" /> : <AdSlot variant="banner" />}
             </div>
           );
         })}
@@ -187,34 +205,6 @@ function Top10Section({ section, tmdbLookup, trendingData }: {
 
   if (finalItems.length === 0) return null;
   return <Top10Row items={finalItems} title={section.title} maxItems={limit} />;
-}
-
-// ─── Hero Section ────────────────────────────────────────────────
-
-function HeroSection({ section, tmdbLookup, trendingData }: {
-  section: Section
-  tmdbLookup: Map<number, TMDBMediaItem>
-  trendingData: TMDBMediaItem[]
-}) {
-  const finalItems: TMDBMediaItem[] = [];
-  const usedIds = new Set<number>();
-
-  for (const adminItem of section.items) {
-    if (finalItems.length >= section.maxItems) break;
-    const resolved = tmdbLookup.get(adminItem.tmdbId);
-    if (resolved) { finalItems.push(resolved); usedIds.add(resolved.id); }
-  }
-
-  const limit = section.maxItems || 5;
-  if (section.autoFill) {
-    for (const item of trendingData) {
-      if (finalItems.length >= limit) break;
-      if (!usedIds.has(item.id)) { finalItems.push(item); usedIds.add(item.id); }
-    }
-  }
-
-  if (finalItems.length === 0) return null;
-  return <HeroSlider items={finalItems} />;
 }
 
 // ─── Coming Soon Section (horizontal slider like Top 10) ─────────
@@ -296,7 +286,7 @@ function GridSection({ section, tmdbLookup, trendingData }: {
 
   return (
     <section style={{ marginBottom: '4rem' }}>
-      <h2 style={{ fontSize: "1.95rem", fontWeight: 700, marginBottom: "1.8rem" }}>
+      <h2 style={{ fontSize: "1.6rem", fontWeight: 600, marginBottom: "1.5rem" }}>
         <span style={{ color: "var(--primary)" }}>{icon}</span> {section.title}
       </h2>
       <div className="grid">

@@ -44,7 +44,6 @@ const PROVIDERS = [
 ]
 
 const SECTION_TYPES = [
-  { value: 'hero', label: 'Hero Slider', icon: '🖼️' },
   { value: 'top10', label: 'Top 10', icon: '🏆' },
   { value: 'trending', label: 'Trending', icon: '🔥' },
   { value: 'latest', label: 'Latest Releases', icon: '✨' },

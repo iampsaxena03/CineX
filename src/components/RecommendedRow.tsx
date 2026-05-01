@@ -59,9 +59,9 @@ export default function RecommendedRow() {
     <section style={{ marginBottom: '4rem' }}>
       <h2
         style={{
-          fontSize: '1.95rem',
-          fontWeight: 700,
-          marginBottom: '1.8rem',
+          fontSize: '1.6rem',
+          fontWeight: 600,
+          marginBottom: '1.5rem',
           display: 'flex',
           alignItems: 'center',
           gap: '0.5rem',
