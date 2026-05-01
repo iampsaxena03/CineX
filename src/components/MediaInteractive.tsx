@@ -2,11 +2,10 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
-import { VscShare } from 'react-icons/vsc'
+import { VscShare, VscChevronDown } from 'react-icons/vsc'
 import StreamPlayer, { StreamPlayerRef } from './ui/StreamPlayer'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import GlassSurface from './ui/GlassSurface'
-import { generateStoryCard } from '@/lib/storyCard'
 import WatchlistButton from './WatchlistButton'
 import ShareStoryModal from './ShareStoryModal'
 import { getInitialSync, getStartTimeFor, saveInternalProgress } from '@/lib/progressManager'
@@ -30,6 +29,17 @@ const PROVIDERS = [
   { id: 'vidsrc', name: 'Stream 4', color: '#ff4b2b' }
 ]
 
+const EXTRA_PROVIDERS = [
+  { id: 'vidsrc_wtf', name: 'Stream 5', color: '#ff4b2b' },
+  { id: 'vidcore', name: 'Stream 6', color: '#00d2ff' },
+  { id: 'vidup', name: 'Stream 7', color: '#63b8bc' },
+  { id: 'peachify', name: 'Stream 8', color: '#9d00ff' },
+  { id: 'videasy', name: 'Stream 9', color: '#FFD700' },
+  { id: 'mapple', name: 'Stream 10', color: '#63b8bc' }
+]
+
+const ALL_PROVIDERS = [...PROVIDERS, ...EXTRA_PROVIDERS]
+
 export default function MediaInteractive({ id, imdbId, type, seasons, title = "Unknown Title", posterUrl, year, industry = "hollywood" }: MediaInteractiveProps) {
   const [activeProvider, setActiveProvider] = useState('native')
   const [season, setSeason] = useState(seasons && seasons.length > 0 ? (seasons[0].season_number || 1) : 1)
@@ -39,7 +49,9 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
   const [showShareModal, setShowShareModal] = useState(false)
   const [storyFile, setStoryFile] = useState<File | null>(null)
   const [storyPreviewUrl, setStoryPreviewUrl] = useState<string | null>(null)
+  const [showExtraProviders, setShowExtraProviders] = useState(false)
   const playerRef = useRef<StreamPlayerRef>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
   const [downloadLinks, setDownloadLinks] = useState<any[]>([])
   const [episodeDownloads, setEpisodeDownloads] = useState<any[]>([])
   const [downloadsLoading, setDownloadsLoading] = useState(true)
@@ -108,13 +120,26 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
 
   useEffect(() => { fetchDownloads() }, [fetchDownloads])
 
+  // Adsterra Redirect Logic (Cooldown-based to prevent excessive popups)
+  const handleAdRedirect = useCallback(() => {
+    const lastAdTime = sessionStorage.getItem('lastDownloadAdTime');
+    const now = Date.now();
+    // 15 seconds cooldown (15000 ms)
+    if (!lastAdTime || now - parseInt(lastAdTime) > 15000) {
+      sessionStorage.setItem('lastDownloadAdTime', now.toString());
+      setTimeout(() => {
+        window.location.href = 'https://eagerdazzle.com/tsy4jdcf?key=a1098a5f49912838eff6c5dd7f197787';
+      }, 500); // Wait for target="_blank" to open download safely
+    }
+  }, []);
+
   // Restore Watch Progress and URL param handling
   useEffect(() => {
     let initialProvider = 'native'
     
     if (streamParam) {
       // Direct stream match (e.g. vidlink, hdvb) or friendly name match (stream3)
-      const mapped = PROVIDERS.find(p => p.id === streamParam || p.name.toLowerCase().replace(' ', '') === streamParam.toLowerCase())
+      const mapped = ALL_PROVIDERS.find(p => p.id === streamParam || p.name.toLowerCase().replace(' ', '') === streamParam.toLowerCase())
       if (mapped) initialProvider = mapped.id
     } else {
       const sync = getInitialSync(id, type);
@@ -155,6 +180,17 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
     }
   }, [storyPreviewUrl])
 
+  // Handle click outside dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowExtraProviders(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
   // Determine embed url based on provider
   const startTime = isRestored ? getStartTimeFor(id, type, activeProvider, season, episode) : 0;
   const timeParam = startTime > 0 ? `&t=${startTime}` : '';
@@ -180,6 +216,37 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
       return type === 'movie'
         ? `${base}/${finalId}`
         : `${base}/${finalId}?s=${season}&e=${episode}`
+    } else if (activeProvider === 'vidsrc_wtf') {
+      // vidsrc.wtf
+      const color = '63b8bc'
+      return type === 'movie'
+        ? `https://vidsrc.wtf/api/3/movie/?id=${id}&color=${color}`
+        : `https://vidsrc.wtf/api/3/tv/?id=${id}&s=${season}&e=${episode}&color=${color}`
+    } else if (activeProvider === 'vidcore') {
+      // vidcore
+      return type === 'movie'
+        ? `https://vidcore.net/movie/${id}?autoPlay=true`
+        : `https://vidcore.net/tv/${id}/${season}/${episode}?autoPlay=true`
+    } else if (activeProvider === 'vidup') {
+      // vidup
+      return type === 'movie'
+        ? `https://vidup.to/movie/${id}?autoPlay=true`
+        : `https://vidup.to/tv/${id}/${season}/${episode}?autoPlay=true`
+    } else if (activeProvider === 'videasy') {
+      // videasy
+      return type === 'movie'
+        ? `https://player.videasy.net/movie/${id}`
+        : `https://player.videasy.net/tv/${id}/${season}/${episode}`
+    } else if (activeProvider === 'mapple') {
+      // mapple
+      return type === 'movie'
+        ? `https://mapple.uk/watch/movie/${id}`
+        : `https://mapple.uk/watch/tv/${id}/${season}/${episode}`
+    } else if (activeProvider === 'peachify') {
+      // peachify
+      return type === 'movie'
+        ? `https://peachify.top/embed/movie/${id}`
+        : `https://peachify.top/embed/tv/${id}/${season}/${episode}`
     } else {
       // vidsrc.mov
       const base = 'https://vidsrc.mov/embed'
@@ -205,6 +272,7 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
       let file: File | null = null;
       if (posterUrl) {
         try {
+          const { generateStoryCard } = await import('@/lib/storyCard');
           file = await generateStoryCard(title, posterUrl, type);
           setStoryFile(file);
           const url = URL.createObjectURL(file);
@@ -285,6 +353,7 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
         brightness={20} 
         opacity={0.6} 
         blur={10}
+        style={{ overflow: 'visible' }}
       >
         <div style={{ 
           padding: '0.75rem 1.25rem', 
@@ -299,12 +368,15 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
             
             {/* Server Switcher */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.05em', opacity: 0.5, textTransform: 'uppercase' }}>Source</span>
+              <span style={{ fontSize: '0.85rem', fontWeight: 700, letterSpacing: '0.05em', opacity: 0.6, textTransform: 'uppercase' }}>Source</span>
               <div style={{ display: 'flex', gap: '4px', background: 'rgba(0,0,0,0.3)', borderRadius: '16px', padding: '4px', flexWrap: 'wrap' }}>
                 {PROVIDERS.map((p) => (
                   <button
                     key={p.id}
-                    onClick={() => changeProvider(p.id)}
+                    onClick={() => {
+                      changeProvider(p.id)
+                      setShowExtraProviders(false)
+                    }}
                     style={{
                       position: 'relative',
                       padding: '0.4rem 0.8rem',
@@ -312,8 +384,8 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
                       border: 'none',
                       background: 'transparent',
                       color: activeProvider === p.id ? 'white' : 'rgba(255,255,255,0.5)',
-                      fontSize: '0.8rem',
-                      fontWeight: 600,
+                      fontSize: '0.9rem',
+                      fontWeight: 700,
                       cursor: 'pointer',
                       transition: 'color 0.3s ease',
                       outline: 'none',
@@ -332,6 +404,102 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
                     {p.name}
                   </button>
                 ))}
+
+                {/* More Dropdown */}
+                <div style={{ position: 'relative' }} ref={dropdownRef}>
+                  <button
+                    onClick={() => setShowExtraProviders(!showExtraProviders)}
+                    style={{
+                      position: 'relative',
+                      padding: '0.4rem 0.8rem',
+                      borderRadius: '12px',
+                      border: 'none',
+                      background: 'transparent',
+                      color: EXTRA_PROVIDERS.some(p => p.id === activeProvider) ? 'white' : 'rgba(255,255,255,0.5)',
+                      fontSize: '0.8rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      transition: 'color 0.3s ease',
+                      outline: 'none',
+                      zIndex: 1,
+                      flexShrink: 0,
+                      whiteSpace: 'nowrap',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                  >
+                    {EXTRA_PROVIDERS.some(p => p.id === activeProvider) && (
+                      <motion.div
+                        layoutId="active-pill"
+                        style={{ 
+                          position: 'absolute', 
+                          inset: 0, 
+                          background: EXTRA_PROVIDERS.find(p => p.id === activeProvider)?.color || '#ff4b2b', 
+                          borderRadius: '12px', 
+                          zIndex: -1, 
+                          boxShadow: `0 0 15px #ff4b2b44` 
+                        }}
+                        transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
+                      />
+                    )}
+                    {EXTRA_PROVIDERS.find(p => p.id === activeProvider)?.name || 'More'}
+                    <VscChevronDown style={{ transform: showExtraProviders ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.3s' }} />
+                  </button>
+
+                  <AnimatePresence>
+                    {showExtraProviders && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                        transition={{ duration: 0.2 }}
+                        style={{
+                          position: 'absolute',
+                          top: 'calc(100% + 8px)',
+                          right: 0,
+                          minWidth: '140px',
+                          background: 'rgba(20, 10, 30, 0.95)',
+                          backdropFilter: 'blur(10px)',
+                          borderRadius: '14px',
+                          padding: '6px',
+                          boxShadow: '0 10px 25px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1)',
+                          zIndex: 100,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '2px'
+                        }}
+                      >
+                        {EXTRA_PROVIDERS.map((p) => (
+                          <button
+                            key={p.id}
+                            onClick={() => {
+                              changeProvider(p.id)
+                              setShowExtraProviders(false)
+                            }}
+                            style={{
+                              padding: '0.6rem 0.8rem',
+                              borderRadius: '10px',
+                              border: 'none',
+                              background: activeProvider === p.id ? p.color : 'transparent',
+                              color: 'white',
+                              fontSize: '0.85rem',
+                              fontWeight: 700,
+                              textAlign: 'left',
+                              cursor: 'pointer',
+                              transition: 'all 0.2s',
+                              opacity: activeProvider === p.id ? 1 : 0.7
+                            }}
+                            onMouseEnter={(e) => { if(activeProvider !== p.id) e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}
+                            onMouseLeave={(e) => { if(activeProvider !== p.id) e.currentTarget.style.background = 'transparent' }}
+                          >
+                            {p.name}
+                          </button>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
               </div>
             </div>
 
@@ -458,7 +626,7 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
       {/* Downloads Section */}
       <div className="download-section">
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem', gap: '0.5rem' }}>
-          <h3 style={{ fontSize: '1.2rem', fontWeight: 600, margin: 0 }}>Downloads</h3>
+          <h3 style={{ fontSize: '1.4rem', fontWeight: 700, margin: 0 }}>Downloads</h3>
           <span style={{ fontSize: '0.7rem', padding: '2px 8px', borderRadius: '10px', background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Available</span>
         </div>
         
@@ -513,6 +681,9 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
                                   document.body.removeChild(a);
                                 }, 800);
                               }
+                              
+                              // Trigger Ad Redirect
+                              handleAdRedirect();
                             }}
                             style={{
                               display: 'flex',
@@ -625,6 +796,9 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
                                  // Optional visual feedback
                                  const el = e.currentTarget;
                                  el.style.opacity = "0.7";
+                                 
+                                 // Trigger Ad Redirect
+                                 handleAdRedirect();
                               }}
                               style={{
                                 display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', background: 'rgba(157,0,255,0.08)', border: '1px solid #9d00ff', borderRadius: '16px', transition: 'all 0.3s ease', textDecoration: 'none', color: 'inherit', cursor: 'pointer'

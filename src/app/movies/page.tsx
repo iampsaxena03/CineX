@@ -1,5 +1,4 @@
 import { getPopularMovies, type TMDBMediaItem } from "@/lib/tmdb";
-import Aurora from "@/components/ui/Aurora";
 import MediaCard from "@/components/MediaCard";
 
 
@@ -16,15 +15,7 @@ export default async function MoviesPage() {
 
   return (
     <div style={{ position: "relative", minHeight: "100vh" }}>
-      {/* Aurora Background */}
-      <div style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none" }}>
-        <Aurora
-          colorStops={["#03071e", "#370617", "#6a040f"]}
-          blend={0.6}
-          amplitude={1.0}
-          speed={0.4}
-        />
-      </div>
+
 
       <div className="page-wrapper container" style={{ position: "relative", zIndex: 1, paddingBottom: "100px" }}>
         {/* Header */}

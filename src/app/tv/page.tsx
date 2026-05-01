@@ -1,5 +1,4 @@
 import { getPopularTVShows, type TMDBMediaItem } from "@/lib/tmdb";
-import Aurora from "@/components/ui/Aurora";
 import MediaCard from "@/components/MediaCard";
 
 
@@ -16,15 +15,7 @@ export default async function TVSeriesPage() {
 
   return (
     <div style={{ position: "relative", minHeight: "100vh" }}>
-      {/* Aurora Background */}
-      <div style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none" }}>
-        <Aurora
-          colorStops={["#005f73", "#0a9396", "#94d2bd"]}
-          blend={0.5}
-          amplitude={1.3}
-          speed={0.6}
-        />
-      </div>
+
 
       <div className="page-wrapper container" style={{ position: "relative", zIndex: 1, paddingBottom: "100px" }}>
         {/* Header */}

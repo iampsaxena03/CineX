@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Aurora from '@/components/ui/Aurora'
 
 export default function AdminLoginPage() {
   const [username, setUsername] = useState('')
@@ -37,15 +36,7 @@ export default function AdminLoginPage() {
 
   return (
     <div className="admin-login-page">
-      {/* Aurora Background */}
-      <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none' }}>
-        <Aurora
-          colorStops={['#1c0436', '#6c1b9b', '#9d00ff']}
-          blend={0.5}
-          amplitude={1.2}
-          speed={0.5}
-        />
-      </div>
+
 
       <div className="admin-login-card">
         {/* Animated sphere */}

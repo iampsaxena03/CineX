@@ -5,7 +5,7 @@ import type { Metadata, ResolvingMetadata } from "next";
 import MediaInteractive from "@/components/MediaInteractive";
 import MediaCard from "@/components/MediaCard";
 import HistoryTracker from "@/components/HistoryTracker";
-import ColorExtractor from "@/components/ColorExtractor";
+
 import AdSlot from "@/components/ads/AdSlot";
 import Link from "next/link";
 import { VscArrowLeft } from "react-icons/vsc";
@@ -187,7 +187,7 @@ export default async function MediaPage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
       <HistoryTracker item={historyItem} />
-      {posterUrl && <ColorExtractor imageUrl={posterUrl} />}
+
       
       {/* Cinematic Backdrop */}
       {backdropUrl && (

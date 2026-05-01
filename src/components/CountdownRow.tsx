@@ -41,7 +41,7 @@ export default function CountdownRow({ upcoming }: { upcoming: TMDBMovie[] }) {
 
   return (
     <div style={{ marginBottom: "5rem" }}>
-      <h2 style={{ fontSize: "1.6rem", fontWeight: 600, marginBottom: "1.5rem" }}>
+      <h2 style={{ fontSize: "1.95rem", fontWeight: 700, marginBottom: "1.8rem" }}>
         <span style={{ color: 'var(--accent)' }}>⏱️</span> Coming Soon
       </h2>
       <div className="grid">

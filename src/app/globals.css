@@ -12,6 +12,7 @@
   --glass-border: rgba(157, 0, 255, 0.45);
   --card-bg: #0b0515;
   --card-border: rgba(255, 255, 255, 0.06);
+  --font-main: sans-serif;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -19,7 +20,7 @@
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-main), sans-serif;
   min-height: 100vh;
   overflow-x: hidden;
 }
@@ -92,14 +93,14 @@ a { text-decoration: none; color: inherit; }
 
 .card-info { padding: 0.75rem; }
 .card-info h3 {
-  font-size: 0.9rem;
+  font-size: 1.15rem;
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   margin-bottom: 0.25rem;
 }
-.card-info p { font-size: 0.78rem; opacity: 0.55; }
+.card-info p { font-size: 0.88rem; opacity: 0.65; }
 
 .placeholder {
   width: 100%;
@@ -221,8 +222,8 @@ a { text-decoration: none; color: inherit; }
   border: 1px solid var(--glass-border);
   backdrop-filter: blur(10px);
   color: var(--accent);
-  font-size: 0.72rem;
-  font-weight: 600;
+  font-size: 0.85rem;
+  font-weight: 700;
   letter-spacing: 0.05em;
   white-space: nowrap;
   padding: 4px 10px;
@@ -646,7 +647,7 @@ a { text-decoration: none; color: inherit; }
   border-radius: 10px;
   color: white;
   font-size: 0.9rem;
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-main), sans-serif;
   transition: all 0.2s ease;
   outline: none;
 }
@@ -668,7 +669,7 @@ a { text-decoration: none; color: inherit; }
   border-radius: 10px;
   color: white;
   font-size: 0.9rem;
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-main), sans-serif;
   cursor: pointer;
   outline: none;
   transition: all 0.2s ease;
@@ -690,7 +691,7 @@ a { text-decoration: none; color: inherit; }
   border-radius: 10px;
   font-size: 0.85rem;
   font-weight: 600;
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-main), sans-serif;
   cursor: pointer;
   transition: all 0.2s ease;
   border: none;
@@ -778,7 +779,7 @@ a { text-decoration: none; color: inherit; }
   border-radius: 14px;
   color: white;
   font-size: 0.95rem;
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-main), sans-serif;
   outline: none;
   transition: all 0.3s ease;
 }
@@ -1211,7 +1212,7 @@ a { text-decoration: none; color: inherit; }
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-main), sans-serif;
 }
 
 .admin-tab.active {

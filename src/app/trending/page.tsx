@@ -1,5 +1,4 @@
 import { getTrending, getMediaById, type TMDBMediaItem } from "@/lib/tmdb";
-import Aurora from "@/components/ui/Aurora";
 import MediaCard from "@/components/MediaCard";
 import Top10Row from "@/components/ui/Top10Row";
 import { prisma } from "@/lib/admin";
@@ -47,14 +46,7 @@ export default async function TrendingPage() {
 
   return (
     <div style={{ position: "relative", minHeight: "100vh" }}>
-      <div style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none" }}>
-        <Aurora
-          colorStops={["#3a0ca3", "#f72585", "#7209b7"]}
-          blend={0.5}
-          amplitude={1.2}
-          speed={0.5}
-        />
-      </div>
+
 
       <div className="page-wrapper container" style={{ position: "relative", zIndex: 1, paddingBottom: "100px" }}>
         <div style={{ textAlign: "center", padding: "4rem 0 3rem" }}>

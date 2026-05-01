@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { GENRE_MAP } from '@/lib/tmdb';
-import Aurora from '@/components/ui/Aurora';
 import ScrollReveal from '@/components/ui/ScrollReveal';
 
 export const metadata = {
@@ -16,15 +15,7 @@ export default function GenresPage() {
 
   return (
     <div style={{ position: "relative", minHeight: "100vh" }}>
-      {/* Aurora Background */}
-      <div style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none" }}>
-        <Aurora
-          colorStops={["#240046", "#3c096c", "#5a189a"]}
-          blend={0.5}
-          amplitude={1.1}
-          speed={0.4}
-        />
-      </div>
+
 
       <div className="page-wrapper container" style={{ position: "relative", zIndex: 1, paddingBottom: "100px", paddingTop: "5rem" }}>
         <div style={{ textAlign: "center", marginBottom: "4rem" }}>

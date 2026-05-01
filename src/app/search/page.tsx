@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { VscSearch } from 'react-icons/vsc';
-import Aurora from '@/components/ui/Aurora';
 import MediaCard from '@/components/MediaCard';
 import type { TMDBMediaItem } from '@/lib/tmdb';
 
@@ -80,15 +79,7 @@ export default function SearchPage() {
 
   return (
     <div style={{ position: "relative", minHeight: "100vh" }}>
-      {/* Background */}
-      <div style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none" }}>
-        <Aurora 
-          colorStops={["#0a090c", "#1e1e24", "#444444"]} 
-          blend={0.5} 
-          amplitude={1.0} 
-          speed={0.2} 
-        />
-      </div>
+
 
       <div className="page-wrapper container" style={{ position: "relative", zIndex: 1, paddingBottom: "100px", paddingTop: "6rem" }}>
         {/* Search Input */}

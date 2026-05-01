@@ -1,5 +1,4 @@
 import { getDiscoverByGenre, GENRE_MAP, type TMDBMediaItem } from "@/lib/tmdb";
-import Aurora from "@/components/ui/Aurora";
 import MediaCard from "@/components/MediaCard";
 import { notFound } from "next/navigation";
 
@@ -29,15 +28,7 @@ export default async function GenreSpecificPage({ params }: { params: Promise<{ 
 
   return (
     <div style={{ position: "relative", minHeight: "100vh" }}>
-      {/* Aurora Background */}
-      <div style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none" }}>
-        <Aurora
-          colorStops={["#10002b", "#3c096c", "#7b2cbf"]}
-          blend={0.5}
-          amplitude={1.2}
-          speed={0.5}
-        />
-      </div>
+
 
       <div className="page-wrapper container" style={{ position: "relative", zIndex: 1, paddingBottom: "100px" }}>
         {/* Header */}

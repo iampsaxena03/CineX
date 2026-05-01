@@ -35,9 +35,16 @@ const PROVIDERS = [
   { id: 'hdvb', name: 'Stream 2' },
   { id: 'vidfast', name: 'Stream 3' },
   { id: 'vidsrc', name: 'Stream 4' },
+  { id: 'vidsrc_wtf', name: 'Stream 5' },
+  { id: 'vidcore', name: 'Stream 6' },
+  { id: 'vidup', name: 'Stream 7' },
+  { id: 'peachify', name: 'Stream 8' },
+  { id: 'videasy', name: 'Stream 9' },
+  { id: 'mapple', name: 'Stream 10' },
 ]
 
 const SECTION_TYPES = [
+  { value: 'hero', label: 'Hero Slider', icon: '🖼️' },
   { value: 'top10', label: 'Top 10', icon: '🏆' },
   { value: 'trending', label: 'Trending', icon: '🔥' },
   { value: 'latest', label: 'Latest Releases', icon: '✨' },
