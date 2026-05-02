@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import Navbar from "@/components/ui/Navbar";
-import CommandPalette from "@/components/ui/CommandPalette";
 import InstallPWA from "@/components/ui/InstallPWA";
 import CacheBuster from "@/components/CacheBuster";
 import { Analytics } from "@vercel/analytics/next";
@@ -117,7 +116,6 @@ export default function RootLayout({
       </head>
       <body>
         <Navbar />
-        <CommandPalette />
         <InstallPWA />
         <CacheBuster />
         <main>
