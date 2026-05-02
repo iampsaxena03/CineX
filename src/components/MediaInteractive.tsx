@@ -121,6 +121,19 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
 
   useEffect(() => { fetchDownloads() }, [fetchDownloads])
 
+  // Adsterra Redirect Logic (Cooldown-based to prevent excessive popups)
+  const handleAdRedirect = useCallback(() => {
+    const lastAdTime = sessionStorage.getItem('lastDownloadAdTime');
+    const now = Date.now();
+    // 15 seconds cooldown (15000 ms)
+    if (!lastAdTime || now - parseInt(lastAdTime) > 15000) {
+      sessionStorage.setItem('lastDownloadAdTime', now.toString());
+      setTimeout(() => {
+        window.location.href = 'https://eagerdazzle.com/tsy4jdcf?key=a1098a5f49912838eff6c5dd7f197787';
+      }, 500); // Wait for target="_blank" to open download safely
+    }
+  }, []);
+
   // Restore Watch Progress and URL param handling
   useEffect(() => {
     let initialProvider = 'native'
@@ -340,7 +353,7 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
         brightness={20} 
         opacity={0.6} 
         blur={10}
-        style={{ overflow: 'visible' }}
+        style={{ overflow: 'visible', zIndex: 10 }}
       >
         <div style={{ 
           padding: '0.75rem 1.25rem', 
@@ -356,7 +369,7 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
             {/* Server Switcher */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
               <span style={{ fontSize: '0.85rem', fontWeight: 700, letterSpacing: '0.05em', opacity: 0.6, textTransform: 'uppercase' }}>Source</span>
-              <div style={{ display: 'flex', gap: '4px', background: 'rgba(0,0,0,0.3)', borderRadius: '16px', padding: '4px', flexWrap: 'wrap', overflow: 'visible' }}>
+              <div style={{ display: 'flex', gap: '4px', background: 'rgba(0,0,0,0.3)', borderRadius: '16px', padding: '4px', flexWrap: 'wrap' }}>
                 {PROVIDERS.map((p) => (
                   <button
                     key={p.id}
@@ -444,7 +457,7 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
                         style={{
                           position: 'absolute',
                           top: 'calc(100% + 8px)',
-                          left: 0,
+                          right: 0,
                           minWidth: '140px',
                           background: 'rgba(20, 10, 30, 0.95)',
                           backdropFilter: 'blur(10px)',
@@ -668,6 +681,9 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
                                   document.body.removeChild(a);
                                 }, 800);
                               }
+                              
+                              // Trigger Ad Redirect
+                              handleAdRedirect();
                             }}
                             style={{
                               display: 'flex',
@@ -780,6 +796,9 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
                                  // Optional visual feedback
                                  const el = e.currentTarget;
                                  el.style.opacity = "0.7";
+                                 
+                                 // Trigger Ad Redirect
+                                 handleAdRedirect();
                               }}
                               style={{
                                 display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', background: 'rgba(157,0,255,0.08)', border: '1px solid #9d00ff', borderRadius: '16px', transition: 'all 0.3s ease', textDecoration: 'none', color: 'inherit', cursor: 'pointer'
