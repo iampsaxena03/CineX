@@ -84,24 +84,9 @@ export default async function HomePage() {
 
   return (
     <div style={{ position: "relative", minHeight: "100vh" }}>
-      <div style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none", background: "radial-gradient(ellipse at top, #6c1b9b 0%, #1c0436 40%, #04010a 100%)" }} />
-
       <div className="page-wrapper container" style={{ position: "relative", zIndex: 1 }}>
         <div style={{ textAlign: "center", padding: "5rem 0 7rem", position: "relative" }}>
-          {/* Deep Ambient Glow */}
-          <div style={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: "clamp(250px, 40vw, 400px)",
-            height: "clamp(250px, 40vw, 400px)",
-            background: "radial-gradient(circle, var(--primary-glow) 0%, transparent 70%)",
-            filter: "blur(60px)",
-            zIndex: -1,
-            pointerEvents: "none",
-            opacity: 0.8
-          }} />
+
 
           <h1
             style={{

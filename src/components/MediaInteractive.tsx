@@ -340,6 +340,7 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
         brightness={20} 
         opacity={0.6} 
         blur={10}
+        style={{ overflow: 'visible' }}
       >
         <div style={{ 
           padding: '0.75rem 1.25rem', 
@@ -355,7 +356,7 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
             {/* Server Switcher */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
               <span style={{ fontSize: '0.85rem', fontWeight: 700, letterSpacing: '0.05em', opacity: 0.6, textTransform: 'uppercase' }}>Source</span>
-              <div style={{ display: 'flex', gap: '4px', background: 'rgba(0,0,0,0.3)', borderRadius: '16px', padding: '4px', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: '4px', background: 'rgba(0,0,0,0.3)', borderRadius: '16px', padding: '4px', flexWrap: 'wrap', overflow: 'visible' }}>
                 {PROVIDERS.map((p) => (
                   <button
                     key={p.id}
@@ -443,7 +444,7 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
                         style={{
                           position: 'absolute',
                           top: 'calc(100% + 8px)',
-                          right: 0,
+                          left: 0,
                           minWidth: '140px',
                           background: 'rgba(20, 10, 30, 0.95)',
                           backdropFilter: 'blur(10px)',
