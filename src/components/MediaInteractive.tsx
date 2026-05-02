@@ -6,6 +6,7 @@ import { VscShare, VscChevronDown } from 'react-icons/vsc'
 import StreamPlayer, { StreamPlayerRef } from './ui/StreamPlayer'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import GlassSurface from './ui/GlassSurface'
+import { generateStoryCard } from '@/lib/storyCard'
 import WatchlistButton from './WatchlistButton'
 import ShareStoryModal from './ShareStoryModal'
 import { getInitialSync, getStartTimeFor, saveInternalProgress } from '@/lib/progressManager'
@@ -119,19 +120,6 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
   }
 
   useEffect(() => { fetchDownloads() }, [fetchDownloads])
-
-  // Adsterra Redirect Logic (Cooldown-based to prevent excessive popups)
-  const handleAdRedirect = useCallback(() => {
-    const lastAdTime = sessionStorage.getItem('lastDownloadAdTime');
-    const now = Date.now();
-    // 15 seconds cooldown (15000 ms)
-    if (!lastAdTime || now - parseInt(lastAdTime) > 15000) {
-      sessionStorage.setItem('lastDownloadAdTime', now.toString());
-      setTimeout(() => {
-        window.location.href = 'https://eagerdazzle.com/tsy4jdcf?key=a1098a5f49912838eff6c5dd7f197787';
-      }, 500); // Wait for target="_blank" to open download safely
-    }
-  }, []);
 
   // Restore Watch Progress and URL param handling
   useEffect(() => {
@@ -272,7 +260,6 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
       let file: File | null = null;
       if (posterUrl) {
         try {
-          const { generateStoryCard } = await import('@/lib/storyCard');
           file = await generateStoryCard(title, posterUrl, type);
           setStoryFile(file);
           const url = URL.createObjectURL(file);
@@ -353,7 +340,6 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
         brightness={20} 
         opacity={0.6} 
         blur={10}
-        style={{ overflow: 'visible' }}
       >
         <div style={{ 
           padding: '0.75rem 1.25rem', 
@@ -681,9 +667,6 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
                                   document.body.removeChild(a);
                                 }, 800);
                               }
-                              
-                              // Trigger Ad Redirect
-                              handleAdRedirect();
                             }}
                             style={{
                               display: 'flex',
@@ -796,9 +779,6 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
                                  // Optional visual feedback
                                  const el = e.currentTarget;
                                  el.style.opacity = "0.7";
-                                 
-                                 // Trigger Ad Redirect
-                                 handleAdRedirect();
                               }}
                               style={{
                                 display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', background: 'rgba(157,0,255,0.08)', border: '1px solid #9d00ff', borderRadius: '16px', transition: 'all 0.3s ease', textDecoration: 'none', color: 'inherit', cursor: 'pointer'

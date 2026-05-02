@@ -1,11 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import Navbar from "@/components/ui/Navbar";
+import CommandPalette from "@/components/ui/CommandPalette";
 import InstallPWA from "@/components/ui/InstallPWA";
 import CacheBuster from "@/components/CacheBuster";
-import BackgroundGradient from "@/components/ui/BackgroundGradient";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import Script from "next/script";
 import { Outfit } from 'next/font/google';
 import "./globals.css";
 
@@ -117,8 +116,8 @@ export default function RootLayout({
         />
       </head>
       <body>
-        <BackgroundGradient />
         <Navbar />
+        <CommandPalette />
         <InstallPWA />
         <CacheBuster />
         <main>
@@ -126,9 +125,6 @@ export default function RootLayout({
         </main>
         <Analytics />
         <SpeedInsights />
-        
-        {/* Adsterra Social Bar - High CPM format that doesn't disrupt UX */}
-        <Script src="https://eagerdazzle.com/5f/69/5d/5f695dea02fd6964afe023097b2af686.js" strategy="afterInteractive" />
       </body>
     </html>
   );

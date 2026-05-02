@@ -5,7 +5,7 @@ import type { Metadata, ResolvingMetadata } from "next";
 import MediaInteractive from "@/components/MediaInteractive";
 import MediaCard from "@/components/MediaCard";
 import HistoryTracker from "@/components/HistoryTracker";
-
+import ColorExtractor from "@/components/ColorExtractor";
 import AdSlot from "@/components/ads/AdSlot";
 import Link from "next/link";
 import { VscArrowLeft } from "react-icons/vsc";
@@ -187,7 +187,7 @@ export default async function MediaPage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
       <HistoryTracker item={historyItem} />
-
+      {posterUrl && <ColorExtractor imageUrl={posterUrl} />}
       
       {/* Cinematic Backdrop */}
       {backdropUrl && (
@@ -305,11 +305,6 @@ export default async function MediaPage({
           </div>
         </div>
 
-        {/* Ad between header and interactive section */}
-        <div style={{ marginBottom: "1rem" }}>
-          <AdSlot variant="slim" />
-        </div>
-
         {/* Interactive: Season picker + Player + Downloads */}
         <MediaInteractive 
           id={id} 
@@ -333,11 +328,6 @@ export default async function MediaPage({
               {similar.map((item, index) => (
                 <MediaCard key={`${item.media_type}-${item.id}`} item={item} stagger={index * 0.05} />
               ))}
-            </div>
-            
-            {/* Ad at the very bottom of the content */}
-            <div style={{ marginTop: "3rem" }}>
-              <AdSlot variant="banner" />
             </div>
           </div>
         )}
