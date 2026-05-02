@@ -43,3 +43,6 @@ next-env.d.ts
 /src/generated/prisma
 
 scraper-service/
+
+# Telegram tools
+tools/telegradd/
