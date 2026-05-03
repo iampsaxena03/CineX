@@ -46,3 +46,4 @@ scraper-service/
 
 # Telegram tools
 tools/telegradd/
+tools/tg-scraper-hf/
