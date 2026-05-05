@@ -67,6 +67,7 @@ export default function HomeLayoutPage() {
   const [newTitle, setNewTitle] = useState('')
   const [newType, setNewType] = useState('custom')
   const [saving, setSaving] = useState(false)
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const [itemsLoading, setItemsLoading] = useState(false)
   const [dragItem, setDragItem] = useState<number | null>(null)
   const [dragOverSlot, setDragOverSlot] = useState<number | null>(null)
@@ -96,6 +97,7 @@ export default function HomeLayoutPage() {
   // Fetch items for active section
   const fetchItems = useCallback(async (sectionId: string) => {
     setItemsLoading(true)
+    setSectionItems([])
     try {
       const res = await fetch(`/api/admin/home/sections/${sectionId}/items`)
       const data = await res.json()
@@ -119,6 +121,7 @@ export default function HomeLayoutPage() {
       )
 
       setSectionItems(enriched)
+      setHasUnsavedChanges(false)
     } catch {
       setSectionItems([])
     } finally {
@@ -217,139 +220,140 @@ export default function HomeLayoutPage() {
     showToast('Order saved', 'success')
   }
 
+  // Save local changes to API
+  const handleSaveChanges = async () => {
+    if (!activeSection) return
+    setSaving(true)
+    try {
+      const res = await fetch(`/api/admin/home/sections/${activeSection}/items`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: sectionItems
+            .filter(item => item.position < (activeSectionData?.maxItems || 0))
+            .map(item => ({
+              tmdbId: item.tmdbId,
+              mediaType: item.mediaType,
+              position: item.position,
+              preferredStream: item.preferredStream || null,
+            }))
+        })
+      })
+      if (res.ok) {
+        showToast('Changes saved successfully!', 'success')
+        setHasUnsavedChanges(false)
+        fetchSections()
+      } else {
+        showToast('Failed to save changes', 'error')
+      }
+    } catch {
+      showToast('Network error while saving', 'error')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  // Helper to add item locally
+  const addLocalItem = (item: any, targetPos?: number) => {
+    if (!activeSectionData) return
+    setSectionItems(prev => {
+      let newItems = [...prev]
+      const maxItems = activeSectionData.maxItems
+      
+      let pos = targetPos
+      if (pos === undefined) {
+        pos = -1
+        for (let i = 0; i < maxItems; i++) {
+          if (!newItems.find(si => si.position === i)) {
+            pos = i
+            break
+          }
+        }
+      }
+
+      const itemData = {
+        id: `local_${Date.now()}_${Math.random()}`,
+        tmdbId: item.id || item.tmdbId,
+        mediaType: item.media_type || item.mediaType || 'movie',
+        posterUrl: item.poster_path || item.posterUrl ? getImageUrl(item.poster_path || item.posterUrl, 'w185') : undefined,
+        title: item.title || item.name || `ID: ${item.id || item.tmdbId}`,
+      }
+
+      if (pos !== undefined && pos !== -1 && newItems.length < maxItems && !newItems.find(si => si.position === pos)) {
+        // Specific vacant slot
+        newItems.push({ ...itemData, position: pos })
+      } else {
+        // Catalogue full or slot occupied logic
+        if (targetPos !== undefined) {
+          const existingIdx = newItems.findIndex(si => si.position === targetPos)
+          if (existingIdx !== -1) {
+            newItems[existingIdx] = { ...itemData, position: targetPos }
+          } else {
+            newItems.push({ ...itemData, position: targetPos })
+          }
+        } else {
+          // General add when full: push to front, shift right, trim
+          newItems = newItems.map(si => ({ ...si, position: si.position + 1 }))
+          newItems.push({ ...itemData, position: 0 })
+          newItems = newItems.filter(si => si.position < maxItems)
+        }
+      }
+      
+      setHasUnsavedChanges(true)
+      return newItems
+    })
+  }
+
   // Add item to section from search
   const handleAddItem = async (item: any) => {
     if (!activeSection) return
-
-    try {
-      const res = await fetch(`/api/admin/home/sections/${activeSection}/items`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          tmdbId: item.id,
-          mediaType: item.media_type === 'tv' ? 'tv' : 'movie',
-        }),
-      })
-
-      if (res.ok) {
-        showToast(`Added "${item.title || item.name}"`, 'success')
-        fetchItems(activeSection)
-        // Update item count locally without refetching all sections
-        setSections(prev => prev.map(s =>
-          s.id === activeSection ? { ...s, _count: { items: s._count.items + 1 } } : s
-        ))
-      } else {
-        showToast('Failed to add item', 'error')
-      }
-    } catch {
-      showToast('Network error', 'error')
-    }
+    addLocalItem(item)
+    showToast(`Added "${item.title || item.name}" (Unsaved)`, 'info')
   }
 
   // Remove item from section
   const handleRemoveItem = async (itemId: string) => {
     if (!activeSection) return
-
-    try {
-      await fetch(`/api/admin/home/sections/${activeSection}/items?itemId=${itemId}`, {
-        method: 'DELETE'
-      })
-      showToast('Item removed', 'info')
-      fetchItems(activeSection)
-      // Update item count locally
-      setSections(prev => prev.map(s =>
-        s.id === activeSection ? { ...s, _count: { items: Math.max(0, s._count.items - 1) } } : s
-      ))
-    } catch {
-      showToast('Failed to remove', 'error')
-    }
+    setSectionItems(prev => prev.filter(item => item.id !== itemId))
+    setHasUnsavedChanges(true)
   }
 
   // Move item from one slot to another (reorder)
   const handleMoveItem = async (fromSlot: number, toSlot: number) => {
     if (!activeSection) return
+    setSectionItems(prev => {
+      const newItems = [...prev]
+      const fromIdx = newItems.findIndex(si => si.position === fromSlot)
+      const toIdx = newItems.findIndex(si => si.position === toSlot)
+      
+      if (fromIdx !== -1 && toIdx !== -1) {
+        newItems[fromIdx] = { ...newItems[fromIdx], position: toSlot }
+        newItems[toIdx] = { ...newItems[toIdx], position: fromSlot }
+      } else if (fromIdx !== -1 && toIdx === -1) {
+        newItems[fromIdx] = { ...newItems[fromIdx], position: toSlot }
+      }
+      return newItems
+    })
+    setHasUnsavedChanges(true)
+  }
 
-    // Build new order by rearranging items
-    const newItems = [...sectionItems].sort((a, b) => a.position - b.position)
-    const fromIdx = newItems.findIndex(si => si.position === fromSlot)
-    if (fromIdx === -1) return
-
-    const [moved] = newItems.splice(fromIdx, 1)
-    // Find insertion index based on toSlot
-    let toIdx = newItems.findIndex(si => si.position >= toSlot)
-    if (toIdx === -1) toIdx = newItems.length
-    newItems.splice(toIdx, 0, moved)
-
-    // Update positions
-    const reordered = newItems.map((item, idx) => ({
-      ...item,
-      position: idx,
-    }))
-    setSectionItems(reordered)
-
-    // Save to API
-    try {
-      await fetch(`/api/admin/home/sections/${activeSection}/items`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          items: reordered.map(item => ({
-            tmdbId: item.tmdbId,
-            mediaType: item.mediaType,
-          }))
-        }),
-      })
-      showToast('Reordered!', 'success')
+  const handleDiscardChanges = () => {
+    if (activeSection) {
       fetchItems(activeSection)
-    } catch {
-      showToast('Reorder failed', 'error')
     }
   }
 
   // Update item preferred stream
   const handleUpdateStream = async (itemId: string, stream: string) => {
     if (!activeSection) return
-    try {
-      const res = await fetch(`/api/admin/home/sections/${activeSection}/items`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ itemId, preferredStream: stream || null }),
-      })
-      if (res.ok) {
-        showToast('Stream updated', 'success')
-        // Optimistically update local state
-        setSectionItems(prev => prev.map(item => item.id === itemId ? { ...item, preferredStream: stream || null } : item))
-      } else {
-        showToast('Failed to update stream', 'error')
-      }
-    } catch {
-      showToast('Network error', 'error')
-    }
+    setSectionItems(prev => prev.map(item => item.id === itemId ? { ...item, preferredStream: stream || null } : item))
+    setHasUnsavedChanges(true)
   }
 
   // Drop from search result into a specific slot
   const handleDropFromSearch = async (item: any, position: number) => {
     if (!activeSection) return
-    try {
-      const res = await fetch(`/api/admin/home/sections/${activeSection}/items`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          tmdbId: item.id || item.tmdbId,
-          mediaType: item.media_type || item.mediaType || 'movie',
-          position,
-        }),
-      })
-      if (res.ok) {
-        showToast(`Added to slot ${position + 1}`, 'success')
-        fetchItems(activeSection)
-        setSections(prev => prev.map(s =>
-          s.id === activeSection ? { ...s, _count: { items: s._count.items + 1 } } : s
-        ))
-      }
-    } catch {
-      showToast('Drop failed', 'error')
-    }
+    addLocalItem(item, position)
   }
 
   // Expand placeholder slots
@@ -482,7 +486,25 @@ export default function HomeLayoutPage() {
                 </div>
                 {!NON_EDITABLE_TYPES.includes(activeSectionData.type) && (
                   <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                    <span style={{ fontSize: '0.78rem', opacity: 0.5 }}>Auto-fill gaps:</span>
+                    {hasUnsavedChanges && (
+                      <>
+                        <button 
+                          className="admin-btn admin-btn-secondary admin-btn-sm" 
+                          onClick={handleDiscardChanges}
+                          disabled={saving}
+                        >
+                          Discard
+                        </button>
+                        <button 
+                          className="admin-btn admin-btn-primary admin-btn-sm" 
+                          onClick={handleSaveChanges}
+                          disabled={saving}
+                        >
+                          {saving ? 'Saving...' : 'Save Changes'}
+                        </button>
+                      </>
+                    )}
+                    <span style={{ fontSize: '0.78rem', opacity: 0.5, marginLeft: '0.5rem' }}>Auto-fill gaps:</span>
                     <button
                       className={`admin-toggle ${activeSectionData.autoFill ? 'active' : ''}`}
                       onClick={() => {
@@ -579,23 +601,22 @@ export default function HomeLayoutPage() {
                 ) : (
                   <>
                     <div className="admin-placeholder-grid">
-                      {Array.from({ length: Math.max(activeSectionData.maxItems, sectionItems.length) }).map((_, i) => {
+                      {Array.from({ length: activeSectionData.maxItems }).map((_, i) => {
                         const item = sectionItems.find(si => si.position === i)
 
                         return (
                           <div
                             key={i}
-                            className={`admin-placeholder-slot ${item ? 'filled' : ''} ${dragOverSlot === i ? 'dragover' : ''}`}
+                            className={`admin-placeholder-slot ${item ? 'filled' : ''} ${dragOverSlot === i ? 'dragover' : ''} ${dragItem === i ? 'dragging' : ''}`}
                             draggable={!!item}
+                            style={{ opacity: dragItem === i ? 0.4 : 1 }}
                             onDragStart={(e) => {
                               if (item) {
                                 setDragItem(i)
                                 e.dataTransfer.effectAllowed = 'move'
-                                e.currentTarget.style.opacity = '0.4'
                               }
                             }}
                             onDragEnd={(e) => {
-                              e.currentTarget.style.opacity = '1'
                               setDragItem(null)
                               setDragOverSlot(null)
                             }}
@@ -661,6 +682,36 @@ export default function HomeLayoutPage() {
                                     <option key={p.id} value={p.id}>{p.name}</option>
                                   ))}
                                 </select>
+
+                                {/* Mobile fallback controls overlay */}
+                                <div className="admin-mobile-controls" style={{
+                                  position: 'absolute',
+                                  top: '50%',
+                                  left: 0,
+                                  right: 0,
+                                  transform: 'translateY(-50%)',
+                                  display: 'flex',
+                                  justifyContent: 'space-between',
+                                  padding: '0 0.5rem',
+                                  pointerEvents: 'none'
+                                }}>
+                                  {i > 0 && (
+                                    <button 
+                                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleMoveItem(i, i - 1); }}
+                                      style={{ pointerEvents: 'auto', background: 'rgba(0,0,0,0.6)', borderRadius: '50%', width: '30px', height: '30px', border: '1px solid rgba(255,255,255,0.2)', color: 'white' }}
+                                    >
+                                      <VscArrowLeft size={16} />
+                                    </button>
+                                  )}
+                                  {i < activeSectionData.maxItems - 1 && (
+                                    <button 
+                                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleMoveItem(i, i + 1); }}
+                                      style={{ pointerEvents: 'auto', background: 'rgba(0,0,0,0.6)', borderRadius: '50%', width: '30px', height: '30px', border: '1px solid rgba(255,255,255,0.2)', color: 'white', marginLeft: 'auto' }}
+                                    >
+                                      <VscArrowRight size={16} />
+                                    </button>
+                                  )}
+                                </div>
 
                                 <button
                                   className="remove-btn"

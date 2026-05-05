@@ -85,7 +85,7 @@ export async function POST(
   }
 }
 
-// PUT: Reorder items
+// PUT: Batch update items for a section
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ sectionId: string }> }
@@ -101,6 +101,7 @@ export async function PUT(
       items: z.array(z.object({
         tmdbId: z.coerce.number().int().positive(),
         mediaType: z.enum(['movie', 'tv']),
+        position: z.coerce.number().int().nonnegative(),
         preferredStream: z.string().optional().nullable(),
       }))
     })
@@ -111,15 +112,15 @@ export async function PUT(
     }
     const { items } = parsed.data
 
-    // Delete all items and re-create in new order
+    // Delete all items and re-create in exact provided positions
     await prisma.homeSectionItem.deleteMany({ where: { sectionId } })
 
     if (items.length > 0) {
       await prisma.homeSectionItem.createMany({
-        data: items.map((item: any, index: number) => ({
+        data: items.map((item: any) => ({
           tmdbId: item.tmdbId,
           mediaType: item.mediaType,
-          position: index,
+          position: item.position,
           preferredStream: item.preferredStream || null,
           sectionId,
         }))
@@ -130,7 +131,7 @@ export async function PUT(
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Items PUT error:', error)
-    return NextResponse.json({ error: 'Failed to reorder items' }, { status: 500 })
+    return NextResponse.json({ error: 'Failed to batch update items' }, { status: 500 })
   }
 }
 
