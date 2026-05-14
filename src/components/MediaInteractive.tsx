@@ -25,17 +25,17 @@ interface MediaInteractiveProps {
 const PROVIDERS = [
   { id: 'native', name: 'Native', color: '#FFD700' },
   { id: 'hdvb', name: 'Stream 1', color: '#00d2ff' },
-  { id: 'vidlink', name: 'Stream 2', color: '#63b8bc' },
-  { id: 'vidfast', name: 'Stream 3', color: '#9d00ff' },
-  { id: 'vidsrc', name: 'Stream 4', color: '#ff4b2b' }
+  { id: 'vidup', name: 'Stream 2', color: '#63b8bc' },
+  { id: 'peachify', name: 'Stream 3', color: '#9d00ff' },
+  { id: 'videasy', name: 'Stream 4', color: '#FFD700' }
 ]
 
 const EXTRA_PROVIDERS = [
-  { id: 'vidsrc_wtf', name: 'Stream 5', color: '#ff4b2b' },
-  { id: 'vidcore', name: 'Stream 6', color: '#00d2ff' },
-  { id: 'vidup', name: 'Stream 7', color: '#63b8bc' },
-  { id: 'peachify', name: 'Stream 8', color: '#9d00ff' },
-  { id: 'videasy', name: 'Stream 9', color: '#FFD700' },
+  { id: 'vidcore', name: 'Stream 5', color: '#00d2ff' },
+  { id: 'vidsrc_wtf', name: 'Stream 6', color: '#ff4b2b' },
+  { id: 'vidfast', name: 'Stream 7', color: '#9d00ff' },
+  { id: 'vidlink', name: 'Stream 8', color: '#63b8bc' },
+  { id: 'vidsrc', name: 'Stream 9', color: '#ff4b2b' },
   { id: 'mapple', name: 'Stream 10', color: '#63b8bc' }
 ]
 

@@ -31,15 +31,15 @@ interface Section {
 }
 
 const PROVIDERS = [
-  { id: 'vidlink', name: 'Stream 1' },
-  { id: 'hdvb', name: 'Stream 2' },
-  { id: 'vidfast', name: 'Stream 3' },
-  { id: 'vidsrc', name: 'Stream 4' },
-  { id: 'vidsrc_wtf', name: 'Stream 5' },
-  { id: 'vidcore', name: 'Stream 6' },
-  { id: 'vidup', name: 'Stream 7' },
-  { id: 'peachify', name: 'Stream 8' },
-  { id: 'videasy', name: 'Stream 9' },
+  { id: 'hdvb', name: 'Stream 1' },
+  { id: 'vidup', name: 'Stream 2' },
+  { id: 'peachify', name: 'Stream 3' },
+  { id: 'videasy', name: 'Stream 4' },
+  { id: 'vidcore', name: 'Stream 5' },
+  { id: 'vidsrc_wtf', name: 'Stream 6' },
+  { id: 'vidfast', name: 'Stream 7' },
+  { id: 'vidlink', name: 'Stream 8' },
+  { id: 'vidsrc', name: 'Stream 9' },
   { id: 'mapple', name: 'Stream 10' },
 ]
 
