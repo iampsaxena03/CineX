@@ -1,9 +1,8 @@
 import { getPopularMovies, type TMDBMediaItem } from "@/lib/tmdb";
 import MediaCard from "@/components/MediaCard";
-import AdNative from "@/components/ads/AdNative";
+import AdSlot from "@/components/ads/AdSlot";
 import { Fragment } from "react";
-
-
+import { getAdSettings } from "@/lib/settings";
 
 export const metadata = {
   title: 'Movies | CineXP',
@@ -12,13 +11,12 @@ export const metadata = {
 
 export default async function MoviesPage() {
   const movies = await getPopularMovies(1, 'IN');
+  const adSettings = await getAdSettings();
 
   const movieItems: TMDBMediaItem[] = movies.map(m => ({ ...m, media_type: 'movie' }));
 
   return (
     <div style={{ position: "relative", minHeight: "100vh" }}>
-
-
       <div className="page-wrapper container" style={{ position: "relative", zIndex: 1, paddingBottom: "100px" }}>
         {/* Header */}
         <div style={{ textAlign: "center", padding: "4rem 0 3rem" }}>
@@ -56,11 +54,11 @@ export default async function MoviesPage() {
                     stagger={index % 6 * 0.05}
                   />
                 );
-                if (index > 0 && index % 12 === 0) {
+                if (adSettings.postersEnabled && index > 0 && index % 12 === 0) {
                   return (
                     <Fragment key={`ad-${index}`}>
-                      <div style={{ gridColumn: '1 / -1', margin: '2rem 0' }}>
-                        <AdNative />
+                      <div style={{ gridColumn: '1 / -1', margin: '2rem 0', display: 'flex', justifyContent: 'center' }}>
+                        <AdSlot />
                       </div>
                       {card}
                     </Fragment>

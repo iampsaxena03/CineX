@@ -45,25 +45,12 @@ export default async function TrendingPage() {
   }
 
   return (
-    <div style={{ position: "relative", minHeight: "100vh" }}>
-
-
-      <div className="page-wrapper container" style={{ position: "relative", zIndex: 1, paddingBottom: "100px" }}>
-        <div style={{ textAlign: "center", padding: "4rem 0 3rem" }}>
-          <h1
-            style={{
-              fontSize: "clamp(2rem, 5vw, 4rem)",
-              fontWeight: 700,
-              marginBottom: "1rem",
-              background: "linear-gradient(135deg, #fff 30%, var(--accent))",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              lineHeight: 1.1,
-            }}
-          >
-            Trending Now
-          </h1>
-          <p style={{ fontSize: "1.15rem", maxWidth: 520, margin: "0 auto", opacity: 0.7, lineHeight: 1.7 }}>
+    <div className="public-page">
+      <div className="page-wrapper container catalogue-page">
+        <div className="catalogue-header">
+          <span className="eyebrow">Trending</span>
+          <h1>Trending Now</h1>
+          <p>
             The most popular movies and series this week.
           </p>
         </div>
@@ -74,7 +61,7 @@ export default async function TrendingPage() {
         {/* Trending Grid */}
         <section>
           {trending.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "4rem", opacity: 0.5 }}>
+            <div className="empty-panel">
               <p>Could not load trending content. Please try again later.</p>
             </div>
           ) : (

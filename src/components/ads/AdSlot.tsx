@@ -34,15 +34,7 @@ export default function AdSlot({ variant = 'banner' }: AdSlotProps) {
 
   if (variant === 'slim') {
     return (
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          width: '100%',
-          padding: '0.75rem 0',
-        }}
-      >
+      <div className="ad-slot-shell" style={{ padding: '0.75rem 0' }}>
         {isMobile ? (
           <AdBanner
             adKey="47487de96b361fef4cd73964201393c1"
@@ -64,15 +56,7 @@ export default function AdSlot({ variant = 'banner' }: AdSlotProps) {
 
   // Banner variant: 300x250 on mobile, 728x90 on desktop
   return (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        width: '100%',
-        padding: '1rem 0',
-      }}
-    >
+    <div className="ad-slot-shell">
       {isMobile ? (
         <AdBanner
           adKey="87b1f98e2b43417d714893dfa11c7e9f"

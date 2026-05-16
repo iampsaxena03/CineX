@@ -6,6 +6,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import { motion, useScroll, useMotionValueEvent } from 'motion/react'
 import Dock from '@/components/ui/Dock'
 import RandomizerModal from '@/components/ui/RandomizerModal'
+import HomeSearchBar from '@/components/HomeSearchBar'
 import { VscHome, VscPlayCircle, VscListSelection, VscFlame, VscSearch, VscSymbolClass, VscWand, VscBookmark, VscPlay } from 'react-icons/vsc'
 
 export default function Navbar() {
@@ -77,6 +78,12 @@ export default function Navbar() {
       <Link href="/" aria-label="CineXP Home" className="pill-logo" id="pill-logo">
         <div className="pill-logo-sphere" />
       </Link>
+
+      {pathname !== '/feed' && (
+        <div className={`top-search-shell ${isHidden ? 'top-search-shell-hidden' : ''}`}>
+          <HomeSearchBar compact hidden={isHidden} />
+        </div>
+      )}
 
       {/* ─── Bottom-Center Glass Dock (Animated on Scroll) ─── */}
       {pathname !== '/feed' && (

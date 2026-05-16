@@ -23,6 +23,7 @@ const MediaCard: React.FC<MediaCardProps> = ({ item, stagger = 0, showRemoveHist
   const mediaType = item.media_type === "tv" ? "tv" : "movie";
   const title = (item as any).title || (item as any).name;
   const year = ((item as any).release_date || (item as any).first_air_date || "").split("-")[0];
+  const rating = typeof (item as any).vote_average === "number" ? (item as any).vote_average.toFixed(1) : "";
 
   const [contextMenu, setContextMenu] = useState<{ x: number, y: number } | null>(null);
 
@@ -76,7 +77,11 @@ const MediaCard: React.FC<MediaCardProps> = ({ item, stagger = 0, showRemoveHist
         </div>
         <div className="card-info">
           <h3>{title}</h3>
-          <p>{year}</p>
+          <p>
+            {[year, mediaType === "tv" ? "Series" : "Movie", rating && Number(rating) > 0 ? `${rating}/10` : ""]
+              .filter(Boolean)
+              .join(" | ")}
+          </p>
         </div>
         </Link>
 

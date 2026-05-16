@@ -10,17 +10,18 @@ import { generateStoryCard } from '@/lib/storyCard'
 import WatchlistButton from './WatchlistButton'
 import ShareStoryModal from './ShareStoryModal'
 import { getInitialSync, getStartTimeFor, saveInternalProgress } from '@/lib/progressManager'
-import AdNative from './ads/AdNative'
+import AdSlot from './ads/AdSlot'
 
 interface MediaInteractiveProps {
   id: string
   imdbId?: string
   type: 'movie' | 'tv'
   seasons?: any[]
-  title?: string
-  posterUrl?: string
-  year?: string
-  industry?: string
+  title: string
+  posterUrl: string
+  year: string
+  industry: 'bollywood' | 'hollywood'
+  adPostersEnabled?: boolean
 }
 
 const PROVIDERS = [
@@ -42,7 +43,17 @@ const EXTRA_PROVIDERS = [
 
 const ALL_PROVIDERS = [...PROVIDERS, ...EXTRA_PROVIDERS]
 
-export default function MediaInteractive({ id, imdbId, type, seasons, title = "Unknown Title", posterUrl, year, industry = "hollywood" }: MediaInteractiveProps) {
+export default function MediaInteractive({ 
+  id, 
+  type, 
+  imdbId, 
+  seasons, 
+  title, 
+  posterUrl, 
+  year, 
+  industry,
+  adPostersEnabled = true
+}: MediaInteractiveProps) {
   const [activeProvider, setActiveProvider] = useState('native')
   const [season, setSeason] = useState(seasons && seasons.length > 0 ? (seasons[0].season_number || 1) : 1)
   const [episode, setEpisode] = useState(1)
@@ -359,6 +370,13 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
   return (
     <div className="media-interactive-wrapper" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%' }}>
       
+      {/* Top Poster Ad */}
+      {adPostersEnabled && (
+        <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+          <AdSlot />
+        </div>
+      )}
+
       {/* Control Bar (Servers, TV Selectors, Actions) */}
       <GlassSurface 
         width="100%" 
@@ -834,10 +852,12 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
         )}
       </div>
 
-      {/* Native Ad Placement */}
-      <div style={{ marginTop: '1.5rem', width: '100%' }}>
-        <AdNative />
-      </div>
+      {/* Bottom Poster Ad */}
+      {adPostersEnabled && (
+        <div style={{ marginTop: '1.5rem', width: '100%' }}>
+          <AdSlot />
+        </div>
+      )}
 
       <ShareStoryModal 
         isOpen={showShareModal}

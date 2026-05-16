@@ -53,6 +53,7 @@ function DockItem({
 }: DockItemProps) {
   const ref = useRef<HTMLDivElement>(null);
   const isHovered = useMotionValue(0);
+  const longPressRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const mouseDistance = useTransform(mouseX, (val) => {
     const rect = ref.current?.getBoundingClientRect() ?? {
@@ -80,12 +81,26 @@ function DockItem({
       onHoverEnd={() => isHovered.set(0)}
       onFocus={() => isHovered.set(1)}
       onBlur={() => isHovered.set(0)}
+      onPointerDown={(event) => {
+        if (event.pointerType === 'touch') {
+          longPressRef.current = setTimeout(() => isHovered.set(1), 420);
+        }
+      }}
+      onPointerCancel={() => {
+        if (longPressRef.current) clearTimeout(longPressRef.current);
+        isHovered.set(0);
+      }}
       onClick={(e) => {
         e.stopPropagation();
+        if (longPressRef.current) clearTimeout(longPressRef.current);
         // Reset dock state on click for smooth mobile interaction
         isHovered.set(0); 
         mouseX.set(Infinity);
         onClick?.();
+      }}
+      onPointerUp={() => {
+        if (longPressRef.current) clearTimeout(longPressRef.current);
+        setTimeout(() => isHovered.set(0), 900);
       }}
       className={`dock-item ${className}`}
       tabIndex={0}

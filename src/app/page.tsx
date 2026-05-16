@@ -1,4 +1,6 @@
-import { getTrending, getMediaById, getUpcomingMovies, type TMDBMediaItem, type TMDBMovie } from "@/lib/tmdb";
+import Link from "next/link";
+import { getTrending, getMediaById, getUpcomingMovies, getBackdropUrl, getImageUrl, type TMDBMediaItem, type TMDBMovie } from "@/lib/tmdb";
+import { generateSlug } from "@/lib/utils";
 
 export const revalidate = 3600;
 import MediaCard from "@/components/MediaCard";
@@ -7,6 +9,7 @@ import RecommendedRow from "@/components/RecommendedRow";
 import Top10Row from "@/components/ui/Top10Row";
 import CountdownRow from "@/components/CountdownRow";
 import AdSlot from "@/components/ads/AdSlot";
+import HomeSearchBar from "@/components/HomeSearchBar";
 import { prisma } from "@/lib/admin";
 
 
@@ -82,31 +85,29 @@ export default async function HomePage() {
     }
   });
 
+  const heroSection = sections.find((section) => {
+    const key = section.key?.toLowerCase() || "";
+    const type = section.type?.toLowerCase() || "";
+    const title = section.title?.toLowerCase() || "";
+    return key === "hero" || type === "hero" || title.includes("hero");
+  });
+
+  const heroPick = heroSection?.items
+    .map((item) => tmdbLookup.get(item.tmdbId))
+    .find(Boolean) || trending[0];
+
   return (
-    <div style={{ position: "relative", minHeight: "100vh" }}>
-      <div className="page-wrapper container" style={{ position: "relative", zIndex: 1 }}>
-        <div style={{ textAlign: "center", padding: "5rem 0 7rem", position: "relative" }}>
+    <div className="public-page">
+      <div className="page-wrapper container home-container">
+        {heroPick && <FeaturedHero item={heroPick} />}
 
-
-          <h1
-            style={{
-              fontSize: "clamp(3.5rem, 9vw, 7rem)",
-              fontWeight: 800,
-              background: "linear-gradient(135deg, #ffffff 10%, #ecd3ff 40%, var(--primary) 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              filter: "drop-shadow(0px 10px 25px rgba(157, 0, 255, 0.4))",
-              lineHeight: 1.05,
-              letterSpacing: "-0.04em",
-              margin: 0
-            }}
-          >
-            Welcome to CineXP!
-          </h1>
+        <div className="home-search-hero">
+          <HomeSearchBar />
         </div>
 
         {sections.map((section, sectionIndex) => {
           if (!section.visible) return null;
+          if (section === heroSection || section.type === 'hero') return null;
 
           const sectionContent = (() => {
             if (section.type === 'continue_watching') {
@@ -164,6 +165,41 @@ export default async function HomePage() {
         })}
       </div>
     </div>
+  );
+}
+
+function FeaturedHero({ item }: { item: TMDBMediaItem }) {
+  const mediaType = item.media_type === "tv" ? "tv" : "movie";
+  const title = (item as any).title || (item as any).name || "Featured";
+  const year = ((item as any).release_date || (item as any).first_air_date || "").slice(0, 4);
+  const href = `/media/${mediaType}/${generateSlug(item.id, title)}`;
+  const backdropUrl = item.backdrop_path ? getBackdropUrl(item.backdrop_path) : "";
+  const posterUrl = item.poster_path ? getImageUrl(item.poster_path, "w342") : "";
+  const rating = typeof (item as any).vote_average === "number" ? (item as any).vote_average.toFixed(1) : "";
+
+  return (
+    <section className="home-hero" aria-label="Featured title">
+      {backdropUrl && <img className="home-hero-backdrop" src={backdropUrl} alt="" fetchPriority="high" />}
+      <div className="home-hero-shade" />
+      <div className="home-hero-content">
+        {posterUrl && (
+          <div className="home-hero-poster">
+            <img src={posterUrl} alt="" fetchPriority="high" />
+          </div>
+        )}
+        <div className="home-hero-copy">
+          <span className="eyebrow">Featured</span>
+          <h1>{title}</h1>
+          <div className="home-hero-meta">
+            {year && <span>{year}</span>}
+            <span>{mediaType === "tv" ? "Series" : "Movie"}</span>
+            {rating && Number(rating) > 0 && <span>{rating}/10</span>}
+          </div>
+          {(item as any).overview && <p>{(item as any).overview}</p>}
+          <Link href={href} className="watch-now-btn">Watch Now</Link>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -274,8 +310,8 @@ function GridSection({ section, tmdbLookup, trendingData }: {
   const icon = SECTION_ICONS[section.type] || '🎬';
 
   return (
-    <section style={{ marginBottom: '4rem' }}>
-      <h2 style={{ fontSize: "1.6rem", fontWeight: 600, marginBottom: "1.5rem" }}>
+    <section className="content-section">
+      <h2 className="section-title">
         <span style={{ color: "var(--primary)" }}>{icon}</span> {section.title}
       </h2>
       <div className="grid">

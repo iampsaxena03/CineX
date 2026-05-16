@@ -72,11 +72,15 @@ export const viewport: Viewport = {
   userScalable: false,
 };
 
-export default function RootLayout({
+import { getAdSettings } from "@/lib/settings";
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const adSettings = await getAdSettings();
+
   return (
     <html lang="en" className={outfit.variable}>
       <head>
@@ -117,8 +121,12 @@ export default function RootLayout({
         />
       </head>
       <body>
-        <Script src="https://eagerdazzle.com/5f/69/5d/5f695dea02fd6964afe023097b2af686.js" strategy="afterInteractive" />
-        <Script src="https://eagerdazzle.com/ab/84/54/ab8454e896335fcc65131264fa488955.js" strategy="afterInteractive" />
+        {adSettings.socialBarEnabled && (
+          <Script src="https://eagerdazzle.com/5f/69/5d/5f695dea02fd6964afe023097b2af686.js" strategy="afterInteractive" />
+        )}
+        {adSettings.popunderEnabled && (
+          <Script src="https://eagerdazzle.com/ab/84/54/ab8454e896335fcc65131264fa488955.js" strategy="afterInteractive" />
+        )}
         <BackgroundGradient />
         <Navbar />
         <InstallPWA />

@@ -79,22 +79,22 @@ export default function InstallPWA() {
     <AnimatePresence>
       {showPopup && (
         <motion.div
-          initial={{ y: -50, opacity: 0 }}
+          initial={{ y: -18, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          exit={{ y: -20, opacity: 0 }}
+          exit={{ y: -12, opacity: 0 }}
           transition={{ type: "spring", stiffness: 300, damping: 25 }}
           style={{
             position: "fixed",
-            top: "80px",
-            right: "20px",
+            top: "88px",
+            right: "16px",
             zIndex: 9999,
-            background: "rgba(20, 10, 35, 0.85)",
-            backdropFilter: "blur(16px)",
-            WebkitBackdropFilter: "blur(16px)",
-            border: "1px solid rgba(157, 0, 255, 0.3)",
-            borderRadius: "16px",
-            padding: "1rem",
-            boxShadow: "0 10px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(157, 0, 255, 0.15)",
+            background: "rgba(8, 4, 16, 0.88)",
+            backdropFilter: "blur(18px)",
+            WebkitBackdropFilter: "blur(18px)",
+            border: "1px solid rgba(180, 110, 255, 0.2)",
+            borderRadius: "14px",
+            padding: "0.75rem",
+            boxShadow: "0 18px 50px rgba(0, 0, 0, 0.45)",
             display: "flex",
             alignItems: "center",
             gap: "1rem",
@@ -105,19 +105,15 @@ export default function InstallPWA() {
             style={{
               width: "44px",
               height: "44px",
-              background: "linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%)",
-              borderRadius: "10px",
+              background: "radial-gradient(circle at 35% 35%, var(--accent), var(--primary))",
+              borderRadius: "50%",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               flexShrink: 0,
               color: "#fff",
-              fontWeight: 800,
-              fontSize: "1.2rem",
             }}
-          >
-            CX
-          </div>
+          />
           <div style={{ flex: 1 }}>
             <h4 style={{ margin: 0, fontSize: "0.95rem", fontWeight: 600 }}>Install CineXP</h4>
             <p style={{ margin: 0, fontSize: "0.8rem", opacity: 0.7, marginTop: "2px" }}>
@@ -131,8 +127,8 @@ export default function InstallPWA() {
                 background: "var(--primary)",
                 color: "#fff",
                 border: "none",
-                borderRadius: "6px",
-                padding: "0.4rem 0.8rem",
+                borderRadius: "8px",
+                padding: "0.45rem 0.8rem",
                 fontSize: "0.8rem",
                 fontWeight: 600,
                 cursor: "pointer",
