@@ -121,18 +121,36 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
 
   useEffect(() => { fetchDownloads() }, [fetchDownloads])
 
-  // Adsterra Redirect Logic (Cooldown-based to prevent excessive popups)
-  const handleAdRedirect = useCallback(() => {
-    const lastAdTime = sessionStorage.getItem('lastDownloadAdTime');
-    const now = Date.now();
-    // 15 seconds cooldown (15000 ms)
-    if (!lastAdTime || now - parseInt(lastAdTime) > 15000) {
-      sessionStorage.setItem('lastDownloadAdTime', now.toString());
-      setTimeout(() => {
-        window.location.href = 'https://eagerdazzle.com/tsy4jdcf?key=a1098a5f49912838eff6c5dd7f197787';
-      }, 500); // Wait for target="_blank" to open download safely
+  // Secure Token-based Interstitial Download Flow
+  const handleDownloadClick = async (e: React.MouseEvent, link: any) => {
+    e.preventDefault();
+    const targetUrl = link.url || link.proxyDownloadUrl;
+    if (!targetUrl) return;
+
+    try {
+      const res = await fetch('/api/download/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          url: targetUrl,
+          title: title,
+          quality: link.quality || link.label || 'HD',
+          size: link.size || '',
+          poster: posterUrl
+        })
+      });
+      const data = await res.json();
+      if (data.token) {
+        window.location.href = `/download/${data.token}`;
+      } else {
+        // Fallback if API fails
+        window.open(targetUrl, '_blank');
+      }
+    } catch (err) {
+      console.error('Download init error:', err);
+      window.open(targetUrl, '_blank');
     }
-  }, []);
+  };
 
   // Restore Watch Progress and URL param handling
   useEffect(() => {
@@ -682,8 +700,7 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
                                 }, 800);
                               }
                               
-                              // Trigger Ad Redirect
-                              handleAdRedirect();
+                              handleDownloadClick(e, link);
                             }}
                             style={{
                               display: 'flex',
@@ -798,7 +815,7 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
                                  el.style.opacity = "0.7";
                                  
                                  // Trigger Ad Redirect
-                                 handleAdRedirect();
+                                 handleDownloadClick(e, link);
                               }}
                               style={{
                                 display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', background: 'rgba(157,0,255,0.08)', border: '1px solid #9d00ff', borderRadius: '16px', transition: 'all 0.3s ease', textDecoration: 'none', color: 'inherit', cursor: 'pointer'

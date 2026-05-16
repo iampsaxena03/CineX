@@ -89,15 +89,6 @@ model HomeSectionItem {
   @@unique([sectionId, position])
 }
 
-model ShortenedLink {
-  id          String   @id @default(cuid())
-  originalUrl String   
-  region      String   // 'asia' or 'global'
-  shortUrl    String
-  createdAt   DateTime @default(now())
-
-  @@unique([originalUrl, region])
-}
 
 model AppSettings {
   id        String   @id @default(cuid())

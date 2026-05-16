@@ -90,26 +90,6 @@ export default function SettingsPage() {
     }
   }
 
-  const toggleShortener = async () => {
-    if (!appConfig) return
-    const newValue = appConfig.SHORTENER_ENABLED === "true" ? "false" : "true"
-    setLoadingAction('toggle_shortener')
-    try {
-      const res = await fetch('/api/admin/settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'toggle_shortener', value: newValue }),
-      })
-      if (res.ok) {
-        setAppConfig({ ...appConfig, SHORTENER_ENABLED: newValue })
-        showToast(`Shortener ${newValue === "true" ? "Enabled" : "Disabled"}`, 'success')
-      }
-    } catch {
-      showToast('Action failed', 'error')
-    } finally {
-      setLoadingAction(null)
-    }
-  }
 
   return (
     <>
@@ -129,46 +109,6 @@ export default function SettingsPage() {
         </motion.p>
       </div>
 
-      {/* Feature Toggles */}
-      <motion.div
-        className="admin-section-card"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-      >
-        <h2>⚙️ Feature Toggles</h2>
-        <p style={{ fontSize: '0.85rem', opacity: 0.5, marginBottom: '1.25rem' }}>
-          Enable or disable core system features dynamically.
-        </p>
-        <div className="admin-feature-toggle-row">
-          <div style={{ flex: 1 }}>
-            <h3 style={{ fontSize: '1.05rem', marginBottom: '0.25rem' }}>URL Shortener Monetization</h3>
-            <p style={{ fontSize: '0.85rem', opacity: 0.6 }}>
-              Route fallback downloads through GPlinks/Exe.io to earn revenue. If disabled, links point directly to the source.
-            </p>
-          </div>
-          <div>
-            <button
-              onClick={toggleShortener}
-              disabled={loadingAction === 'toggle_shortener'}
-              style={{
-                padding: '0.6rem 1.4rem',
-                borderRadius: '8px',
-                border: 'none',
-                fontWeight: 600,
-                fontSize: '0.9rem',
-                cursor: loadingAction === 'toggle_shortener' ? 'wait' : 'pointer',
-                background: appConfig?.SHORTENER_ENABLED === "true" ? 'var(--admin-success)' : 'rgba(255,255,255,0.1)',
-                color: 'white',
-                transition: 'all 0.2s',
-                opacity: appConfig ? 1 : 0.5,
-              }}
-            >
-              {appConfig?.SHORTENER_ENABLED === "true" ? 'ON' : 'OFF'}
-            </button>
-          </div>
-        </div>
-      </motion.div>
 
       {/* Cache Management */}
       <motion.div

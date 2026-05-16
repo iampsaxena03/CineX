@@ -16,7 +16,6 @@ export async function GET(request: Request) {
     }, {})
     
     // Default values if missing
-    if (config.SHORTENER_ENABLED === undefined) config.SHORTENER_ENABLED = "true"
     
     return NextResponse.json({ config })
   } catch (error) {
@@ -34,14 +33,6 @@ export async function POST(request: Request) {
     const { action, value } = body
 
     switch (action) {
-      case 'toggle_shortener': {
-        await prisma.appSettings.upsert({
-          where: { key: 'SHORTENER_ENABLED' },
-          update: { value: String(value) },
-          create: { key: 'SHORTENER_ENABLED', value: String(value) }
-        })
-        return NextResponse.json({ success: true, message: `URL Shortener ${value === 'true' || value === true ? 'Enabled' : 'Disabled'}` })
-      }
 
       case 'bust_browser_cache': {
         // Get current version or default to "0"
