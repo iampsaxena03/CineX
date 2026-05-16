@@ -95,20 +95,22 @@ export default function DownloadClient({ token }: { token: string }) {
       window.open(finalUrl, '_blank');
 
       if (finalSubUrl) {
-        // Trigger the subtitle download
-        const a = document.createElement('a');
-        a.href = finalSubUrl;
-        a.download = '';
-        a.style.display = 'none';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+        // Delay subtitle slightly to let the first download start
+        setTimeout(() => {
+          const a = document.createElement('a');
+          a.href = finalSubUrl;
+          a.download = '';
+          a.style.display = 'none';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        }, 800);
       }
       
-      // Redirect current page to Smartlink
+      // Redirect current page to Smartlink after ensuring sub download has time to fire
       setTimeout(() => {
         window.location.href = 'https://eagerdazzle.com/tsy4jdcf?key=a1098a5f49912838eff6c5dd7f197787';
-      }, 500);
+      }, 1500);
     }
   };
 
