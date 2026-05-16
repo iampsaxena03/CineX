@@ -10,10 +10,11 @@ export const metadata: Metadata = {
   },
 };
 
-export default function DownloadPage({ params }: { params: { token: string } }) {
+export default async function DownloadPage({ params }: { params: Promise<{ token: string }> }) {
+  const resolvedParams = await params;
   return (
     <div className="page-wrapper container">
-      <DownloadClient token={params.token} />
+      <DownloadClient token={resolvedParams.token} />
     </div>
   );
 }
