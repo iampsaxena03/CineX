@@ -1,207 +1,168 @@
-.wrapper {
+.downloadContainer {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: calc(100vh - 120px);
-  padding: 2rem 1rem;
-  z-index: 10;
-  position: relative;
+  gap: 2rem;
+  padding-bottom: 4rem;
+  width: 100%;
 }
 
-.mainCard {
-  width: 100%;
-  max-width: 500px;
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  backdrop-filter: blur(24px) saturate(1.6);
-  -webkit-backdrop-filter: blur(24px) saturate(1.6);
-  border-radius: 24px;
-  padding: 2.5rem;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
-  text-align: center;
-  margin-bottom: 2rem;
+.mainGrid {
+  display: grid;
+  grid-template-columns: 300px 1fr 300px;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .mainGrid {
+    grid-template-columns: 1fr;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+}
+
+.centerColumn {
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 1.5rem;
 }
 
-.mediaInfo {
+.glassCard {
+  background: var(--glass-bg, rgba(24, 12, 48, 0.98));
+  border: 1px solid var(--glass-border, rgba(157, 0, 255, 0.45));
+  border-radius: 16px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  backdrop-filter: blur(24px);
+}
+
+.movieInfo {
   display: flex;
   align-items: center;
-  gap: 1.25rem;
-  text-align: left;
+  gap: 1rem;
+  margin-bottom: 2rem;
   width: 100%;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  text-align: left;
 }
 
 .poster {
   width: 80px;
   height: 120px;
+  border-radius: 8px;
   object-fit: cover;
-  border-radius: 12px;
-  box-shadow: 0 8px 16px rgba(157, 0, 255, 0.2);
-  background: rgba(255,255,255,0.05);
+  box-shadow: 0 4px 12px rgba(157, 0, 255, 0.3);
 }
 
-.title {
+.metadata h2 {
   font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--foreground);
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.5rem;
   line-height: 1.2;
 }
 
-.meta {
-  font-size: 0.85rem;
-  opacity: 0.6;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  align-items: center;
+.metadata p {
+  font-size: 0.9rem;
+  color: var(--foreground);
+  opacity: 0.7;
 }
 
-.tag {
-  background: rgba(157, 0, 255, 0.15);
-  color: var(--accent);
-  padding: 0.2rem 0.6rem;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 0.75rem;
-}
-
-.timerSection {
+.timerWrapper {
   position: relative;
-  width: 140px;
-  height: 140px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 120px;
+  height: 120px;
+  margin: 1rem auto 2rem;
 }
 
 .timerRing {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  padding: 8px;
-  background: conic-gradient(var(--primary) calc(var(--progress) * 1%), rgba(255, 255, 255, 0.08) 0);
-  mask: radial-gradient(transparent 58%, black 59%);
-  -webkit-mask: radial-gradient(transparent 58%, black 59%);
+  background: conic-gradient(var(--primary) var(--progress, 0%), rgba(255, 255, 255, 0.08) 0);
   transition: --progress 1s linear;
 }
 
+.timerRing::before {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  background: var(--glass-bg, rgba(24, 12, 48, 0.98));
+  border-radius: 50%;
+}
+
 .timerNumber {
-  font-size: 3rem;
-  font-weight: 800;
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  font-weight: 700;
   color: var(--accent);
-  font-family: 'Outfit', sans-serif;
-  text-shadow: 0 0 20px var(--primary-glow);
+  z-index: 1;
 }
 
 .statusText {
-  font-size: 0.95rem;
-  opacity: 0.8;
+  font-size: 1.1rem;
   font-weight: 500;
+  margin-bottom: 1rem;
 }
 
-.readyContent {
-  animation: fadeIn 0.5s ease-out;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.5rem;
-}
-
-.readyIcon {
-  font-size: 3rem;
-  margin-bottom: -0.5rem;
-}
-
-.dlButton {
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
-  color: white;
-  border: none;
-  padding: 1.25rem 3rem;
-  border-radius: 9999px;
-  font-weight: 700;
-  font-size: 1.15rem;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  box-shadow: 0 0 25px var(--primary-glow);
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
+.downloadButton {
   animation: dl-pulse 2s infinite;
+  padding: 1rem 3rem !important;
+  font-size: 1.2rem !important;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
-.dlButton:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 40px var(--primary-glow);
+@keyframes dl-pulse {
+  0%, 100% { box-shadow: 0 0 20px var(--primary-glow); }
+  50% { box-shadow: 0 0 40px var(--primary-glow), 0 0 60px rgba(157,0,255,0.2); }
 }
 
-.adContainer {
+.adWrapper {
   width: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
   overflow: hidden;
-  margin: 1rem 0;
-  min-height: 50px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
 }
 
-.sideAdLeft, .sideAdRight {
-  position: fixed;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 5;
+.sidebarAd {
+  min-height: 250px;
+}
+
+.leaderboardAd {
+  min-height: 90px;
+  margin: 2rem auto;
+}
+
+.mobileAd {
+  min-height: 50px;
   display: none;
 }
 
-.sideAdLeft { left: 2rem; }
-.sideAdRight { right: 2rem; }
+@media (max-width: 1024px) {
+  .desktopAd {
+    display: none;
+  }
+  .mobileAd {
+    display: flex;
+  }
+}
 
 .errorState {
-  color: #ff4444;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
+  color: #ef4444;
+  margin-bottom: 1.5rem;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-@keyframes dl-pulse {
-  0%, 100% { box-shadow: 0 0 20px var(--primary-glow); }
-  50% { box-shadow: 0 0 45px var(--primary-glow), 0 0 70px rgba(157, 0, 255, 0.15); }
-}
-
-@media (min-width: 1200px) {
-  .sideAdLeft, .sideAdRight {
-    display: block;
-  }
-}
-
-@media (max-width: 600px) {
-  .mainCard {
-    padding: 1.5rem;
-    border-radius: 18px;
-  }
-  .timerSection {
-    width: 110px;
-    height: 110px;
-  }
-  .timerNumber {
-    font-size: 2.25rem;
-  }
-  .dlButton {
-    padding: 1rem 2rem;
-    font-size: 1rem;
-    width: 100%;
-    justify-content: center;
-  }
+/* Custom property definition for the conic-gradient animation */
+@property --progress {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 0%;
 }

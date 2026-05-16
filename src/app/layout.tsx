@@ -114,7 +114,6 @@ export default function RootLayout({
             }),
           }}
         />
-        <link rel="preconnect" href="https://eagerdazzle.com" crossOrigin="anonymous" />
       </head>
       <body>
         <BackgroundGradient />

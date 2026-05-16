@@ -4,6 +4,7 @@ import { getDetails } from '@/lib/tmdb'
 import { searchMovieBox, getMovieBoxDetails, getMovieBoxDownloadSources } from '@/lib/moviebox'
 
 
+
 // Public API: Get download links for a media item (used by public site)
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
@@ -15,6 +16,7 @@ export async function GET(request: Request) {
   if (!tmdbId) {
     return NextResponse.json({ links: [], episodeLinks: [] })
   }
+
 
 
   try {
@@ -110,22 +112,23 @@ export async function GET(request: Request) {
         console.error('[Downloads Route] MovieBox fetch failed:', error);
       }
 
-      // 2. Fetch from Vidsrc VIP (Original Fallback)
       if (noAdminMovieLinks) {
+        const originalUrl = `https://dl.vidsrc.vip/movie/${tmdbId}`
         movieLinks.push({
           id: `mirror-movie-${tmdbId}`,
           quality: "Max",
           label: "Direct Mirror",
           size: "",
-          url: `https://dl.vidsrc.vip/movie/${tmdbId}`
+          url: originalUrl
         })
       } else if (noAdminEpisodeLinks) {
+        const originalUrl = `https://dl.vidsrc.vip/tv/${tmdbId}/${season}/${episode}`
         episodeLinks.push({
           id: `mirror-tv-${tmdbId}-${season}-${episode}`,
           quality: "Max",
           label: "Direct Mirror",
           size: "",
-          url: `https://dl.vidsrc.vip/tv/${tmdbId}/${season}/${episode}`
+          url: originalUrl
         })
       }
     }

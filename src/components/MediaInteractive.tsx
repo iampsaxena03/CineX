@@ -121,34 +121,29 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
 
   useEffect(() => { fetchDownloads() }, [fetchDownloads])
 
-  // Secure Token-based Interstitial Download Flow
+  // Route download through interstitial page
   const handleDownloadClick = async (e: React.MouseEvent, link: any) => {
     e.preventDefault();
-    const targetUrl = link.url || link.proxyDownloadUrl;
-    if (!targetUrl) return;
-
     try {
       const res = await fetch('/api/download/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          url: targetUrl,
+          url: link.url || link.proxyDownloadUrl,
           title: title,
-          quality: link.quality || link.label || 'HD',
+          quality: link.quality || link.label || 'Download',
           size: link.size || '',
-          poster: posterUrl
+          poster: posterUrl || ''
         })
       });
       const data = await res.json();
       if (data.token) {
-        window.location.href = `/download/${data.token}`;
+        window.open(`/download/${data.token}`, '_blank');
       } else {
-        // Fallback if API fails
-        window.open(targetUrl, '_blank');
+        window.open(link.url || link.proxyDownloadUrl, '_blank');
       }
-    } catch (err) {
-      console.error('Download init error:', err);
-      window.open(targetUrl, '_blank');
+    } catch {
+      window.open(link.url || link.proxyDownloadUrl, '_blank');
     }
   };
 
@@ -683,9 +678,7 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
                         return (
                           <a
                             key={link.id || i}
-                            href={link.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                            href="#"
                             onClick={(e) => {
                               // Auto-trigger subtitle download after a short delay
                               if (link.subtitleUrl) {
@@ -700,6 +693,7 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
                                 }, 800);
                               }
                               
+                              // Route through interstitial
                               handleDownloadClick(e, link);
                             }}
                             style={{
@@ -806,15 +800,13 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
                          {links.map((link, idx) => (
                            <a
                               key={idx}
-                              href={link.proxyDownloadUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
+                              href="#"
                               onClick={(e) => {
                                  // Optional visual feedback
                                  const el = e.currentTarget;
                                  el.style.opacity = "0.7";
                                  
-                                 // Trigger Ad Redirect
+                                 // Route through interstitial
                                  handleDownloadClick(e, link);
                               }}
                               style={{

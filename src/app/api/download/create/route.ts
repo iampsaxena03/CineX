@@ -1,26 +1,26 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createDownloadToken } from '@/lib/download-token';
+import { NextResponse } from 'next/server';
+import { createToken } from '@/lib/download-token';
 
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { url, title, quality, size, poster } = body;
 
     if (!url) {
-      return NextResponse.json({ error: 'Missing download URL' }, { status: 400 });
+      return NextResponse.json({ error: 'URL is required' }, { status: 400 });
     }
 
-    const token = createDownloadToken({
+    const token = createToken({
       u: url,
-      t: title || 'CineXP Download',
-      q: quality || 'HD',
+      t: title || 'Media Download',
+      q: quality || 'Download',
       s: size || '',
       p: poster || ''
     });
 
-    return NextResponse.json({ success: true, token });
-  } catch (err) {
-    console.error('[API] Download create error:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ token });
+  } catch (error) {
+    console.error('[Download Create API] Error:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

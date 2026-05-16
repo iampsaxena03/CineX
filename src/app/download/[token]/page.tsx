@@ -1,24 +1,19 @@
-import { Metadata } from 'next';
+import type { Metadata } from 'next';
 import DownloadClient from './DownloadClient';
 
-interface PageProps {
-  params: {
-    token: string;
-  };
-}
+export const metadata: Metadata = {
+  title: 'Preparing Download | CineXP',
+  description: 'Your download is being prepared.',
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  return {
-    title: 'Preparing Download | CineXP',
-    description: 'Your download is being prepared. Please wait 10 seconds.',
-    robots: { index: false, follow: false } // Don't index interstitial pages
-  };
-}
-
-export default function DownloadPage({ params }: PageProps) {
+export default function DownloadPage({ params }: { params: { token: string } }) {
   return (
-    <main className="page-wrapper">
+    <div className="page-wrapper container">
       <DownloadClient token={params.token} />
-    </main>
+    </div>
   );
 }

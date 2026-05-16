@@ -2,213 +2,178 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { VscDesktopDownload, VscError } from 'react-icons/vsc';
+import styles from './download.module.css';
 import AdBanner from '@/components/ads/AdBanner';
 import AdNative from '@/components/ads/AdNative';
-import styles from './download.module.css';
 
-interface DownloadClientProps {
-  token: string;
-}
-
-interface Meta {
-  u: string;
+interface DownloadMeta {
   t: string;
   q: string;
   s: string;
   p: string;
 }
 
-export default function DownloadClient({ token }: DownloadClientProps) {
+export default function DownloadClient({ token }: { token: string }) {
   const router = useRouter();
+  const [meta, setMeta] = useState<DownloadMeta | null>(null);
   const [timeLeft, setTimeLeft] = useState(10);
-  const [isReady, setIsReady] = useState(false);
-  const [meta, setMeta] = useState<Meta | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [resolvedUrl, setResolvedUrl] = useState<string | null>(null);
-  const [isResolving, setIsResolving] = useState(false);
+  const [status, setStatus] = useState<'loading' | 'countdown' | 'ready' | 'error'>('loading');
+  const [finalUrl, setFinalUrl] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState('');
   
-  const injectedAds = useRef(false);
+  const scriptsInjected = useRef(false);
 
-  // 1. Decode token metadata on mount for immediate display
   useEffect(() => {
+    // 1. Decode token for immediate display
     try {
       const payloadB64 = token.split('.')[0];
-      if (!payloadB64) throw new Error('Invalid token');
-      
-      const json = JSON.parse(atob(payloadB64.replace(/-/g, '+').replace(/_/g, '/')));
-      setMeta({
-        u: json.u,
-        t: json.t,
-        q: json.q,
-        s: json.s,
-        p: json.p
-      });
-    } catch (err) {
-      console.error('Token decode error:', err);
-      setError('Invalid or corrupt download link.');
+      const decoded: any = JSON.parse(Buffer.from(payloadB64, 'base64').toString('utf-8'));
+      setMeta({ t: decoded.t, q: decoded.q, s: decoded.s, p: decoded.p });
+      setStatus('countdown');
+    } catch (e) {
+      setStatus('error');
+      setErrorMsg('Invalid download link.');
       setTimeout(() => router.push('/'), 3000);
+      return;
+    }
+
+    // 2. Inject Popunder & Social Bar (once)
+    if (!scriptsInjected.current) {
+      scriptsInjected.current = true;
+      
+      // Popunder
+      const popunder = document.createElement('script');
+      popunder.src = 'https://eagerdazzle.com/ab/84/54/ab8454e896335fcc65131264fa488955.js';
+      popunder.async = true;
+      document.body.appendChild(popunder);
+
+      // Social Bar
+      const socialBar = document.createElement('script');
+      socialBar.src = 'https://eagerdazzle.com/5f/69/5d/5f695dea02fd6964afe023097b2af686.js';
+      socialBar.async = true;
+      document.body.appendChild(socialBar);
     }
   }, [token, router]);
 
-  // 2. Timer & Ad Injection
   useEffect(() => {
-    if (error || isReady) return;
+    // Timer logic
+    if (status !== 'countdown') return;
 
-    // Countdown logic
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          handleTimerComplete();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    // Ad Injection (Popunder and Social Bar)
-    if (!injectedAds.current) {
-      injectedAds.current = true;
-      
-      // Social Bar
-      const socialScript = document.createElement('script');
-      socialScript.src = 'https://eagerdazzle.com/5f/69/5d/5f695dea02fd6964afe023097b2af686.js';
-      socialScript.async = true;
-      document.body.appendChild(socialScript);
-
-      // Popunder
-      const popScript = document.createElement('script');
-      popScript.src = 'https://eagerdazzle.com/ab/84/54/ab8454e896335fcc65131264fa488955.js';
-      popScript.async = true;
-      document.body.appendChild(popScript);
-
-      // Native Ad
-      const nativeScript = document.createElement('script');
-      nativeScript.src = 'https://eagerdazzle.com/1f7c7fa6bbdd7b13a2f004f0b8e67f34/invoke.js';
-      nativeScript.async = true;
-      nativeScript.setAttribute('data-cfasync', 'false');
-      document.body.appendChild(nativeScript);
+    if (timeLeft > 0) {
+      const timer = setTimeout(() => setTimeLeft(t => t - 1), 1000);
+      return () => clearTimeout(timer);
+    } else {
+      // Timer finished -> resolve actual URL
+      resolveDownload();
     }
+  }, [timeLeft, status]);
 
-    return () => clearInterval(timer);
-  }, [error, isReady]);
-
-  const handleTimerComplete = async () => {
-    setIsResolving(true);
+  const resolveDownload = async () => {
     try {
       const res = await fetch(`/api/download/resolve?token=${token}`);
       const data = await res.json();
       
-      if (data.success) {
-        setResolvedUrl(data.url);
-        setIsReady(true);
+      if (res.ok && data.url) {
+        setFinalUrl(data.url);
+        setStatus('ready');
       } else {
-        setError(data.error || 'Link expired or invalid. Please go back and try again.');
+        setStatus('error');
+        setErrorMsg(data.error || 'Link expired. Please try again.');
       }
-    } catch (err) {
-      setError('Network error. Failed to resolve download link.');
-    } finally {
-      setIsResolving(false);
+    } catch {
+      setStatus('error');
+      setErrorMsg('Network error. Please try again.');
     }
   };
 
   const handleDownloadClick = () => {
-    if (!resolvedUrl) return;
-    
-    // 1. Open actual download in new tab
-    window.open(resolvedUrl, '_blank');
-    
-    // 2. Redirect current page to Adsterra Smartlink
-    window.location.href = 'https://eagerdazzle.com/tsy4jdcf?key=a1098a5f49912838eff6c5dd7f197787';
+    if (finalUrl) {
+      // Open download in new tab
+      window.open(finalUrl, '_blank');
+      // Redirect current page to Smartlink
+      window.location.href = 'https://eagerdazzle.com/tsy4jdcf?key=a1098a5f49912838eff6c5dd7f197787';
+    }
   };
 
-  if (error) {
-    return (
-      <div className={styles.wrapper}>
-        <div className={styles.mainCard}>
-          <div className={styles.errorState}>
-            <VscError size={64} />
-            <h2>Oops!</h2>
-            <p>{error}</p>
-            <button className="btn" onClick={() => router.push('/')}>Go to Homepage</button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  if (status === 'loading') return null;
+
+  const progressPct = ((10 - timeLeft) / 10) * 100;
 
   return (
-    <div className={styles.wrapper}>
-      {/* Side Ads (Desktop Only) */}
-      <div className={styles.sideAdLeft}>
-        <AdBanner zoneId="87b1f98e2b43417d714893dfa11c7e9f" width={300} height={250} />
-      </div>
-      <div className={styles.sideAdRight}>
-        <AdBanner zoneId="87b1f98e2b43417d714893dfa11c7e9f" width={300} height={250} />
-      </div>
-
-      <div className={styles.mainCard}>
-        {meta && (
-          <div className={styles.mediaInfo}>
-            {meta.p && <img src={meta.p} alt={meta.t} className={styles.poster} />}
-            <div>
-              <h1 className={styles.title}>{meta.t}</h1>
-              <div className={styles.meta}>
-                <span className={styles.tag}>{meta.q}</span>
-                {meta.s && <span className={styles.tag}>{meta.s}</span>}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {!isReady ? (
-          <>
-            <div className={styles.timerSection}>
-              <div 
-                className={styles.timerRing} 
-                style={{ '--progress': (timeLeft / 10) * 100 } as any}
-              />
-              <div className={styles.timerNumber}>{timeLeft}</div>
-            </div>
-            <p className={styles.statusText}>
-              {isResolving ? 'Finalizing your link...' : 'Your download is preparing...'}
-            </p>
-          </>
-        ) : (
-          <div className={styles.readyContent}>
-            <div className={styles.readyIcon}>✅</div>
-            <h2>Your Link is Ready!</h2>
-            <button className={styles.dlButton} onClick={handleDownloadClick}>
-              <VscDesktopDownload size={24} />
-              DOWNLOAD NOW
-            </button>
-          </div>
-        )}
-
-        {/* Mobile Banner 320x50 */}
-        <div className="md:hidden">
-          <div className={styles.adContainer}>
-            <AdBanner zoneId="47487de96b361fef4cd73964201393c1" width={320} height={50} />
-          </div>
-        </div>
+    <div className={styles.downloadContainer}>
+      <div className={styles.mainGrid}>
         
-        {/* Desktop Leaderboard 728x90 */}
-        <div className="hidden md:flex">
-          <div className={styles.adContainer}>
-            <AdBanner zoneId="636ac374dbb99b948710af913b4a7592" width={728} height={90} />
-          </div>
+        {/* Left Sidebar (Desktop) */}
+        <div className={`${styles.adWrapper} ${styles.desktopAd} ${styles.sidebarAd}`}>
+          <AdBanner adKey="87b1f98e2b43417d714893dfa11c7e9f" width={300} height={250} />
         </div>
-      </div>
 
-      {/* Native Ad at Bottom */}
-      <div className="container" style={{ maxWidth: '1000px', margin: '0 auto' }}>
-        <AdNative />
-      </div>
-      
-      {/* Adsterra Native Section (eagerdazzle version) */}
-      <div className={styles.adContainer}>
-         <div id="container-1f7c7fa6bbdd7b13a2f004f0b8e67f34"></div>
+        {/* Center Content */}
+        <div className={styles.centerColumn}>
+          <div className={styles.glassCard}>
+            
+            {meta && (
+              <div className={styles.movieInfo}>
+                {meta.p && <img src={meta.p} alt={meta.t} className={styles.poster} />}
+                <div className={styles.metadata}>
+                  <h2>{meta.t}</h2>
+                  <p>{meta.q} {meta.s ? `· ${meta.s}` : ''}</p>
+                </div>
+              </div>
+            )}
+
+            {status === 'error' ? (
+              <div className={styles.errorState}>
+                <h3>❌ {errorMsg}</h3>
+                <p style={{ marginTop: '0.5rem', fontSize: '0.9rem' }}>Redirecting...</p>
+              </div>
+            ) : status === 'ready' ? (
+              <>
+                <div className={styles.statusText} style={{ color: 'var(--success, #10b981)' }}>
+                  ✅ Ready!
+                </div>
+                <button className={`btn ${styles.downloadButton}`} onClick={handleDownloadClick}>
+                  ⬇ DOWNLOAD NOW
+                </button>
+              </>
+            ) : (
+              <>
+                <div 
+                  className={styles.timerWrapper} 
+                  style={{ '--progress': `${progressPct}%` } as React.CSSProperties}
+                >
+                  <div className={styles.timerRing}></div>
+                  <div className={styles.timerNumber}>{timeLeft}</div>
+                </div>
+                <div className={styles.statusText}>
+                  Preparing your download...
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Mobile Ad (below timer) */}
+          <div className={`${styles.adWrapper} ${styles.mobileAd}`}>
+            <AdBanner adKey="47487de96b361fef4cd73964201393c1" width={320} height={50} />
+          </div>
+
+          {/* Desktop Leaderboard */}
+          <div className={`${styles.adWrapper} ${styles.desktopAd} ${styles.leaderboardAd}`}>
+            <AdBanner adKey="636ac374dbb99b948710af913b4a7592" width={728} height={90} />
+          </div>
+
+          {/* Native Ad */}
+          <div className={styles.adWrapper} style={{ minHeight: '300px', padding: '1rem' }}>
+            <AdNative />
+          </div>
+
+        </div>
+
+        {/* Right Sidebar (Desktop) */}
+        <div className={`${styles.adWrapper} ${styles.desktopAd} ${styles.sidebarAd}`}>
+          <AdBanner adKey="87b1f98e2b43417d714893dfa11c7e9f" width={300} height={250} />
+        </div>
+
       </div>
     </div>
   );

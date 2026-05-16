@@ -90,6 +90,7 @@ model HomeSectionItem {
 }
 
 
+
 model AppSettings {
   id        String   @id @default(cuid())
   key       String   @unique

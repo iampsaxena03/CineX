@@ -15,8 +15,7 @@ export async function GET(request: Request) {
       return acc
     }, {})
     
-    // Default values if missing
-    
+
     return NextResponse.json({ config })
   } catch (error) {
     console.error('Settings GET error:', error)
@@ -33,6 +32,7 @@ export async function POST(request: Request) {
     const { action, value } = body
 
     switch (action) {
+
 
       case 'bust_browser_cache': {
         // Get current version or default to "0"
