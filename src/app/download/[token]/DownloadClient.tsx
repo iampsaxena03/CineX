@@ -14,7 +14,7 @@ interface DownloadMeta {
   sub?: string;
 }
 
-export default function DownloadClient({ token }: { token: string }) {
+export default function DownloadClient({ token, waitingPageEnabled = true }: { token: string, waitingPageEnabled?: boolean }) {
   const router = useRouter();
   const [meta, setMeta] = useState<DownloadMeta | null>(null);
   const [timeLeft, setTimeLeft] = useState(10);
@@ -40,7 +40,7 @@ export default function DownloadClient({ token }: { token: string }) {
     }
 
     // 2. Inject Popunder & Social Bar (once)
-    if (!scriptsInjected.current) {
+    if (waitingPageEnabled && !scriptsInjected.current) {
       scriptsInjected.current = true;
       
       // Popunder
@@ -123,22 +123,28 @@ export default function DownloadClient({ token }: { token: string }) {
       <div className={styles.mainGrid}>
         
         {/* Left Sidebar (Desktop) */}
-        <div className={`${styles.adWrapper} ${styles.desktopAd} ${styles.sidebarAd}`}>
-          <AdBanner adKey="87b1f98e2b43417d714893dfa11c7e9f" width={300} height={250} />
-        </div>
+        {waitingPageEnabled && (
+          <div className={`${styles.adWrapper} ${styles.desktopAd} ${styles.sidebarAd}`}>
+            <AdBanner adKey="87b1f98e2b43417d714893dfa11c7e9f" width={300} height={250} />
+          </div>
+        )}
 
         {/* Center Content */}
         <div className={styles.centerColumn}>
 
           {/* Desktop Leaderboard */}
-          <div className={`${styles.adWrapper} ${styles.desktopAd} ${styles.leaderboardAd}`}>
-            <AdBanner adKey="636ac374dbb99b948710af913b4a7592" width={728} height={90} />
-          </div>
+          {waitingPageEnabled && (
+            <div className={`${styles.adWrapper} ${styles.desktopAd} ${styles.leaderboardAd}`}>
+              <AdBanner adKey="636ac374dbb99b948710af913b4a7592" width={728} height={90} />
+            </div>
+          )}
 
           {/* Big Banner Ad (Above the Dialog Box on all devices) */}
-          <div className={styles.adWrapper} style={{ marginBottom: '1rem', minHeight: '250px' }}>
-            <AdBanner adKey="87b1f98e2b43417d714893dfa11c7e9f" width={300} height={250} />
-          </div>
+          {waitingPageEnabled && (
+            <div className={styles.adWrapper} style={{ marginBottom: '1rem', minHeight: '250px' }}>
+              <AdBanner adKey="87b1f98e2b43417d714893dfa11c7e9f" width={300} height={250} />
+            </div>
+          )}
 
           <div className={styles.glassCard}>
             
@@ -183,16 +189,20 @@ export default function DownloadClient({ token }: { token: string }) {
           </div>
 
           {/* Native Ad (Below the card) */}
-          <div className={styles.adWrapper} style={{ minHeight: '300px', padding: '1rem', marginTop: '1rem' }}>
-            <AdNative />
-          </div>
+          {waitingPageEnabled && (
+            <div className={styles.adWrapper} style={{ minHeight: '300px', padding: '1rem', marginTop: '1rem' }}>
+              <AdNative />
+            </div>
+          )}
 
         </div>
 
         {/* Right Sidebar (Desktop) */}
-        <div className={`${styles.adWrapper} ${styles.desktopAd} ${styles.sidebarAd}`}>
-          <AdBanner adKey="87b1f98e2b43417d714893dfa11c7e9f" width={300} height={250} />
-        </div>
+        {waitingPageEnabled && (
+          <div className={`${styles.adWrapper} ${styles.desktopAd} ${styles.sidebarAd}`}>
+            <AdBanner adKey="87b1f98e2b43417d714893dfa11c7e9f" width={300} height={250} />
+          </div>
+        )}
 
       </div>
     </div>

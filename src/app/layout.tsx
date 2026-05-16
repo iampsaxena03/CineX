@@ -6,6 +6,7 @@ import BackgroundGradient from "@/components/ui/BackgroundGradient";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Outfit } from 'next/font/google';
+import Script from 'next/script';
 import "./globals.css";
 
 const outfit = Outfit({ 
@@ -71,11 +72,15 @@ export const viewport: Viewport = {
   userScalable: false,
 };
 
-export default function RootLayout({
+import { getAdSettings } from "@/lib/settings";
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const adSettings = await getAdSettings();
+
   return (
     <html lang="en" className={outfit.variable}>
       <head>
@@ -116,6 +121,12 @@ export default function RootLayout({
         />
       </head>
       <body>
+        {adSettings.socialBarEnabled && (
+          <Script src="https://eagerdazzle.com/5f/69/5d/5f695dea02fd6964afe023097b2af686.js" strategy="afterInteractive" />
+        )}
+        {adSettings.popunderEnabled && (
+          <Script src="https://eagerdazzle.com/ab/84/54/ab8454e896335fcc65131264fa488955.js" strategy="afterInteractive" />
+        )}
         <BackgroundGradient />
         <Navbar />
         <InstallPWA />

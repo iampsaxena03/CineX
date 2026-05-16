@@ -1,4 +1,5 @@
 import { getDetails, getImageUrl, getBackdropUrl, getSimilar } from "@/lib/tmdb";
+import { getAdSettings } from "@/lib/settings";
 
 import type { Metadata, ResolvingMetadata } from "next";
 import MediaInteractive from "@/components/MediaInteractive";
@@ -99,9 +100,10 @@ export default async function MediaPage({
   const { type, id: rawId } = await params;
   const id = rawId.split("-")[0];
 
-  const [details, similar] = await Promise.all([
+  const [details, similar, adSettings] = await Promise.all([
     getDetails(type, id),
-    getSimilar(type, id)
+    getSimilar(type, id),
+    getAdSettings()
   ]);
 
   if (!details) {
@@ -341,11 +343,14 @@ export default async function MediaPage({
             posterUrl={posterUrl} 
             year={year}
             industry={industry}
+            adPostersEnabled={adSettings.postersEnabled}
           />
         </Suspense>
 
         {/* Ad between player and recommendations */}
-        <AdSlot />
+        {adSettings.postersEnabled && (
+          <AdSlot />
+        )}
 
         {/* Similar / Recommended Content */}
         {similar.length > 0 && (
