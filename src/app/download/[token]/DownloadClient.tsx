@@ -91,7 +91,11 @@ export default function DownloadClient({ token }: { token: string }) {
 
   const handleDownloadClick = () => {
     if (finalUrl) {
+      // Open download in new tab IMMEDIATELY to bypass popup blockers
+      window.open(finalUrl, '_blank');
+
       if (finalSubUrl) {
+        // Trigger the subtitle download
         const a = document.createElement('a');
         a.href = finalSubUrl;
         a.download = '';
@@ -101,11 +105,8 @@ export default function DownloadClient({ token }: { token: string }) {
         document.body.removeChild(a);
       }
       
-      // Give the browser a moment to start the sub download
+      // Redirect current page to Smartlink
       setTimeout(() => {
-        // Open download in new tab
-        window.open(finalUrl, '_blank');
-        // Redirect current page to Smartlink
         window.location.href = 'https://eagerdazzle.com/tsy4jdcf?key=a1098a5f49912838eff6c5dd7f197787';
       }, 500);
     }
@@ -127,14 +128,14 @@ export default function DownloadClient({ token }: { token: string }) {
         {/* Center Content */}
         <div className={styles.centerColumn}>
 
-          {/* Desktop Leaderboard (Moved to Top) */}
+          {/* Desktop Leaderboard */}
           <div className={`${styles.adWrapper} ${styles.desktopAd} ${styles.leaderboardAd}`}>
             <AdBanner adKey="636ac374dbb99b948710af913b4a7592" width={728} height={90} />
           </div>
 
-          {/* Mobile Ad (Moved to Top) */}
-          <div className={`${styles.adWrapper} ${styles.mobileAd}`} style={{ marginBottom: '1rem' }}>
-            <AdBanner adKey="47487de96b361fef4cd73964201393c1" width={320} height={50} />
+          {/* Big Banner Ad (Above the Dialog Box on all devices) */}
+          <div className={styles.adWrapper} style={{ marginBottom: '1rem', minHeight: '250px' }}>
+            <AdBanner adKey="87b1f98e2b43417d714893dfa11c7e9f" width={300} height={250} />
           </div>
 
           <div className={styles.glassCard}>
