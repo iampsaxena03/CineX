@@ -10,6 +10,7 @@ import { generateStoryCard } from '@/lib/storyCard'
 import WatchlistButton from './WatchlistButton'
 import ShareStoryModal from './ShareStoryModal'
 import { getInitialSync, getStartTimeFor, saveInternalProgress } from '@/lib/progressManager'
+import AdNative from './ads/AdNative'
 
 interface MediaInteractiveProps {
   id: string
@@ -831,6 +832,11 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
             )}
           </div>
         )}
+      </div>
+
+      {/* Native Ad Placement */}
+      <div style={{ marginTop: '1.5rem', width: '100%' }}>
+        <AdNative />
       </div>
 
       <ShareStoryModal 

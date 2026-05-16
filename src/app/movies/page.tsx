@@ -1,5 +1,7 @@
 import { getPopularMovies, type TMDBMediaItem } from "@/lib/tmdb";
 import MediaCard from "@/components/MediaCard";
+import AdNative from "@/components/ads/AdNative";
+import { Fragment } from "react";
 
 
 
@@ -47,13 +49,24 @@ export default async function MoviesPage() {
           ) : (
             <div className="grid">
               {movieItems.map((item: TMDBMediaItem, index: number) => {
-                return (
+                const card = (
                   <MediaCard 
                     key={`${item.media_type}-${item.id}`} 
                     item={item} 
                     stagger={index % 6 * 0.05}
                   />
                 );
+                if (index > 0 && index % 12 === 0) {
+                  return (
+                    <Fragment key={`ad-${index}`}>
+                      <div style={{ gridColumn: '1 / -1', margin: '2rem 0' }}>
+                        <AdNative />
+                      </div>
+                      {card}
+                    </Fragment>
+                  );
+                }
+                return card;
               })}
             </div>
           )}
