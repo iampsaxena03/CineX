@@ -19,6 +19,7 @@ export async function GET(req: NextRequest) {
     title: data.t,
     quality: data.q,
     size: data.s,
-    poster: data.p
+    poster: data.p,
+    subtitleUrl: data.sub
   });
 }

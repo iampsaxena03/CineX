@@ -133,7 +133,8 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
           title: title,
           quality: link.quality || link.label || 'Download',
           size: link.size || '',
-          poster: posterUrl || ''
+          poster: posterUrl || '',
+          subtitleUrl: link.subtitleUrl || ''
         })
       });
       const data = await res.json();
@@ -680,19 +681,6 @@ export default function MediaInteractive({ id, imdbId, type, seasons, title = "U
                             key={link.id || i}
                             href="#"
                             onClick={(e) => {
-                              // Auto-trigger subtitle download after a short delay
-                              if (link.subtitleUrl) {
-                                setTimeout(() => {
-                                  const a = document.createElement('a');
-                                  a.href = link.subtitleUrl;
-                                  a.download = '';
-                                  a.style.display = 'none';
-                                  document.body.appendChild(a);
-                                  a.click();
-                                  document.body.removeChild(a);
-                                }, 800);
-                              }
-                              
                               // Route through interstitial
                               handleDownloadClick(e, link);
                             }}

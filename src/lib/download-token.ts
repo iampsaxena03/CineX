@@ -6,6 +6,7 @@ interface DownloadMeta {
   q: string;   // quality label
   s: string;   // size
   p: string;   // poster URL
+  sub?: string; // subtitle URL
   x: number;   // expiry timestamp
 }
 

@@ -11,6 +11,7 @@ interface DownloadMeta {
   q: string;
   s: string;
   p: string;
+  sub?: string;
 }
 
 export default function DownloadClient({ token }: { token: string }) {
@@ -19,6 +20,7 @@ export default function DownloadClient({ token }: { token: string }) {
   const [timeLeft, setTimeLeft] = useState(10);
   const [status, setStatus] = useState<'loading' | 'countdown' | 'ready' | 'error'>('loading');
   const [finalUrl, setFinalUrl] = useState<string | null>(null);
+  const [finalSubUrl, setFinalSubUrl] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
   
   const scriptsInjected = useRef(false);
@@ -28,7 +30,7 @@ export default function DownloadClient({ token }: { token: string }) {
     try {
       const payloadB64 = token.split('.')[0];
       const decoded: any = JSON.parse(Buffer.from(payloadB64, 'base64').toString('utf-8'));
-      setMeta({ t: decoded.t, q: decoded.q, s: decoded.s, p: decoded.p });
+      setMeta({ t: decoded.t, q: decoded.q, s: decoded.s, p: decoded.p, sub: decoded.sub });
       setStatus('countdown');
     } catch (e) {
       setStatus('error');
@@ -75,6 +77,7 @@ export default function DownloadClient({ token }: { token: string }) {
       
       if (res.ok && data.url) {
         setFinalUrl(data.url);
+        if (data.subtitleUrl) setFinalSubUrl(data.subtitleUrl);
         setStatus('ready');
       } else {
         setStatus('error');
@@ -88,10 +91,23 @@ export default function DownloadClient({ token }: { token: string }) {
 
   const handleDownloadClick = () => {
     if (finalUrl) {
-      // Open download in new tab
-      window.open(finalUrl, '_blank');
-      // Redirect current page to Smartlink
-      window.location.href = 'https://eagerdazzle.com/tsy4jdcf?key=a1098a5f49912838eff6c5dd7f197787';
+      if (finalSubUrl) {
+        const a = document.createElement('a');
+        a.href = finalSubUrl;
+        a.download = '';
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+      
+      // Give the browser a moment to start the sub download
+      setTimeout(() => {
+        // Open download in new tab
+        window.open(finalUrl, '_blank');
+        // Redirect current page to Smartlink
+        window.location.href = 'https://eagerdazzle.com/tsy4jdcf?key=a1098a5f49912838eff6c5dd7f197787';
+      }, 500);
     }
   };
 
@@ -110,6 +126,17 @@ export default function DownloadClient({ token }: { token: string }) {
 
         {/* Center Content */}
         <div className={styles.centerColumn}>
+
+          {/* Desktop Leaderboard (Moved to Top) */}
+          <div className={`${styles.adWrapper} ${styles.desktopAd} ${styles.leaderboardAd}`}>
+            <AdBanner adKey="636ac374dbb99b948710af913b4a7592" width={728} height={90} />
+          </div>
+
+          {/* Mobile Ad (Moved to Top) */}
+          <div className={`${styles.adWrapper} ${styles.mobileAd}`} style={{ marginBottom: '1rem' }}>
+            <AdBanner adKey="47487de96b361fef4cd73964201393c1" width={320} height={50} />
+          </div>
+
           <div className={styles.glassCard}>
             
             {meta && (
@@ -152,18 +179,8 @@ export default function DownloadClient({ token }: { token: string }) {
             )}
           </div>
 
-          {/* Mobile Ad (below timer) */}
-          <div className={`${styles.adWrapper} ${styles.mobileAd}`}>
-            <AdBanner adKey="47487de96b361fef4cd73964201393c1" width={320} height={50} />
-          </div>
-
-          {/* Desktop Leaderboard */}
-          <div className={`${styles.adWrapper} ${styles.desktopAd} ${styles.leaderboardAd}`}>
-            <AdBanner adKey="636ac374dbb99b948710af913b4a7592" width={728} height={90} />
-          </div>
-
-          {/* Native Ad */}
-          <div className={styles.adWrapper} style={{ minHeight: '300px', padding: '1rem' }}>
+          {/* Native Ad (Below the card) */}
+          <div className={styles.adWrapper} style={{ minHeight: '300px', padding: '1rem', marginTop: '1rem' }}>
             <AdNative />
           </div>
 
