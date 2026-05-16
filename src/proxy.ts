@@ -65,7 +65,7 @@ export async function proxy(request: NextRequest) {
   ) {
     const httpsUrl = request.nextUrl.clone()
     httpsUrl.protocol = 'https:'
-    return NextResponse.redirect(httpsUrl)
+    return NextResponse.redirect(httpsUrl, 301)
   }
 
   // Clean stale rate limit entries

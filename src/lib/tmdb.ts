@@ -10,6 +10,13 @@ function getApiKey() {
 
 export function getImageUrl(path: string | null | undefined, size = 'w500'): string {
   if (!path) return ''
+  // Direct TMDB image URL --- Googlebot-friendly, no proxy dependency
+  return `https://image.tmdb.org/t/p/${size}${path}`
+}
+
+// Client-side fallback: wsrv.nl proxy (for Indian ISP compatibility)
+export function getClientImageUrl(path: string | null | undefined, size = 'w500'): string {
+  if (!path) return ''
   const tmdbUrl = `image.tmdb.org/t/p/${size}${path}`
   return `https://wsrv.nl/?url=${encodeURIComponent(tmdbUrl)}&output=webp&q=65`
 }

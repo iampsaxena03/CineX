@@ -3,6 +3,7 @@ import { prisma } from '@/lib/admin'
 import { requireAdmin } from '@/lib/guard'
 import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
+import { syncHomepageToSEOPages } from '@/lib/seo-sync'
 
 // GET: Fetch items for a section
 export async function GET(
@@ -78,6 +79,7 @@ export async function POST(
     })
 
     revalidatePath('/')
+    syncHomepageToSEOPages().catch(e => console.error('Homepage SEO sync error:', e))
     return NextResponse.json({ item })
   } catch (error: any) {
     console.error('Items POST error:', error)
@@ -128,6 +130,7 @@ export async function PUT(
     }
 
     revalidatePath('/')
+    syncHomepageToSEOPages().catch(e => console.error('Homepage SEO sync error:', e))
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Items PUT error:', error)
@@ -170,6 +173,7 @@ export async function DELETE(
     )
 
     revalidatePath('/')
+    syncHomepageToSEOPages().catch(e => console.error('Homepage SEO sync error:', e))
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Items DELETE error:', error)

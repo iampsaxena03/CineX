@@ -1,58 +1,29 @@
 import { MetadataRoute } from 'next';
-import { getSEOPrebuildData } from '@/lib/tmdb';
-import { generateSlug } from "@/lib/utils";
+import { getSEOPagesForSitemap, type SEOPageRow } from '@/lib/seo-sync';
 
-export const maxDuration = 60;
+export const revalidate = 21600;
+
+const STABLE_DATE = new Date('2025-01-01T00:00:00.000Z');
+
+const STATIC_ROUTES: MetadataRoute.Sitemap = [
+  { url: 'https://www.cinexp.site', lastModified: STABLE_DATE, changeFrequency: 'weekly', priority: 1.0 },
+  { url: 'https://www.cinexp.site/movies', lastModified: STABLE_DATE, changeFrequency: 'daily', priority: 0.9 },
+  { url: 'https://www.cinexp.site/tv', lastModified: STABLE_DATE, changeFrequency: 'daily', priority: 0.9 },
+  { url: 'https://www.cinexp.site/trending', lastModified: STABLE_DATE, changeFrequency: 'daily', priority: 0.8 },
+];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://www.cinexp.site';
-
-  const staticRoutes: MetadataRoute.Sitemap = [
-    {
-      url: baseUrl,
-      lastModified: new Date(),
-      changeFrequency: 'daily',
-      priority: 1.0,
-    },
-    {
-      url: `${baseUrl}/movies`,
-      lastModified: new Date(),
-      changeFrequency: 'daily',
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/tv`,
-      lastModified: new Date(),
-      changeFrequency: 'daily',
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/trending`,
-      lastModified: new Date(),
-      changeFrequency: 'daily',
-      priority: 0.8,
-    },
-  ];
-
   try {
-    // getSEOPrebuildData fetches the most popular, top-rated, and hyped content.
-    // This provides Google with a highly curated list of ~600 important pages
-    // without hitting Vercel CPU limits or getting "Discovered - Not Indexed" errors.
-    const seoData = await getSEOPrebuildData();
-    
-    const dynamicRoutes: MetadataRoute.Sitemap = seoData.map(({ type, item }) => {
-      const title = (item as any).title || (item as any).name;
-      return {
-        url: `${baseUrl}/media/${type}/${generateSlug(item.id, title)}`,
-        lastModified: new Date(),
-        changeFrequency: 'weekly',
-        priority: 0.7,
-      };
-    });
-
-    return [...staticRoutes, ...dynamicRoutes];
+    const pages = await getSEOPagesForSitemap();
+    const dynamicRoutes: MetadataRoute.Sitemap = pages.map((page) => ({
+      url: `https://www.cinexp.site/media/${page.mediaType}/${page.slug}`,
+      lastModified: STABLE_DATE,
+      changeFrequency: 'weekly' as const,
+      priority: page.source === 'homepage' ? 0.8 : 0.7,
+    }));
+    return [...STATIC_ROUTES, ...dynamicRoutes];
   } catch (error) {
-    console.error(`Failed to generate sitemap`, error);
-    return staticRoutes;
+    console.error('Sitemap generation failed:', error);
+    return STATIC_ROUTES;
   }
 }

@@ -134,3 +134,18 @@ model ScraperCache {
 
   @@unique([tmdbId, type, season, industry])
 }
+
+model SEOPage {
+  id        String   @id @default(cuid())
+  tmdbId    Int
+  mediaType String   // "movie" or "tv"
+  title     String   // Cached title (avoids TMDB calls in sitemap)
+  slug      String   // Precomputed: {tmdbId}-{title-slug}
+  source    String   @default("trending") // "homepage" | "trending" | "manual"
+  enabled   Boolean  @default(true)
+  addedAt   DateTime @default(now())
+  
+  @@unique([tmdbId, mediaType])
+  @@index([source, enabled])
+  @@index([addedAt])
+}

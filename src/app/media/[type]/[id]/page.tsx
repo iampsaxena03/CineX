@@ -1,5 +1,4 @@
-import { getDetails, getImageUrl, getBackdropUrl, getSimilar, getSEOPrebuildData } from "@/lib/tmdb";
-import { generateSlug } from "@/lib/utils";
+import { getDetails, getImageUrl, getBackdropUrl, getSimilar } from "@/lib/tmdb";
 
 import type { Metadata, ResolvingMetadata } from "next";
 import MediaInteractive from "@/components/MediaInteractive";
@@ -8,26 +7,28 @@ import HistoryTracker from "@/components/HistoryTracker";
 import AdSlot from "@/components/ads/AdSlot";
 import Link from "next/link";
 import { VscArrowLeft } from "react-icons/vsc";
-import { notFound } from "next/navigation";
+import { Suspense } from "react";
 
 
 export const dynamicParams = true;
 export const maxDuration = 60;
+export const revalidate = 604800; // 7 days — safety net for pages added post-deploy
 
 export async function generateStaticParams() {
   try {
-    const prebuildData = await getSEOPrebuildData();
-    
-    return prebuildData.map(({ type, item }) => {
-      const title = (item as any).title || (item as any).name;
-      return {
-        type,
-        id: generateSlug(item.id, title)
-      };
+    const { prisma } = await import('@/lib/admin');
+    // Prebuild ALL enabled SEOPages — reads from DB (0 TMDB calls)
+    const pages = await prisma.sEOPage.findMany({
+      where: { enabled: true },
+      orderBy: { addedAt: 'desc' },
     });
+    return pages.map(page => ({
+      type: page.mediaType as 'movie' | 'tv',
+      id: page.slug,
+    }));
   } catch (err) {
     console.error("Error in generateStaticParams:", err);
-    return []; // Fall back to pure ISR if build-time fetch fails
+    return [];
   }
 }
 
@@ -38,7 +39,12 @@ export async function generateMetadata(
   const { type, id: rawId } = await params;
   const id = rawId.split("-")[0];
   const details = await getDetails(type, id);
-  if (!details) return { title: "Not Found", robots: { index: false, follow: false } };
+  if (!details) {
+    return {
+      title: "CineXP — Stream Free Movies & TV",
+      description: "Watch the latest movies and TV shows online free in HD on CineXP.",
+    };
+  }
 
   const baseTitle = (details as any).title || (details as any).name;
   const year = ((details as any).release_date || (details as any).first_air_date || "").split("-")[0];
@@ -98,7 +104,15 @@ export default async function MediaPage({
     getSimilar(type, id)
   ]);
 
-  if (!details) return notFound();
+  if (!details) {
+    return (
+      <div className="page-wrapper container" style={{ paddingTop: "20vh", textAlign: "center" }}>
+        <h1>Content Temporarily Unavailable</h1>
+        <p style={{ opacity: 0.7 }}>We&apos;re having trouble loading this title. Please try again in a moment.</p>
+        <Link href="/">Browse Available Titles</Link>
+      </div>
+    );
+  }
 
   const title = (details as any).title || (details as any).name;
   const year = ((details as any).release_date || (details as any).first_air_date || "").split("-")[0];
@@ -304,16 +318,31 @@ export default async function MediaPage({
         </div>
 
         {/* Interactive: Season picker + Player + Downloads */}
-        <MediaInteractive 
-          id={id} 
-          type={type} 
-          imdbId={(details as any).external_ids?.imdb_id} 
-          seasons={seasons} 
-          title={title} 
-          posterUrl={posterUrl} 
-          year={year}
-          industry={industry}
-        />
+        <Suspense fallback={
+          <div style={{
+            aspectRatio: '16/9', width: '100%', background: '#0a0510',
+            borderRadius: '16px', display: 'flex', alignItems: 'center',
+            justifyContent: 'center', border: '1px solid rgba(157,0,255,0.15)'
+          }}>
+            <div style={{ textAlign: 'center', opacity: 0.7 }}>
+              <p style={{ fontSize: '1.1rem', fontWeight: 500 }}>Loading player stream...</p>
+              <p style={{ fontSize: '0.85rem', marginTop: '0.5rem', opacity: 0.6 }}>
+                {title} — Stream free in HD on CineXP
+              </p>
+            </div>
+          </div>
+        }>
+          <MediaInteractive 
+            id={id} 
+            type={type} 
+            imdbId={(details as any).external_ids?.imdb_id} 
+            seasons={seasons} 
+            title={title} 
+            posterUrl={posterUrl} 
+            year={year}
+            industry={industry}
+          />
+        </Suspense>
 
         {/* Ad between player and recommendations */}
         <AdSlot />
