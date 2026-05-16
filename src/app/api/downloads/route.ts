@@ -129,7 +129,6 @@ export async function GET(request: Request) {
         })
       }
     }
-    }
 
     return NextResponse.json({ links: movieLinks, episodeLinks })
   } catch (error) {
