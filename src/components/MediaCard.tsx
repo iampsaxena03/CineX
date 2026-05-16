@@ -54,12 +54,6 @@ const MediaCard: React.FC<MediaCardProps> = ({ item, stagger = 0, showRemoveHist
           key={`${item.media_type}-${item.id}`}
           className="card"
           style={{ display: "block", transition: "transform 0.2s ease-out" }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'scale(1.05)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'scale(1)';
-          }}
         >
         <div className="card-image-wrapper" style={{ position: "relative" }}>
           {item.poster_path ? (
